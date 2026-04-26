@@ -99,6 +99,7 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 | Fase 5 — Multi-tenancy | ✅ COMPLETO | Event model, /e/:slug routes, EventSlugContext, admin Eventos tab |
 | Fase 6 — Media management | ✅ COMPLETO | Upload fotos/audio desde admin, galería drag-drop, serve via API |
 | Fase 7 — Product polish | ✅ COMPLETO | Email SMTP notifications, QR codes admin, RSVP edit modal, /landing page |
+| Fase 8 — Content management | ✅ COMPLETO | Secciones tab (OurStory/Schedule/FAQ/Footer CRUD), gallery/music ↔ media integration, saveConfig fix, event-type adaptive titles |
 
 **Cliente actual**: Concepción & Eumelio · boda · 2026-12-05 · paleta `nature`  
 **Recintos**: placeholders — el cliente debe completar desde /admin  
