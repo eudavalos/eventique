@@ -48,8 +48,8 @@ frontend/public/music/*.mp3
 frontend/public/music/*.ogg
 frontend/public/music/*.wav
 
-# Claude Code local settings (contains private URLs/tokens)
-.claude/settings.local.json
+# Claude Code internal (settings.local.json is at repo root, NOT here)
+.claude/
 
 # Logs
 *.log

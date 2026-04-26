@@ -2,7 +2,9 @@
 
 **Proyecto**: Eventique — Plataforma de invitaciones digitales para eventos  
 **Propietario**: Eumelio Dávalos (eudavalos91@gmail.com)  
+**Empresa**: Tecnopowerpy / Eumelio Dávalos (producto vendible, cliente actual: Concepción & Eumelio)  
 **Stack**: React 18 + TypeScript + Vite + FastAPI + SQLite + Docker + Cloudflare Tunnel  
+**Licencia**: MIT  
 **URL producción**: https://eventique.tecnopowerpy.top  
 **Repositorio**: https://github.com/eudavalos/eventique
 
@@ -107,12 +109,12 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 
 **Ninguna constante numérica en código fuente**. Todo valor configurable vive en `settings.local.json`.
 
-Los valores actuales están en `.claude/settings.local.json`. Acceder con:
+Los valores actuales están en `settings.local.json` (raíz del repo, versionado en git). Acceder con:
 - Frontend: constantes importadas de `config/` o leídas de `useConfig()`
 - Backend: variables de entorno en `.env` (ADMIN_TOKEN, DATABASE_URL, ALLOWED_ORIGINS)
-- Infraestructura: valores en `docker-compose.yml` que referencian `settings.local.json`
+- Infraestructura: valores en `docker-compose.yml`
 
-Valores en `.claude/settings.local.json`:
+Valores en `settings.local.json`:
 - `api.port` = 8700
 - `frontend.port_host` = 5176  
 - `rsvp.max_guests_default` = 4

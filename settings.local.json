@@ -1,0 +1,123 @@
+{
+  "session_protocol": {
+    "last_session_date": "2026-04-26",
+    "last_session_topic": "brand-rename-eventique-github-deploy-production",
+    "test_count_baseline": 0,
+    "note_on_tests": "No automated test suite yet — validation is manual via browser + curl",
+    "git_workflow": {
+      "initialized": true,
+      "remote": "https://github.com/eudavalos/eventique",
+      "branch_default": "main",
+      "protected_branches": ["main"],
+      "push_to_main_requires_coordination": false
+    }
+  },
+
+  "api": {
+    "port": 8700,
+    "timeout_ms": 10000,
+    "admin_token_env_var": "ADMIN_TOKEN",
+    "admin_token_encoding": "none",
+    "note_admin_auth": "Bearer token = raw ADMIN_TOKEN value, NEVER base64 encoded"
+  },
+
+  "frontend": {
+    "port_host": 5176,
+    "port_container": 80,
+    "vite_dev_port": 5174,
+    "build_tool": "vite",
+    "node_version": "20-alpine"
+  },
+
+  "rsvp": {
+    "max_guests_default": 4,
+    "max_guests_absolute": 8,
+    "min_name_length": 2,
+    "max_name_length": 200,
+    "max_dietary_length": 500,
+    "max_song_request_length": 300,
+    "form_steps": 4
+  },
+
+  "docker": {
+    "healthcheck_interval_s": 30,
+    "healthcheck_timeout_s": 5,
+    "healthcheck_retries_frontend": 3,
+    "healthcheck_retries_api": 5,
+    "healthcheck_start_period_api_s": 15,
+    "frontend_healthcheck_method": "CMD-SHELL",
+    "frontend_healthcheck_host": "127.0.0.1",
+    "api_healthcheck_method": "python3-urllib",
+    "note_healthcheck": "Use 127.0.0.1 not localhost — Alpine resolves localhost to ::1 (IPv6) but nginx listens on IPv4 only"
+  },
+
+  "theme": {
+    "palettes_available": ["nature", "rose-gold", "garden", "navy-gold", "sage", "midnight"],
+    "default_palette": "nature",
+    "palette_nature": {
+      "primary": "#3E7B57",
+      "primary_light": "#5A9E74",
+      "primary_dark": "#2B5840",
+      "secondary": "#EFF7EC",
+      "accent": "#C9A93C",
+      "bg": "#F8FCF6",
+      "surface": "#FFFFFF",
+      "text": "#1C2D22",
+      "text_muted": "#5D7A67",
+      "border": "#C4D9CA"
+    },
+    "fonts_default": {
+      "heading": "Cormorant Garamond",
+      "subheading": "Playfair Display",
+      "body": "Jost"
+    }
+  },
+
+  "event_types": ["boda", "cumpleanos", "bautismo", "quinceanera", "graduacion", "corporativo"],
+
+  "music": {
+    "youtube_embed_params": "enablejsapi=1&autoplay=0&controls=0&rel=0&modestbranding=1&playsinline=1",
+    "youtube_postmessage_origin": "*",
+    "local_mp3_path": "/public/music/",
+    "photos_path": "/public/photos/"
+  },
+
+  "deploy": {
+    "ssh_host": "eudavalos@raspberrypi",
+    "ssh_ip": "192.168.100.19",
+    "remote_project_path": "~/Boda",
+    "public_url": "https://eventique.tecnopowerpy.top",
+    "admin_url": "https://eventique.tecnopowerpy.top/admin",
+    "pi_architecture": "arm64",
+    "cloudflare_tunnel_name": "tecnopowerpy",
+    "cloudflare_tunnel_id": "7ff99efa-ac3f-4e5d-acfe-c2dde45fa3b5",
+    "cloudflare_config_path_on_pi": "/etc/cloudflared/config.yml",
+    "note_cloudflare": "Tunnel runs on Pi host as systemd service, NEVER inside Docker"
+  },
+
+  "current_client": {
+    "event_type": "boda",
+    "person1_name": "Concepción Davila",
+    "person2_name": "Eumelio Dávalos",
+    "display_names": "Concepción & Eumelio",
+    "ceremony_date": "2026-12-05T16:00:00",
+    "timezone": "America/Bogota",
+    "palette": "nature",
+    "hashtag": "#ConcepcionYEumelio2026",
+    "music_youtube_id": "zqlkbbJ003w",
+    "venues_status": "placeholders — client must update via /admin"
+  },
+
+  "sections_available": [
+    "hero", "countdown", "ourStory", "schedule",
+    "weddingParty", "gallery", "accommodation", "faq", "rsvp", "footer"
+  ],
+
+  "admin_panel": {
+    "tabs": ["rsvps", "config", "tema"],
+    "config_storage": "sqlite:event_config table (single row, JSON blob)",
+    "config_endpoint_get": "GET /api/event-config",
+    "config_endpoint_put": "PUT /api/event-config",
+    "csv_export_available": true
+  }
+}
