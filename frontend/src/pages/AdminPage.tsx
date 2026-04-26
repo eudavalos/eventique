@@ -68,6 +68,7 @@ interface ConfigFormData {
   ceremony_venue_dresscode: string;
   reception_venue_time: string;
   reception_venue_dresscode: string;
+  gift_registry_enabled: boolean;
   gift_registry_url: string;
   gift_registry_label: string;
   gift_registry_title: string;
@@ -585,6 +586,7 @@ export default function AdminPage() {
           },
         },
         notification_email: formData.notification_email || undefined,
+        gift_registry_enabled: formData.gift_registry_enabled,
         gift_registry_url: formData.gift_registry_url || undefined,
         gift_registry_label: formData.gift_registry_label || undefined,
         gift_registry_title: formData.gift_registry_title || undefined,
@@ -1505,28 +1507,128 @@ export default function AdminPage() {
 
             {/* Gift Registry */}
             <div className="card p-6 sm:p-8">
-              <h2 className="font-sub text-lg font-medium mb-1" style={{ color: 'var(--color-text)' }}>Mesa de Regalos</h2>
-              <p className="text-xs mb-5" style={{ color: 'var(--color-text-muted)' }}>Deja la URL vacía para ocultar esta sección en la invitación.</p>
-              <div className="space-y-4">
+              {/* Header row with enable/disable toggle */}
+              <div className="flex items-start justify-between gap-4 mb-5">
                 <div>
-                  <label className="input-label">URL de la mesa de regalos *</label>
-                  <input {...register('gift_registry_url')} type="url" className="input-field" placeholder="https://mesaderegalos.liverpool.com.mx/..." />
+                  <h2 className="font-sub text-lg font-medium leading-tight" style={{ color: 'var(--color-text)' }}>Mesa de Regalos</h2>
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                    Sección que aparece en la invitación con el enlace a tu lista de regalos.
+                  </p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="input-label">Título de la sección (opcional)</label>
-                    <input {...register('gift_registry_title')} className="input-field" placeholder="Mesa de Regalos" />
-                  </div>
-                  <div>
-                    <label className="input-label">Texto del botón (opcional)</label>
-                    <input {...register('gift_registry_label')} className="input-field" placeholder="Ver lista de regalos" />
-                  </div>
-                </div>
-                <div>
-                  <label className="input-label">Descripción (opcional)</label>
-                  <textarea {...register('gift_registry_description')} rows={2} className="input-field resize-none" placeholder="Hemos preparado una selección especial para ayudarte a elegirnos el obsequio perfecto..." />
-                </div>
+                <Controller
+                  name="gift_registry_enabled"
+                  control={control}
+                  render={({ field }) => (
+                    <button
+                      type="button"
+                      onClick={() => field.onChange(!field.value)}
+                      className="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-body font-medium transition-all duration-200 border"
+                      style={{
+                        background: field.value ? 'var(--color-primary)' : 'var(--color-surface)',
+                        color: field.value ? 'white' : 'var(--color-text-muted)',
+                        borderColor: field.value ? 'var(--color-primary)' : 'var(--color-border)',
+                      }}
+                      title={field.value ? 'Visible para los invitados — clic para ocultar' : 'Oculta para los invitados — clic para activar'}
+                    >
+                      <span
+                        className="w-2 h-2 rounded-full transition-colors"
+                        style={{ background: field.value ? 'white' : 'var(--color-text-muted)', opacity: field.value ? 1 : 0.5 }}
+                      />
+                      {field.value ? 'Visible' : 'Oculta'}
+                    </button>
+                  )}
+                />
               </div>
+
+              {/* Status banner */}
+              <Controller
+                name="gift_registry_enabled"
+                control={control}
+                render={({ field }) => (
+                  <div
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 mb-5 text-xs font-body"
+                    style={{
+                      background: field.value ? 'rgba(var(--color-primary-rgb, 62,123,87), 0.07)' : 'var(--color-secondary)',
+                      border: `1px solid ${field.value ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                      opacity: 1,
+                    }}
+                  >
+                    <span className="text-base">{field.value ? '🎁' : '🙈'}</span>
+                    <div>
+                      <p className="font-medium" style={{ color: field.value ? 'var(--color-primary)' : 'var(--color-text)' }}>
+                        {field.value ? 'Sección activa — visible en la invitación' : 'Sección oculta — los invitados no la verán'}
+                      </p>
+                      <p style={{ color: 'var(--color-text-muted)', marginTop: 2 }}>
+                        {field.value
+                          ? 'Completa la URL para que el botón funcione. Puedes ocultar la sección sin perder los datos.'
+                          : 'Puedes desactivar la sección sin borrar los datos. Reactívala en cualquier momento.'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              />
+
+              {/* Fields — dimmed when disabled */}
+              <Controller
+                name="gift_registry_enabled"
+                control={control}
+                render={({ field: enabledField }) => (
+                  <div
+                    className="space-y-4 transition-opacity duration-200"
+                    style={{ opacity: enabledField.value ? 1 : 0.45, pointerEvents: enabledField.value ? 'auto' : 'none' }}
+                  >
+                    <div>
+                      <label className="input-label">
+                        URL de la mesa de regalos
+                        {enabledField.value && <span className="text-red-400 ml-0.5">*</span>}
+                      </label>
+                      <input
+                        {...register('gift_registry_url')}
+                        type="url"
+                        className="input-field"
+                        placeholder="https://mesaderegalos.liverpool.com.mx/..."
+                        disabled={!enabledField.value}
+                      />
+                      <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                        Pega aquí el enlace de tu tienda, lista de deseos o página de regalo.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="input-label">Título de la sección</label>
+                        <input
+                          {...register('gift_registry_title')}
+                          className="input-field"
+                          placeholder="Mesa de Regalos"
+                          disabled={!enabledField.value}
+                        />
+                        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Aparece como encabezado de la sección.</p>
+                      </div>
+                      <div>
+                        <label className="input-label">Texto del botón</label>
+                        <input
+                          {...register('gift_registry_label')}
+                          className="input-field"
+                          placeholder="Ver lista de regalos"
+                          disabled={!enabledField.value}
+                        />
+                        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Texto que verán los invitados en el botón.</p>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="input-label">Descripción</label>
+                      <textarea
+                        {...register('gift_registry_description')}
+                        rows={2}
+                        className="input-field resize-none"
+                        placeholder="Hemos preparado una selección especial para ayudarte a elegirnos el obsequio perfecto..."
+                        disabled={!enabledField.value}
+                      />
+                      <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Texto de apoyo que acompaña el botón (opcional).</p>
+                    </div>
+                  </div>
+                )}
+              />
             </div>
 
             {/* Palette quick pick */}
@@ -2801,6 +2903,7 @@ function buildDefaultValues(cfg: Record<string, unknown>): ConfigFormData {
     ceremony_venue_dresscode: cv.dresscode                              ?? '',
     reception_venue_time:     rv.time                                   ?? '',
     reception_venue_dresscode:rv.dresscode                              ?? '',
+    gift_registry_enabled:    (cfg.gift_registry_enabled as boolean)   ?? true,
     gift_registry_url:        (cfg.gift_registry_url as string)        ?? '',
     gift_registry_label:      (cfg.gift_registry_label as string)      ?? '',
     gift_registry_title:      (cfg.gift_registry_title as string)      ?? '',

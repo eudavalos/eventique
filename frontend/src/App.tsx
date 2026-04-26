@@ -112,6 +112,7 @@ function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): Weddin
     social: dynamic.social ?? base.social,
     music: dynamic.music ?? base.music,
     venuesTitle: typeLabels?.venuesTitle ?? base.venuesTitle ?? 'Los Recintos',
+    gift_registry_enabled: (dyn.gift_registry_enabled as boolean | undefined) ?? base.gift_registry_enabled ?? true,
     gift_registry_url: (dyn.gift_registry_url as string | undefined) ?? base.gift_registry_url,
     gift_registry_label: (dyn.gift_registry_label as string | undefined) ?? base.gift_registry_label,
     gift_registry_title: (dyn.gift_registry_title as string | undefined) ?? base.gift_registry_title,

@@ -222,6 +222,7 @@ export interface WeddingConfig {
     instagram?: string;
   };
   venuesTitle?: string;
+  gift_registry_enabled?: boolean;
   gift_registry_url?: string;
   gift_registry_label?: string;
   gift_registry_title?: string;
@@ -247,6 +248,7 @@ export interface EventConfig {
   social?: WeddingConfig['social'];
   music?: WeddingConfig['music'];
   notification_email?: string;
+  gift_registry_enabled?: boolean;
   gift_registry_url?: string;
   gift_registry_label?: string;
   gift_registry_title?: string;

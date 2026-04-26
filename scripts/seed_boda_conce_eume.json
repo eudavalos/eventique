@@ -17,18 +17,18 @@
     "hashtag": "#ConcepciónYEumelio2026"
   },
   "dates": {
-    "ceremony": "2026-12-05T16:00:00",
-    "reception": "2026-12-05T19:00:00",
-    "timezone": "America/Bogota",
-    "displayDate": "Sábado, 5 de Diciembre de 2026"
+    "ceremony": "2026-06-07T16:00:00",
+    "reception": "2026-06-07T19:00:00",
+    "timezone": "America/Asuncion",
+    "displayDate": "Domingo, 7 de Junio de 2026"
   },
   "venues": {
     "ceremony": {
       "name": "Iglesia de San Pedro Claver",
       "address": "Plaza de San Pedro Claver, Carrera 4 #30-01",
-      "city": "Cartagena de Indias",
-      "country": "Colombia",
-      "mapsUrl": "https://maps.google.com/?q=Iglesia+San+Pedro+Claver+Cartagena",
+      "city": "Carapeguá",
+      "country": "Paraguay",
+      "mapsUrl": "https://maps.google.com/?q=Carapegua+Paraguay",
       "time": "4:00 PM",
       "dresscode": "Etiqueta formal",
       "notes": "Por favor llegar 30 minutos antes de la ceremonia."
@@ -36,9 +36,9 @@
     "reception": {
       "name": "Club de Pesca",
       "address": "Manga, Carrera 1a #24-29",
-      "city": "Cartagena de Indias",
-      "country": "Colombia",
-      "mapsUrl": "https://maps.google.com/?q=Club+de+Pesca+Cartagena",
+      "city": "Carapeguá",
+      "country": "Paraguay",
+      "mapsUrl": "https://maps.google.com/?q=Carapegua+Paraguay",
       "time": "7:00 PM",
       "dresscode": "Etiqueta formal",
       "notes": "Transporte disponible desde la iglesia."
@@ -58,6 +58,7 @@
       { "title": "A Thousand Years", "artist": "Christina Perri", "url": "https://www.youtube.com/watch?v=rtOvBOTyX00" }
     ]
   },
+  "gift_registry_enabled": true,
   "gift_registry_url": "https://www.liverpool.com.mx/tienda/pdp/mesa-de-regalos",
   "gift_registry_label": "Ver nuestra mesa de regalos",
   "gift_registry_title": "Mesa de Regalos",

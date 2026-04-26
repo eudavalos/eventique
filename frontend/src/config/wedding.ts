@@ -32,10 +32,10 @@ export const config: WeddingConfig = {
   //  timezone: IANA timezone (America/Bogota, America/New_York, etc.)
   // ──────────────────────────────────────────────────────────
   dates: {
-    ceremony: '2026-12-05T16:00:00',
-    reception: '2026-12-05T19:00:00',
-    timezone: 'America/Bogota',
-    displayDate: 'Sábado, 5 de Diciembre de 2026',
+    ceremony: '2026-06-07T16:00:00',
+    reception: '2026-06-07T19:00:00',
+    timezone: 'America/Asuncion',
+    displayDate: 'Domingo, 7 de Junio de 2026',
   },
 
   // ──────────────────────────────────────────────────────────
@@ -45,9 +45,9 @@ export const config: WeddingConfig = {
     ceremony: {
       name: 'Iglesia San Pedro Claver',
       address: 'Plaza de San Pedro Claver, Carrera 4 #30-01',
-      city: 'Cartagena de Indias',
-      country: 'Colombia',
-      mapsUrl: 'https://maps.google.com/?q=Iglesia+San+Pedro+Claver+Cartagena',
+      city: 'Carapeguá',
+      country: 'Paraguay',
+      mapsUrl: 'https://maps.google.com/?q=Carapegua+Paraguay',
       photo: '/uploads/default/ceremony-venue.jpg',
       time: '4:00 PM',
       dresscode: 'Formal',
@@ -56,9 +56,9 @@ export const config: WeddingConfig = {
     reception: {
       name: 'Club de Pesca',
       address: 'Manga, Carrera 1a #24-29',
-      city: 'Cartagena de Indias',
-      country: 'Colombia',
-      mapsUrl: 'https://maps.google.com/?q=Club+de+Pesca+Cartagena',
+      city: 'Carapeguá',
+      country: 'Paraguay',
+      mapsUrl: 'https://maps.google.com/?q=Carapegua+Paraguay',
       photo: '/uploads/default/reception-venue.jpg',
       time: '7:00 PM',
       dresscode: 'Formal',
@@ -282,6 +282,8 @@ export const config: WeddingConfig = {
       credits: 'Concepción & Eumelio · Diciembre 2026',
     },
   },
+
+  gift_registry_enabled: true,
 
   // ──────────────────────────────────────────────────────────
   //  6. MÚSICA  (agrega archivos en /public/music/)

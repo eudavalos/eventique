@@ -7,13 +7,14 @@ import { OrnamentDivider, OrnamentFloral } from '../components/Ornament';
 export default function GiftRegistry() {
   const config = useConfig();
   const {
+    gift_registry_enabled,
     gift_registry_url,
     gift_registry_label,
     gift_registry_title,
     gift_registry_description,
   } = config;
 
-  if (!gift_registry_url) return null;
+  if (gift_registry_enabled === false || !gift_registry_url) return null;
 
   const title       = gift_registry_title       || 'Mesa de Regalos';
   const label       = gift_registry_label       || 'Ver lista de regalos';
