@@ -141,11 +141,10 @@ export default function App() {
           }}
         />
         <Routes>
-          <Route path="/" element={<EventInvitationRoute defaultSlug="default" />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/admin" element={<EventAdminRoute defaultSlug="default" />} />
           <Route path="/e/:slug" element={<EventInvitationRoute />} />
           <Route path="/e/:slug/admin" element={<EventAdminRoute />} />
-          <Route path="/landing" element={<LandingPage />} />
         </Routes>
       </BrowserRouter>
     </ErrorBoundary>

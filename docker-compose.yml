@@ -39,11 +39,50 @@ services:
     container_name: eventique-api
     restart: unless-stopped
     environment:
+      # ── Core ──────────────────────────────────────────────────
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-false}
       - ADMIN_TOKEN=${ADMIN_TOKEN}
       - DATABASE_URL=${DATABASE_URL:-sqlite:////app/data/eventique.db}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://eventique.tecnopowerpy.top}
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:5176}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5174,http://localhost:5176,http://127.0.0.1:5174,http://127.0.0.1:5176}
+      - API_TITLE=${API_TITLE:-Eventique API}
+      - API_VERSION=${API_VERSION:-1.0.0}
+      # ── Storage ───────────────────────────────────────────────
+      - UPLOAD_DIR=${UPLOAD_DIR:-/app/uploads}
+      - MAX_IMAGE_SIZE_MB=${MAX_IMAGE_SIZE_MB:-10}
+      - MAX_AUDIO_SIZE_MB=${MAX_AUDIO_SIZE_MB:-50}
+      - ALLOWED_IMAGE_TYPES=${ALLOWED_IMAGE_TYPES:-image/jpeg,image/png,image/webp,image/gif}
+      - ALLOWED_AUDIO_TYPES=${ALLOWED_AUDIO_TYPES:-audio/mpeg,audio/wav,audio/ogg,audio/webm}
+      - ALLOWED_IMAGE_EXTENSIONS=${ALLOWED_IMAGE_EXTENSIONS:-jpg,jpeg,png,webp,gif}
+      - ALLOWED_AUDIO_EXTENSIONS=${ALLOWED_AUDIO_EXTENSIONS:-mp3,wav,ogg,webm,m4a}
+      # ── Email ─────────────────────────────────────────────────
+      - EMAIL_ENABLED=${EMAIL_ENABLED:-false}
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      # ── Rate Limiting ─────────────────────────────────────────
+      - RATE_LIMIT_ENABLED=${RATE_LIMIT_ENABLED:-true}
+      - RATE_LIMIT_REQUESTS_PER_MINUTE=${RATE_LIMIT_REQUESTS_PER_MINUTE:-60}
+      - RATE_LIMIT_ADMIN_REQUESTS_PER_MINUTE=${RATE_LIMIT_ADMIN_REQUESTS_PER_MINUTE:-120}
+      - RATE_LIMIT_RSVP_CHECK_PER_MINUTE=${RATE_LIMIT_RSVP_CHECK_PER_MINUTE:-10}
+      - RATE_LIMIT_MEDIA_UPLOAD_PER_MINUTE=${RATE_LIMIT_MEDIA_UPLOAD_PER_MINUTE:-5}
+      # ── RSVP ──────────────────────────────────────────────────
+      - RSVP_MAX_GUESTS_DEFAULT=${RSVP_MAX_GUESTS_DEFAULT:-4}
+      - RSVP_MAX_GUESTS_ABSOLUTE=${RSVP_MAX_GUESTS_ABSOLUTE:-8}
+      # ── Security ──────────────────────────────────────────────
+      - ADMIN_SESSION_TIMEOUT_HOURS=${ADMIN_SESSION_TIMEOUT_HOURS:-24}
+      - TOKEN_HASHING_ENABLED=${TOKEN_HASHING_ENABLED:-false}
+      - REQUIRE_HTTPS_IN_PRODUCTION=${REQUIRE_HTTPS_IN_PRODUCTION:-true}
+      # ── Features ──────────────────────────────────────────────
+      - FEATURE_EMAIL_ENABLED=${FEATURE_EMAIL_ENABLED:-false}
+      - FEATURE_QR_CODES_ENABLED=${FEATURE_QR_CODES_ENABLED:-true}
+      - FEATURE_MUSIC_YOUTUBE_ENABLED=${FEATURE_MUSIC_YOUTUBE_ENABLED:-true}
     volumes:
       - ./data:/app/data
+      - ./uploads:/app/uploads
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8700/health')"]
       interval: 15s

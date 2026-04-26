@@ -21,28 +21,29 @@ from sqlalchemy import func, text
 
 from . import models, schemas
 from .database import engine, get_db, SessionLocal
+from .settings import get_settings
+from .ratelimit import check_rate_limit, get_client_ip
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# ── Config (from api/settings.py — all env vars centralized) ────────────────
 
-ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "change-me-in-production")
-ALLOWED_ORIGINS = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:5174,https://eventique.tecnopowerpy.top",
-).split(",")
-UPLOAD_DIR = Path("/app/data/uploads")
-MAX_IMAGE_SIZE = 10 * 1024 * 1024   # 10 MB
-MAX_AUDIO_SIZE = 50 * 1024 * 1024   # 50 MB
-ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
-ALLOWED_AUDIO_TYPES = {"audio/mpeg", "audio/mp4", "audio/wav", "audio/ogg", "audio/x-m4a"}
+settings = get_settings()
 
-# ── Email notifications (optional — set EMAIL_ENABLED=true + SMTP vars to activate) ──
+# Legacy variables (for compatibility with existing code)
+ADMIN_TOKEN = settings.admin_token
+ALLOWED_ORIGINS = settings.allowed_origins if isinstance(settings.allowed_origins, list) else settings.allowed_origins.split(",")
+UPLOAD_DIR = Path(settings.upload_dir)
+MAX_IMAGE_SIZE = settings.max_image_size_mb * 1024 * 1024
+MAX_AUDIO_SIZE = settings.max_audio_size_mb * 1024 * 1024
+ALLOWED_IMAGE_TYPES = set(settings.allowed_image_types if isinstance(settings.allowed_image_types, list) else settings.allowed_image_types.split(","))
+ALLOWED_AUDIO_TYPES = set(settings.allowed_audio_types if isinstance(settings.allowed_audio_types, list) else settings.allowed_audio_types.split(","))
 
-EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "false").lower() == "true"
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASS = os.getenv("SMTP_PASS", "")
-SMTP_FROM = os.getenv("SMTP_FROM", "")
+# Email config
+EMAIL_ENABLED = settings.email_enabled
+SMTP_HOST = settings.smtp_host
+SMTP_PORT = settings.smtp_port
+SMTP_USER = settings.smtp_user
+SMTP_PASS = settings.smtp_pass
+SMTP_FROM = settings.smtp_from
 
 # ── Startup migration ─────────────────────────────────────────────────────────
 
@@ -185,6 +186,21 @@ def _trigger_rsvp_emails(rsvp: models.RSVP, event: models.Event, db: Session):
         ).start()
 
 
+# ── Startup validation ────────────────────────────────────────────────────────
+
+def _validate_smtp() -> bool:
+    """Validate SMTP configuration if email is enabled."""
+    if not EMAIL_ENABLED or not SMTP_USER:
+        return True  # Email disabled, validation passes
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=5) as srv:
+            srv.starttls()
+            srv.login(SMTP_USER, SMTP_PASS)
+        return True
+    except Exception as e:
+        print(f"⚠️  SMTP validation failed: {type(e).__name__}")
+        return False
+
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 
 models.Base.metadata.create_all(bind=engine)
@@ -194,6 +210,16 @@ models.Base.metadata.create_all(bind=engine)
 async def lifespan(app: FastAPI):
     run_migrations()
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Validate SMTP if email is enabled
+    if EMAIL_ENABLED and SMTP_USER:
+        if _validate_smtp():
+            print("✅ Email: SMTP configured and validated")
+        else:
+            print("⚠️  Email: SMTP validation failed (RSVP will work, emails may not send)")
+    else:
+        print("ℹ️  Email: SMTP disabled or not configured")
+
     yield
 
 
@@ -212,9 +238,21 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+
+# ── Security middleware (custom) ───────────────────────────────────────────────
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    return response
 
 bearer = HTTPBearer(auto_error=False)
 
@@ -312,8 +350,26 @@ def _delete_rsvp_by_id(event_slug: str, rsvp_id: int, db: Session):
 
 
 @app.get("/health")
-async def health():
-    return {"status": "ok", "app": "Eventique API", "version": "3.0.0"}
+async def health(db: Session = Depends(get_db)):
+    health_data = {
+        "status": "ok",
+        "app": "Eventique API",
+        "version": "3.0.0",
+        "database": "sqlite",
+        "email": {
+            "enabled": EMAIL_ENABLED,
+            "configured": bool(SMTP_USER and SMTP_PASS),
+        }
+    }
+    # Check database connectivity
+    try:
+        db.execute(text("SELECT 1"))
+        health_data["database"] = "ok"
+    except Exception:
+        health_data["status"] = "degraded"
+        health_data["database"] = "error"
+
+    return health_data
 
 
 # ── Backward-compat endpoints (alias → default event) ────────────────────────
@@ -337,12 +393,16 @@ async def update_event_config(
 
 
 @app.post("/rsvp", response_model=schemas.RSVPResponse, status_code=status.HTTP_201_CREATED)
-async def create_rsvp(data: schemas.RSVPCreate, db: Session = Depends(get_db)):
+async def create_rsvp(request: Request, data: schemas.RSVPCreate, db: Session = Depends(get_db)):
+    if settings.rate_limit_enabled:
+        check_rate_limit(get_client_ip(request), settings.rate_limit_rsvp_check_per_minute, 60, "rsvp-create")
     return _upsert_rsvp("default", data, db)
 
 
 @app.get("/rsvp/check", response_model=schemas.CheckResponse)
-async def check_email(email: str = Query(...), db: Session = Depends(get_db)):
+async def check_email(request: Request, email: str = Query(...), db: Session = Depends(get_db)):
+    if settings.rate_limit_enabled:
+        check_rate_limit(get_client_ip(request), settings.rate_limit_rsvp_check_per_minute, 60, "rsvp-check")
     existing = db.query(models.RSVP).filter(
         models.RSVP.email == email, models.RSVP.event_slug == "default"
     ).first()
@@ -394,11 +454,14 @@ async def create_event(
 
 @app.post("/events/{event_slug}/duplicate", response_model=schemas.EventResponse, status_code=201)
 async def duplicate_event(
+    request: Request,
     event_slug: str,
     data: schemas.EventCreate,
     db: Session = Depends(get_db),
     _: bool = Depends(verify_admin),
 ):
+    if settings.rate_limit_enabled:
+        check_rate_limit(get_client_ip(request), 2, 60, "event-duplicate")
     source = db.query(models.Event).filter(models.Event.slug == event_slug).first()
     if not source:
         raise HTTPException(404, detail="Evento origen no encontrado")
@@ -461,10 +524,13 @@ async def update_event_config_by_slug(
 
 @app.post("/events/{event_slug}/rsvp", response_model=schemas.RSVPResponse, status_code=201)
 async def create_event_rsvp(
+    request: Request,
     data: schemas.RSVPCreate,
     event: models.Event = Depends(get_event_or_404),
     db: Session = Depends(get_db),
 ):
+    if settings.rate_limit_enabled:
+        check_rate_limit(get_client_ip(request), settings.rate_limit_rsvp_check_per_minute, 60, f"rsvp-{event.slug}")
     rsvp = _upsert_rsvp(event.slug, data, db)
     _trigger_rsvp_emails(rsvp, event, db)
     return rsvp
@@ -472,10 +538,13 @@ async def create_event_rsvp(
 
 @app.get("/events/{event_slug}/rsvp/check", response_model=schemas.CheckResponse)
 async def check_event_email(
+    request: Request,
     event: models.Event = Depends(get_event_or_404),
     email: str = Query(...),
     db: Session = Depends(get_db),
 ):
+    if settings.rate_limit_enabled:
+        check_rate_limit(get_client_ip(request), settings.rate_limit_rsvp_check_per_minute, 60, f"rsvp-check-{event.slug}")
     existing = db.query(models.RSVP).filter(
         models.RSVP.email == email, models.RSVP.event_slug == event.slug
     ).first()
@@ -553,10 +622,13 @@ async def list_media(
 
 @app.post("/events/{event_slug}/media", response_model=schemas.MediaResponse, status_code=201)
 async def upload_media(
+    request: Request,
     event: models.Event = Depends(verify_event_admin),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
+    if settings.rate_limit_enabled:
+        check_rate_limit(get_client_ip(request), settings.rate_limit_media_upload_per_minute, 60, f"media-upload-{event.slug}")
     ct = file.content_type or ""
     if ct not in ALLOWED_IMAGE_TYPES | ALLOWED_AUDIO_TYPES:
         raise HTTPException(400, detail=f"Tipo de archivo no permitido: {ct}")
