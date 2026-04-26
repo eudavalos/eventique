@@ -1,7 +1,7 @@
 {
   "session_protocol": {
     "last_session_date": "2026-04-26",
-    "last_session_topic": "brand-rename-eventique-github-deploy-production",
+    "last_session_topic": "fases-8-11-content-management-section-editors-music-duplication",
     "test_count_baseline": 0,
     "note_on_tests": "No automated test suite yet — validation is manual via browser + curl",
     "git_workflow": {
@@ -78,8 +78,20 @@
   "music": {
     "youtube_embed_params": "enablejsapi=1&autoplay=0&controls=0&rel=0&modestbranding=1&playsinline=1",
     "youtube_postmessage_origin": "*",
+    "youtube_detection_regex": "[?&]v=([a-zA-Z0-9_-]{11})|youtu\\.be\\/([a-zA-Z0-9_-]{11})",
     "local_mp3_path": "/public/music/",
-    "photos_path": "/public/photos/"
+    "photos_path": "/public/photos/",
+    "admin_youtube_form_fields": ["url", "title", "artist"],
+    "config_top_level_keys": ["enabled", "autoplay", "tracks"]
+  },
+
+  "media": {
+    "max_image_mb": 10,
+    "max_audio_mb": 50,
+    "serve_path": "/uploads/{slug}/{filename}",
+    "storage_path_container": "/app/uploads/",
+    "image_toggle_action": "addPhotoToGallery / removePhotoFromGallery",
+    "audio_toggle_action": "addTrackToPlayer / removeTrackFromPlayer"
   },
 
   "deploy": {
@@ -113,11 +125,37 @@
     "weddingParty", "gallery", "accommodation", "faq", "rsvp", "footer"
   ],
 
+  "sections_top_level_keys": ["music", "social"],
+
   "admin_panel": {
-    "tabs": ["rsvps", "config", "tema"],
+    "tabs": ["rsvps", "config", "tema", "media", "eventos", "secciones"],
     "config_storage": "sqlite:event_config table (single row, JSON blob)",
     "config_endpoint_get": "GET /api/event-config",
     "config_endpoint_put": "PUT /api/event-config",
-    "csv_export_available": true
+    "csv_export_available": true,
+    "secciones_coverage": [
+      "hero", "countdown", "ourStory", "schedule",
+      "weddingParty", "accommodation", "gallery", "rsvp", "footer",
+      "social", "music"
+    ],
+    "save_sections_handler": "saveSections — persists all 10 sections + music + social in single PUT call"
+  },
+
+  "event_duplication": {
+    "endpoint": "POST /events/{source_slug}/duplicate",
+    "auth": "Superadmin (global ADMIN_TOKEN)",
+    "request_schema": "EventCreate (name, slug, admin_token?)",
+    "behavior": "copies EventConfig JSON blob to new slug; returns 404 if source missing, 400 if target slug exists",
+    "frontend_trigger": "Clonar button (Copy icon) per row in Eventos tab → opens duplicate modal"
+  },
+
+  "auto_memory_protocol": {
+    "enabled": true,
+    "memory_dir": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/",
+    "save_on": "every significant order/response pair",
+    "types": ["user", "feedback", "project", "reference"],
+    "index_file": "MEMORY.md",
+    "session_file_pattern": "session_YYYY_MM_DD_<topic>.md",
+    "four_artifact_rule": ["session_*.md", "CLAUDE.md", "settings.local.json", "MEMORY.md"]
   }
 }

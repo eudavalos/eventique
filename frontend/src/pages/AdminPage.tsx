@@ -4,7 +4,7 @@ import {
   Users, CheckCircle, XCircle, BarChart3, Download, Lock,
   Settings, Palette, Upload, Trash2, Plus, ExternalLink,
   Copy, Music2, Calendar, Pencil, QrCode, X, FileText,
-  Image as ImageIcon,
+  Image as ImageIcon, LogOut,
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import toast from 'react-hot-toast';
@@ -377,6 +377,12 @@ export default function AdminPage() {
       .finally(() => setLoading(false));
   }, [token, eventSlug]); // eslint-disable-line
 
+  const handleLogout = () => {
+    setToken('');
+    setAuthed(false);
+    sessionStorage.removeItem('admin_token');
+  };
+
   // ── CSV Export ────────────────────────────────────────────────────────────
 
   const downloadCSV = () => {
@@ -710,24 +716,31 @@ export default function AdminPage() {
   if (!authed) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--color-bg)' }}>
-        <div className="card w-full max-w-md p-10">
+        <div className="card w-full max-w-sm p-10">
           <div className="text-center mb-8">
-            <Lock className="w-8 h-8 mx-auto mb-4" style={{ color: 'var(--color-primary)' }} />
-            <h1 className="section-title text-3xl">{names}</h1>
-            <p className="text-muted mt-2 text-sm">Panel de administración</p>
+            <div className="w-14 h-14 rounded-2xl mx-auto mb-5 flex items-center justify-center"
+              style={{ background: 'var(--color-primary)' }}>
+              <Lock className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="section-title text-3xl">Eventique</h1>
+            <p className="text-muted mt-1 text-sm">Panel de administración</p>
             {eventSlug !== 'default' && (
-              <p className="text-xs font-mono mt-1" style={{ color: 'var(--color-accent)' }}>/{eventSlug}</p>
+              <span className="inline-block text-xs font-mono mt-2 px-2 py-0.5 rounded-full"
+                style={{ background: 'var(--color-secondary)', color: 'var(--color-accent)' }}>
+                /{eventSlug}
+              </span>
             )}
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="input-label">Contraseña</label>
+              <label className="input-label">Token de acceso</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field"
-                placeholder="Ingresa la contraseña"
+                placeholder="••••••••••••"
+                autoFocus
                 required
               />
             </div>
@@ -751,17 +764,25 @@ export default function AdminPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="section-title text-left text-4xl">{names}</h1>
-            <p className="text-muted text-sm mt-1">
+            <h1 className="section-title text-left text-4xl">Eventique</h1>
+            <p className="text-muted text-sm mt-1 flex items-center gap-2 flex-wrap">
               Panel de administración
-              {eventSlug !== 'default' && (
-                <span className="ml-2 font-mono text-xs px-2 py-0.5 rounded-full"
-                  style={{ background: 'var(--color-secondary)', color: 'var(--color-accent)' }}>
-                  {eventSlug}
-                </span>
-              )}
+              <span className="font-mono text-xs px-2 py-0.5 rounded-full"
+                style={{ background: 'var(--color-secondary)', color: 'var(--color-accent)' }}>
+                {eventSlug}
+              </span>
+              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{names}</span>
             </p>
           </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg transition-colors"
+            style={{ color: 'var(--color-text-muted)' }}
+            title="Cerrar sesión"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Salir</span>
+          </button>
         </div>
 
         {/* Tab bar */}

@@ -152,11 +152,16 @@ Valores en `settings.local.json`:
 
 ## Protocolo de Sesión
 
-En cada sesión significativa, actualizar estos tres artefactos:
+En cada sesión significativa, actualizar estos cuatro artefactos:
 
 1. `memory/session_YYYY_MM_DD_<tema>.md` — decisiones, validaciones, cambios
 2. `CLAUDE.md` → sección "Estado del proyecto" con fecha actualizada
-3. `.claude/settings.local.json` → `session_protocol.last_session_date` + cambios técnicos
+3. `settings.local.json` → `session_protocol.last_session_date` + cambios técnicos relevantes
+4. `memory/MEMORY.md` → añadir entrada al índice
+
+**Auto-memoria por iteración**: En cada orden/respuesta relevante guardar contexto inmediatamente en el sistema de memoria en `C:\Users\EuDavalos\.claude\projects\D--Proyectos-Eventos-Boda\memory\`. No esperar al final de la sesión.
+
+**Tipos de memoria**: `user` (perfil/preferencias), `feedback` (reglas/anti-patrones), `project` (estado/decisiones), `reference` (recursos externos).
 
 **Iteración automática**: Ejecutar todas las subtareas de un bloque sin pedir confirmación entre ellas. Pausar solo ante: (a) acción destructiva irreversible, (b) ambigüedad que cambia el alcance, (c) fin de bloque o sesión.
 
@@ -197,3 +202,34 @@ En cada sesión significativa, actualizar estos tres artefactos:
 | POST | /events/{slug}/media | EventAdmin | Subir imagen (10MB) o audio (50MB) |
 | DELETE | /events/{slug}/media/{id} | EventAdmin | Eliminar archivo |
 | GET | /uploads/{slug}/{filename} | — | Servir archivo subido |
+
+### Event operations (Fase 11)
+| Method | Path | Auth | Descripción |
+|---|---|---|---|
+| POST | /events/{slug}/duplicate | Superadmin | Duplicar evento (copia EventConfig JSON al nuevo slug) |
+
+---
+
+## Admin Panel — Cobertura de secciones (post Fase 11)
+
+**6 tabs**: `rsvps` · `config` · `tema` · `media` · `eventos` · `secciones`
+
+### Tab Secciones — editores disponibles
+
+| Sección | Campos editables |
+|---|---|
+| Hero | enabled toggle, subtitle, backgroundImage (visual picker + URL), overlayOpacity, showScrollIndicator |
+| Countdown | enabled toggle, label text |
+| OurStory | enabled toggle, title, CRUD de eventos (date, title, description) |
+| Schedule | enabled toggle, title, CRUD de items (time, title, description) |
+| WeddingParty | enabled toggle, title, CRUD de miembros (name, role, side: bride/groom/both, description) |
+| Accommodation | enabled toggle, title, CRUD de hoteles (name, address, phone, website, stars 0-5, priceRange, notes) |
+| Gallery | enabled toggle, title, subtitle (fotos se asignan desde Media tab) |
+| RSVP | title, subtitle, confirmationMessage |
+| Footer | enabled toggle, message, credits |
+| Social | hashtag, Instagram username |
+| Music (top-level) | enabled toggle, autoplay toggle, YouTube track add (URL + título + artista), remove tracks |
+
+### Tab Media — integración
+- Imágenes: botón toggle "Galería" → `addPhotoToGallery` / `removePhotoFromGallery` (persiste inmediatamente)
+- Audio: botón toggle Music → `addTrackToPlayer` / `removeTrackFromPlayer` (persiste inmediatamente)
