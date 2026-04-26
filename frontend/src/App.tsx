@@ -45,27 +45,30 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): WeddingConfig {
   const typeLabels = dynamic.event_type ? (EVENT_TYPE_SECTION_LABELS[dynamic.event_type] ?? {}) : {};
   const baseSections = { ...base.sections };
+  const dynamicSections = dynamic.sections ? { ...dynamic.sections } : {};
+
   // Apply event-type defaults at lowest priority (only if DB config doesn't already set the title)
-  if (typeLabels.storyTitle && !dynamic.sections?.ourStory?.title) {
+  if (typeLabels.storyTitle && !dynamicSections?.ourStory?.title) {
     baseSections.ourStory = { ...baseSections.ourStory, title: typeLabels.storyTitle };
   }
-  if (typeLabels.scheduleTitle && !dynamic.sections?.schedule?.title) {
+  if (typeLabels.scheduleTitle && !dynamicSections?.schedule?.title) {
     baseSections.schedule = { ...baseSections.schedule, title: typeLabels.scheduleTitle };
   }
-  if (typeLabels.faqTitle && !dynamic.sections?.faq?.title) {
+  if (typeLabels.faqTitle && !dynamicSections?.faq?.title) {
     baseSections.faq = { ...baseSections.faq, title: typeLabels.faqTitle };
   }
+
   return {
     ...base,
     couple: dynamic.couple ?? base.couple,
     dates: dynamic.dates ?? base.dates,
-    venues: dynamic.venues ?? base.venues,
+    venues: dynamic.venues && Array.isArray(dynamic.venues) ? dynamic.venues : base.venues,
     theme: {
       ...base.theme,
       palette: dynamic.theme?.palette ?? base.theme.palette,
       customColors: dynamic.theme?.customColors ?? base.theme.customColors,
     },
-    sections: { ...baseSections, ...dynamic.sections },
+    sections: { ...baseSections, ...dynamicSections },
     social: dynamic.social ?? base.social,
     music: dynamic.music ?? base.music,
   };
