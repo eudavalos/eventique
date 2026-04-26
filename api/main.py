@@ -186,6 +186,21 @@ def _trigger_rsvp_emails(rsvp: models.RSVP, event: models.Event, db: Session):
         ).start()
 
 
+# ── Startup validation ────────────────────────────────────────────────────────
+
+def _validate_smtp() -> bool:
+    """Validate SMTP configuration if email is enabled."""
+    if not EMAIL_ENABLED or not SMTP_USER:
+        return True  # Email disabled, validation passes
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=5) as srv:
+            srv.starttls()
+            srv.login(SMTP_USER, SMTP_PASS)
+        return True
+    except Exception as e:
+        print(f"⚠️  SMTP validation failed: {type(e).__name__}")
+        return False
+
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 
 models.Base.metadata.create_all(bind=engine)
@@ -195,6 +210,16 @@ models.Base.metadata.create_all(bind=engine)
 async def lifespan(app: FastAPI):
     run_migrations()
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Validate SMTP if email is enabled
+    if EMAIL_ENABLED and SMTP_USER:
+        if _validate_smtp():
+            print("✅ Email: SMTP configured and validated")
+        else:
+            print("⚠️  Email: SMTP validation failed (RSVP will work, emails may not send)")
+    else:
+        print("ℹ️  Email: SMTP disabled or not configured")
+
     yield
 
 
@@ -325,8 +350,26 @@ def _delete_rsvp_by_id(event_slug: str, rsvp_id: int, db: Session):
 
 
 @app.get("/health")
-async def health():
-    return {"status": "ok", "app": "Eventique API", "version": "3.0.0"}
+async def health(db: Session = Depends(get_db)):
+    health_data = {
+        "status": "ok",
+        "app": "Eventique API",
+        "version": "3.0.0",
+        "database": "sqlite",
+        "email": {
+            "enabled": EMAIL_ENABLED,
+            "configured": bool(SMTP_USER and SMTP_PASS),
+        }
+    }
+    # Check database connectivity
+    try:
+        db.execute(text("SELECT 1"))
+        health_data["database"] = "ok"
+    except Exception:
+        health_data["status"] = "degraded"
+        health_data["database"] = "error"
+
+    return health_data
 
 
 # ── Backward-compat endpoints (alias → default event) ────────────────────────
