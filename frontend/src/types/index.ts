@@ -3,8 +3,8 @@
 // ============================================================
 
 export type Language = 'es' | 'en';
-export type PaletteKey = 'rose-gold' | 'garden' | 'nature' | 'navy-gold' | 'sage' | 'midnight' | 'platinum' | 'sapphire' | 'emerald' | 'coral' | 'lavender' | 'teal' | 'burgundy' | 'gold-premium' | 'ocean' | 'custom';
-export type EventType = 'boda' | 'cumpleanos' | 'bautismo' | 'quinceanera' | 'graduacion' | 'corporativo';
+export type PaletteKey = 'rose-gold' | 'garden' | 'nature' | 'navy-gold' | 'sage' | 'midnight' | 'platinum' | 'sapphire' | 'emerald' | 'coral' | 'lavender' | 'teal' | 'burgundy' | 'gold-premium' | 'ocean' | 'mint' | 'peach' | 'denim' | 'mustard' | 'cream' | 'custom';
+export type EventType = 'boda' | 'cumpleanos' | 'bautismo' | 'quinceanera' | 'graduacion' | 'corporativo' | 'primera-comunion' | 'aniversario' | 'baby-shower';
 export type PartySide = 'bride' | 'groom' | 'both';
 export type ScheduleLocation = 'ceremony' | 'reception' | 'other';
 
@@ -241,6 +241,8 @@ export interface EventConfig {
   social?: WeddingConfig['social'];
   music?: WeddingConfig['music'];
   notification_email?: string;
+  gift_registry_url?: string;
+  gift_registry_label?: string;
 }
 
 // ---- Multi-tenancy ----

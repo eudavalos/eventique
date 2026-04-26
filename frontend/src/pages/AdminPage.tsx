@@ -61,6 +61,12 @@ interface ConfigFormData {
   reception_venue_city: string;
   reception_venue_country: string;
   reception_maps_url: string;
+  ceremony_venue_time: string;
+  ceremony_venue_dresscode: string;
+  reception_venue_time: string;
+  reception_venue_dresscode: string;
+  gift_registry_url: string;
+  gift_registry_label: string;
   same_venue: boolean;
   rsvp_enabled: boolean;
   rsvp_deadline: string;
@@ -89,6 +95,12 @@ const PALETTE_OPTIONS: { key: PaletteKey; label: string; colors: string[]; categ
   { key: 'burgundy',     label: 'Burgundy',     colors: ['#6B2542', '#D4AF37', '#FAF3F7', '#3D1F2A'],     category: 'Enterprise' },
   { key: 'gold-premium', label: 'Gold Premium', colors: ['#B8860B', '#2C3E50', '#FEF9E7', '#3D2817'], category: 'Enterprise' },
   { key: 'ocean',        label: 'Ocean',        colors: ['#0369A1', '#EF4444', '#F0F9FF', '#082F49'],        category: 'Enterprise' },
+  // Natural / Festivo
+  { key: 'mint',         label: 'Mint',         colors: ['#0D9488', '#FB923C', '#F6FFFE', '#134E4A'],         category: 'Natural' },
+  { key: 'peach',        label: 'Peach',        colors: ['#F97316', '#8B5CF6', '#FFFAF7', '#431407'],        category: 'Natural' },
+  { key: 'denim',        label: 'Denim',        colors: ['#1D4ED8', '#F59E0B', '#F8FAFF', '#1E3A5F'],        category: 'Natural' },
+  { key: 'mustard',      label: 'Mustard',      colors: ['#D97706', '#7C3AED', '#FFFDF0', '#2D1A00'],      category: 'Natural' },
+  { key: 'cream',        label: 'Cream',        colors: ['#92400E', '#065F46', '#FFFDF5', '#1C0A00'],        category: 'Natural' },
 ];
 
 const EVENT_TYPE_OPTIONS: { value: EventType; label: string; emoji: string }[] = [
@@ -97,7 +109,10 @@ const EVENT_TYPE_OPTIONS: { value: EventType; label: string; emoji: string }[] =
   { value: 'bautismo',    label: 'Bautismo',    emoji: '👶' },
   { value: 'quinceanera', label: 'Quinceañera', emoji: '💃' },
   { value: 'graduacion',  label: 'Graduación',  emoji: '🎓' },
-  { value: 'corporativo', label: 'Corporativo', emoji: '💼' },
+  { value: 'corporativo',      label: 'Corporativo',     emoji: '💼' },
+  { value: 'primera-comunion', label: 'Primera Comunión', emoji: '✝️' },
+  { value: 'aniversario',      label: 'Aniversario',      emoji: '💑' },
+  { value: 'baby-shower',      label: 'Baby Shower',      emoji: '🍼' },
 ];
 
 const EVENT_LABELS: Record<EventType, {
@@ -109,7 +124,10 @@ const EVENT_LABELS: Record<EventType, {
   bautismo:    { person1: 'Nombre del Bebé',   person2: 'Padres',     displayNames: 'Ej: Bautismo de Sofía',       dateLabel: 'Fecha del bautismo',      venueLabel: 'Iglesia/Lugar', singleVenue: false },
   quinceanera: { person1: 'La Quinceañera',    person2: '',           displayNames: 'Ej: Quinceañera de Valeria',  dateLabel: 'Fecha del evento',        venueLabel: 'Salón',         singleVenue: true  },
   graduacion:  { person1: 'El/La Graduado/a',  person2: '',           displayNames: 'Ej: Graduación de Carlos',    dateLabel: 'Fecha de la graduación',  venueLabel: 'Institución',   singleVenue: true  },
-  corporativo: { person1: 'Empresa/Org.',      person2: 'Contacto',   displayNames: 'Ej: Congreso Tecnopowerpy',   dateLabel: 'Fecha del evento',        venueLabel: 'Sede',          singleVenue: true  },
+  corporativo:       { person1: 'Empresa/Org.',      person2: 'Contacto',   displayNames: 'Ej: Congreso Tecnopowerpy',     dateLabel: 'Fecha del evento',          venueLabel: 'Sede',          singleVenue: true  },
+  'primera-comunion':{ person1: 'El/La Comulgante', person2: 'Padres',     displayNames: 'Ej: Primera Comunión de Lucía', dateLabel: 'Fecha del sacramento',      venueLabel: 'Iglesia/Lugar', singleVenue: false },
+  aniversario:       { person1: 'Persona 1',         person2: 'Persona 2', displayNames: 'Ej: Aniversario de Bodas',      dateLabel: 'Fecha del aniversario',     venueLabel: 'Lugar',         singleVenue: true  },
+  'baby-shower':     { person1: 'Nombre del Bebé',   person2: 'Mamá',      displayNames: 'Ej: Baby Shower de Valentina', dateLabel: 'Fecha del evento',          venueLabel: 'Lugar',         singleVenue: true  },
 };
 
 type Tab = 'dashboard' | 'rsvps' | 'config' | 'tema' | 'media' | 'eventos' | 'secciones';
@@ -512,6 +530,8 @@ export default function AdminPage() {
             city: formData.ceremony_venue_city,
             country: formData.ceremony_venue_country || 'Paraguay',
             mapsUrl: formData.ceremony_maps_url || '',
+            time: formData.ceremony_venue_time || undefined,
+            dresscode: formData.ceremony_venue_dresscode || undefined,
           },
           reception: {
             name: formData.reception_venue_name,
@@ -519,6 +539,8 @@ export default function AdminPage() {
             city: formData.reception_venue_city,
             country: formData.reception_venue_country || 'Paraguay',
             mapsUrl: formData.reception_maps_url || '',
+            time: formData.reception_venue_time || undefined,
+            dresscode: formData.reception_venue_dresscode || undefined,
           },
           sameVenue: formData.same_venue,
         },
@@ -532,6 +554,8 @@ export default function AdminPage() {
           },
         },
         notification_email: formData.notification_email || undefined,
+        gift_registry_url: formData.gift_registry_url || undefined,
+        gift_registry_label: formData.gift_registry_label || undefined,
       } as never);
       toast.success('Configuración guardada correctamente');
       const cfgRes = await rsvpApi.getEventConfig(eventSlug);
@@ -1301,6 +1325,10 @@ export default function AdminPage() {
                     <input {...register('ceremony_venue_country')} className="input-field" placeholder="País" />
                   </div>
                   <input {...register('ceremony_maps_url')} className="input-field" placeholder="URL Google Maps" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input {...register('ceremony_venue_time')} className="input-field" placeholder="Hora (ej: 17:00)" />
+                    <input {...register('ceremony_venue_dresscode')} className="input-field" placeholder="Código de vestimenta" />
+                  </div>
                 </div>
               ) : (
                 <>
@@ -1322,6 +1350,10 @@ export default function AdminPage() {
                         <input {...register('ceremony_venue_country')} className="input-field" placeholder="País" />
                       </div>
                       <input {...register('ceremony_maps_url')} className="input-field" placeholder="URL Google Maps" />
+                      <div className="grid grid-cols-2 gap-3">
+                        <input {...register('ceremony_venue_time')} className="input-field" placeholder="Hora (ej: 16:00)" />
+                        <input {...register('ceremony_venue_dresscode')} className="input-field" placeholder="Código de vestimenta" />
+                      </div>
                     </div>
                     <div className="space-y-4">
                       <h3 className="text-xs tracking-widest uppercase font-body font-medium" style={{ color: 'var(--color-text-muted)' }}>Recepción</h3>
@@ -1332,6 +1364,10 @@ export default function AdminPage() {
                         <input {...register('reception_venue_country')} className="input-field" placeholder="País" />
                       </div>
                       <input {...register('reception_maps_url')} className="input-field" placeholder="URL Google Maps" />
+                      <div className="grid grid-cols-2 gap-3">
+                        <input {...register('reception_venue_time')} className="input-field" placeholder="Hora (ej: 20:00)" />
+                        <input {...register('reception_venue_dresscode')} className="input-field" placeholder="Código de vestimenta" />
+                      </div>
                     </div>
                   </div>
                 </>
@@ -1368,6 +1404,24 @@ export default function AdminPage() {
                   <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
                     Recibirás un aviso cada vez que alguien confirme. Requiere configurar SMTP en el servidor.
                   </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Gift Registry */}
+            <div className="card p-6 sm:p-8">
+              <h2 className="font-sub text-lg font-medium mb-5" style={{ color: 'var(--color-text)' }}>Mesa de Regalos (opcional)</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="input-label">URL de la mesa de regalos</label>
+                  <input {...register('gift_registry_url')} type="url" className="input-field" placeholder="https://mesaderegalos.liverpool.com.mx/..." />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                    Si lo dejas vacío, la sección no se mostrará.
+                  </p>
+                </div>
+                <div>
+                  <label className="input-label">Texto del botón (opcional)</label>
+                  <input {...register('gift_registry_label')} className="input-field" placeholder="Ver lista de regalos" />
                 </div>
               </div>
             </div>
@@ -2630,6 +2684,12 @@ function buildDefaultValues(cfg: Record<string, unknown>): ConfigFormData {
     reception_venue_city:    rv.city                                   ?? sc.venues.reception.city,
     reception_venue_country: rv.country                                ?? sc.venues.reception.country,
     reception_maps_url:      rv.mapsUrl                                ?? sc.venues.reception.mapsUrl,
+    ceremony_venue_time:      cv.time                                   ?? '',
+    ceremony_venue_dresscode: cv.dresscode                              ?? '',
+    reception_venue_time:     rv.time                                   ?? '',
+    reception_venue_dresscode:rv.dresscode                              ?? '',
+    gift_registry_url:        (cfg.gift_registry_url as string)        ?? '',
+    gift_registry_label:      (cfg.gift_registry_label as string)      ?? '',
     same_venue:              (venues.sameVenue as boolean)             ?? sc.venues.sameVenue ?? false,
     rsvp_enabled:            (rsvpSect.enabled as boolean)             ?? sc.sections.rsvp.enabled,
     rsvp_deadline:           (rsvpSect.deadline as string)             ?? sc.sections.rsvp.deadline ?? '',

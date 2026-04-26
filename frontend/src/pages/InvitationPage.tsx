@@ -12,6 +12,7 @@ import Accommodation from '../sections/Accommodation';
 import FAQ from '../sections/FAQ';
 import RSVP from '../sections/RSVP';
 import Footer from '../sections/Footer';
+import GiftRegistry from '../sections/GiftRegistry';
 
 const NAV_LINKS = [
   { label: 'Nuestra Historia', href: '#historia' },
@@ -81,6 +82,8 @@ export default function InvitationPage() {
           <RSVP />
         </section>
       )}
+
+      <GiftRegistry />
 
       {sections.footer.enabled && <Footer />}
 
