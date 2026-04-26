@@ -12,6 +12,10 @@ export default function Gallery() {
   const { gallery } = config.sections;
   const [index, setIndex] = useState(-1);
 
+  if (!gallery.photos || gallery.photos.length === 0) {
+    return null;
+  }
+
   const title = gallery.title ?? 'Nuestra Galería';
   const subtitle = gallery.subtitle;
 
@@ -27,10 +31,6 @@ export default function Gallery() {
     'col-span-1 row-span-1',
     'col-span-1 row-span-1',
   ];
-
-  if (!gallery.photos || gallery.photos.length === 0) {
-    return null;
-  }
 
   return (
     <div className="section-padding" style={{ background: 'var(--color-bg)' }}>

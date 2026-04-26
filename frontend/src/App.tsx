@@ -45,9 +45,9 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): WeddingConfig {
   const typeLabels = dynamic.event_type ? (EVENT_TYPE_SECTION_LABELS[dynamic.event_type] ?? {}) : {};
   const baseSections = { ...base.sections };
-  const dynamicSections = dynamic.sections ? { ...dynamic.sections } : {};
+  const dynamicSections = (dynamic.sections && typeof dynamic.sections === 'object') ? dynamic.sections : {};
 
-  // Apply event-type defaults at lowest priority (only if DB config doesn't already set the title)
+  // Apply event-type defaults at lowest priority
   if (typeLabels.storyTitle && !dynamicSections?.ourStory?.title) {
     baseSections.ourStory = { ...baseSections.ourStory, title: typeLabels.storyTitle };
   }
@@ -58,17 +58,37 @@ function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): Weddin
     baseSections.faq = { ...baseSections.faq, title: typeLabels.faqTitle };
   }
 
+  // Deep merge each section individually so arrays from base (photos, items, events,
+  // members, hotels, tracks) are preserved when the DB config doesn't include them.
+  // Shallow spread { ...base.gallery, ...dynamic.gallery } would drop photos:[] from base.
+  const mergedSections = { ...baseSections };
+  for (const key of Object.keys(dynamicSections) as Array<keyof typeof baseSections>) {
+    const dynVal = dynamicSections[key];
+    if (dynVal !== undefined && typeof dynVal === 'object' && !Array.isArray(dynVal)) {
+      (mergedSections as Record<string, unknown>)[key] = {
+        ...(baseSections[key] as object ?? {}),
+        ...dynVal,
+      };
+    }
+  }
+
+  // venues: DB may store as array (wrong format) — fall back to base if so
+  const dynamicVenues = dynamic.venues;
+  const mergedVenues = (dynamicVenues && !Array.isArray(dynamicVenues))
+    ? dynamicVenues
+    : base.venues;
+
   return {
     ...base,
     couple: dynamic.couple ?? base.couple,
     dates: dynamic.dates ?? base.dates,
-    venues: dynamic.venues && Array.isArray(dynamic.venues) ? dynamic.venues : base.venues,
+    venues: mergedVenues,
     theme: {
       ...base.theme,
       palette: dynamic.theme?.palette ?? base.theme.palette,
       customColors: dynamic.theme?.customColors ?? base.theme.customColors,
     },
-    sections: { ...baseSections, ...dynamicSections },
+    sections: mergedSections,
     social: dynamic.social ?? base.social,
     music: dynamic.music ?? base.music,
   };

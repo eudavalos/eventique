@@ -8,6 +8,10 @@ export default function WeddingParty() {
   const { weddingParty } = config.sections;
   const title = weddingParty.title ?? 'Quienes Nos Acompañan';
 
+  if (!weddingParty.members || weddingParty.members.length === 0) {
+    return null;
+  }
+
   const brideMembers = weddingParty.members.filter((m) => m.side === 'bride' || m.side === 'both');
   const groomMembers = weddingParty.members.filter((m) => m.side === 'groom' || m.side === 'both');
   const { person1, person2 } = config.couple;
