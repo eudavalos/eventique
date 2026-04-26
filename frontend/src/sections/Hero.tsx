@@ -53,27 +53,16 @@ export default function Hero() {
         style={{ y: textY, opacity }}
         className="relative z-10 text-center px-6 max-w-3xl mx-auto"
       >
-        {/* Parents line */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.3 }}
-          className="text-xs sm:text-sm tracking-[0.3em] uppercase text-white/70 mb-6 font-body font-light"
-        >
-          {couple.person1.parents && couple.person2.parents
-            ? `${couple.person1.parents} · ${couple.person2.parents}`
-            : hero.subtitle ?? ''}
-        </motion.p>
-
-        {/* Subtitle */}
-        {hero.subtitle && !(couple.person1.parents && couple.person2.parents) && (
+        {/* Parents / subtitle line — parents take priority; falls back to subtitle */}
+        {(couple.person1.parents || couple.person2.parents || hero.subtitle) && (
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.3 }}
-            className="text-sm tracking-[0.25em] uppercase text-white/70 mb-6 font-body font-light"
+            className="text-xs sm:text-sm tracking-[0.3em] uppercase text-white/70 mb-6 font-body font-light"
           >
-            {hero.subtitle}
+            {[couple.person1.parents, couple.person2.parents].filter(Boolean).join(' · ')
+              || hero.subtitle}
           </motion.p>
         )}
 
@@ -146,7 +135,7 @@ export default function Hero() {
             onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
           >
-            Confirmar asistencia
+            {hero.ctaLabel || sections.rsvp.title || 'Confirmar asistencia'}
           </button>
         </motion.div>
       </motion.div>

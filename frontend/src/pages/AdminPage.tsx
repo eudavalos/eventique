@@ -43,11 +43,14 @@ interface ConfigFormData {
   person1_first: string;
   person1_last: string;
   person1_nick: string;
+  person1_parents: string;
   person2_first: string;
   person2_last: string;
   person2_nick: string;
+  person2_parents: string;
   display_names: string;
   hashtag: string;
+  hero_cta_label: string;
   ceremony_date: string;
   display_date: string;
   timezone: string;
@@ -120,16 +123,18 @@ const EVENT_TYPE_OPTIONS: { value: EventType; label: string; emoji: string }[] =
 const EVENT_LABELS: Record<EventType, {
   person1: string; person2: string; displayNames: string;
   dateLabel: string; venueLabel: string; singleVenue: boolean;
+  parents1Label: string; parents2Label: string;
+  parents1Placeholder: string; parents2Placeholder: string;
 }> = {
-  boda:        { person1: 'Novio/a 1',        person2: 'Novio/a 2',   displayNames: 'Ej: Concepción & Eumelio',    dateLabel: 'Fecha de la ceremonia',  venueLabel: 'Ceremonia',     singleVenue: false },
-  cumpleanos:  { person1: 'El/La Festejado/a', person2: '',           displayNames: 'Ej: Fiesta de Ana',           dateLabel: 'Fecha del evento',        venueLabel: 'Lugar',         singleVenue: true  },
-  bautismo:    { person1: 'Nombre del Bebé',   person2: 'Padres',     displayNames: 'Ej: Bautismo de Sofía',       dateLabel: 'Fecha del bautismo',      venueLabel: 'Iglesia/Lugar', singleVenue: false },
-  quinceanera: { person1: 'La Quinceañera',    person2: '',           displayNames: 'Ej: Quinceañera de Valeria',  dateLabel: 'Fecha del evento',        venueLabel: 'Salón',         singleVenue: true  },
-  graduacion:  { person1: 'El/La Graduado/a',  person2: '',           displayNames: 'Ej: Graduación de Carlos',    dateLabel: 'Fecha de la graduación',  venueLabel: 'Institución',   singleVenue: true  },
-  corporativo:       { person1: 'Empresa/Org.',      person2: 'Contacto',   displayNames: 'Ej: Congreso Tecnopowerpy',     dateLabel: 'Fecha del evento',          venueLabel: 'Sede',          singleVenue: true  },
-  'primera-comunion':{ person1: 'El/La Comulgante', person2: 'Padres',     displayNames: 'Ej: Primera Comunión de Lucía', dateLabel: 'Fecha del sacramento',      venueLabel: 'Iglesia/Lugar', singleVenue: false },
-  aniversario:       { person1: 'Persona 1',         person2: 'Persona 2', displayNames: 'Ej: Aniversario de Bodas',      dateLabel: 'Fecha del aniversario',     venueLabel: 'Lugar',         singleVenue: true  },
-  'baby-shower':     { person1: 'Nombre del Bebé',   person2: 'Mamá',      displayNames: 'Ej: Baby Shower de Valentina', dateLabel: 'Fecha del evento',          venueLabel: 'Lugar',         singleVenue: true  },
+  boda:              { person1: 'Novio/a 1',          person2: 'Novio/a 2',    displayNames: 'Ej: Concepción & Eumelio',      dateLabel: 'Fecha de la ceremonia',   venueLabel: 'Ceremonia',     singleVenue: false, parents1Label: 'Padres de la novia',                parents2Label: 'Padres del novio',               parents1Placeholder: 'Ej: Roberto García & Ana Molina',      parents2Placeholder: 'Ej: Carlos Pérez & María López'    },
+  cumpleanos:        { person1: 'El/La Festejado/a',  person2: '',             displayNames: 'Ej: Fiesta de Ana',             dateLabel: 'Fecha del evento',        venueLabel: 'Lugar',         singleVenue: true,  parents1Label: 'Padres del/la festejado/a',         parents2Label: '',                               parents1Placeholder: 'Ej: Juan García & Marta Soto',         parents2Placeholder: ''                          },
+  bautismo:          { person1: 'Nombre del Bebé',    person2: 'Padres',       displayNames: 'Ej: Bautismo de Sofía',         dateLabel: 'Fecha del bautismo',      venueLabel: 'Iglesia/Lugar', singleVenue: false, parents1Label: 'Abuelos paternos del bebé',         parents2Label: 'Abuelos maternos del bebé',      parents1Placeholder: 'Ej: Carlos Gómez & Elena Ruiz',        parents2Placeholder: 'Ej: Pedro Torres & Laura Vega'     },
+  quinceanera:       { person1: 'La Quinceañera',     person2: '',             displayNames: 'Ej: Quinceañera de Valeria',    dateLabel: 'Fecha del evento',        venueLabel: 'Salón',         singleVenue: true,  parents1Label: 'Padres de la quinceañera',          parents2Label: '',                               parents1Placeholder: 'Ej: Hugo Castro & Lorena Díaz',        parents2Placeholder: ''                          },
+  graduacion:        { person1: 'El/La Graduado/a',   person2: '',             displayNames: 'Ej: Graduación de Carlos',       dateLabel: 'Fecha de la graduación',  venueLabel: 'Institución',   singleVenue: true,  parents1Label: 'Padres del/la graduado/a',          parents2Label: '',                               parents1Placeholder: 'Ej: Ernesto Ramírez & Gloria Nieto',   parents2Placeholder: ''                          },
+  corporativo:       { person1: 'Empresa/Org.',       person2: 'Contacto',     displayNames: 'Ej: Congreso Tecnopowerpy',     dateLabel: 'Fecha del evento',        venueLabel: 'Sede',          singleVenue: true,  parents1Label: 'Patrocinadores principales (opcional)', parents2Label: '',                            parents1Placeholder: 'Ej: Ministerio de Tecnología',         parents2Placeholder: ''                          },
+  'primera-comunion':{ person1: 'El/La Comulgante',  person2: 'Padres',       displayNames: 'Ej: Primera Comunión de Lucía', dateLabel: 'Fecha del sacramento',    venueLabel: 'Iglesia/Lugar', singleVenue: false, parents1Label: 'Padrinos de bautismo',              parents2Label: 'Padrinos de primera comunión',   parents1Placeholder: 'Ej: Carlos Mora & Elena Fuentes',      parents2Placeholder: 'Ej: Luis Vega & Ana Ríos'          },
+  aniversario:       { person1: 'Persona 1',          person2: 'Persona 2',    displayNames: 'Ej: Aniversario de Bodas',      dateLabel: 'Fecha del aniversario',   venueLabel: 'Lugar',         singleVenue: true,  parents1Label: 'Familia de la persona 1 (opcional)', parents2Label: 'Familia de la persona 2 (opcional)', parents1Placeholder: 'Ej: Familia García',           parents2Placeholder: 'Ej: Familia López'              },
+  'baby-shower':     { person1: 'Nombre del Bebé',    person2: 'Mamá',         displayNames: 'Ej: Baby Shower de Valentina',  dateLabel: 'Fecha del evento',        venueLabel: 'Lugar',         singleVenue: true,  parents1Label: 'Abuelos del bebé (opcional)',       parents2Label: '',                               parents1Placeholder: 'Ej: Familia González & Familia Morales', parents2Placeholder: ''                       },
 };
 
 type Tab = 'dashboard' | 'rsvps' | 'config' | 'tema' | 'media' | 'eventos' | 'secciones';
@@ -270,6 +275,7 @@ export default function AdminPage() {
   // Hero section
   const [heroEnabled, setHeroEnabled] = useState(true);
   const [heroSubtitle, setHeroSubtitle] = useState('');
+  const [heroCta, setHeroCta] = useState('');
   const [heroBgImage, setHeroBgImage] = useState('');
   const [heroOverlay, setHeroOverlay] = useState(0.45);
   const [heroScrollIndicator, setHeroScrollIndicator] = useState(true);
@@ -422,6 +428,7 @@ export default function AdminPage() {
 
         setHeroEnabled((hero?.enabled as boolean) ?? true);
         setHeroSubtitle((hero?.subtitle as string) ?? '');
+        setHeroCta((hero?.ctaLabel as string) ?? '');
         setHeroBgImage((hero?.backgroundImage as string) ?? '');
         setHeroOverlay((hero?.overlayOpacity as number) ?? 0.45);
         setHeroScrollIndicator((hero?.showScrollIndicator as boolean) ?? true);
@@ -520,8 +527,8 @@ export default function AdminPage() {
       await rsvpApi.updateEventConfig(eventSlug, token, {
         event_type: formData.event_type,
         couple: {
-          person1: { firstName: formData.person1_first, lastName: formData.person1_last, nickname: formData.person1_nick },
-          person2: { firstName: formData.person2_first, lastName: formData.person2_last, nickname: formData.person2_nick },
+          person1: { firstName: formData.person1_first, lastName: formData.person1_last, nickname: formData.person1_nick, parents: formData.person1_parents || undefined },
+          person2: { firstName: formData.person2_first, lastName: formData.person2_last, nickname: formData.person2_nick, parents: formData.person2_parents || undefined },
           displayNames: formData.display_names,
           hashtag: formData.hashtag,
         },
@@ -554,6 +561,10 @@ export default function AdminPage() {
         theme: { palette: formData.palette },
         sections: {
           ...(eventCfg.sections as object ?? {}),
+          hero: {
+            ...((eventCfg.sections as Record<string, unknown>)?.hero as object ?? {}),
+            ctaLabel: formData.hero_cta_label || undefined,
+          },
           rsvp: {
             ...((eventCfg.sections as Record<string, unknown>)?.rsvp as object ?? {}),
             enabled: formData.rsvp_enabled,
@@ -797,7 +808,7 @@ export default function AdminPage() {
         ...current,
         sections: {
           ...sects,
-          hero:         { ...(sects.hero         as object ?? {}), enabled: heroEnabled,     subtitle: heroSubtitle || undefined,    backgroundImage: heroBgImage || undefined, overlayOpacity: heroOverlay, showScrollIndicator: heroScrollIndicator },
+          hero:         { ...(sects.hero         as object ?? {}), enabled: heroEnabled,     subtitle: heroSubtitle || undefined,    ctaLabel: heroCta || undefined, backgroundImage: heroBgImage || undefined, overlayOpacity: heroOverlay, showScrollIndicator: heroScrollIndicator },
           countdown:    { ...(sects.countdown    as object ?? {}), enabled: countdownEnabled, label: countdownLabel || undefined },
           ourStory:     { ...(sects.ourStory     as object ?? {}), enabled: storyEnabled,    title: storyTitle    || undefined, events: storyEvents    },
           schedule:     { ...(sects.schedule     as object ?? {}), enabled: scheduleEnabled, title: scheduleTitle || undefined, items:  scheduleItems  },
@@ -1247,36 +1258,88 @@ export default function AdminPage() {
 
             {/* People */}
             <div className="card p-6 sm:p-8">
-              <h2 className="font-sub text-lg font-medium mb-5" style={{ color: 'var(--color-text)' }}>Personas</h2>
+              <h2 className="font-sub text-lg font-medium mb-1" style={{ color: 'var(--color-text)' }}>Personas del evento</h2>
+              <p className="text-xs mb-5" style={{ color: 'var(--color-text-muted)' }}>
+                Estos datos aparecen en la portada, navegación y a lo largo de la invitación.
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* Person 1 */}
                 <div className="space-y-4">
-                  <h3 className="text-xs tracking-widest uppercase font-body font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                  <h3 className="text-xs tracking-widest uppercase font-body font-semibold pb-2 border-b" style={{ color: 'var(--color-primary)', borderColor: 'var(--color-border)' }}>
                     {EVENT_LABELS[watchedEventType]?.person1 ?? 'Persona 1'}
                   </h3>
-                  <div><label className="input-label">Nombre</label><input {...register('person1_first')} className="input-field" placeholder="Nombre" /></div>
-                  <div><label className="input-label">Apellido</label><input {...register('person1_last')} className="input-field" placeholder="Apellido" /></div>
-                  <div><label className="input-label">Apodo</label><input {...register('person1_nick')} className="input-field" placeholder="Apodo" /></div>
+                  <div>
+                    <label className="input-label">Nombre *</label>
+                    <input {...register('person1_first')} className="input-field" placeholder="Nombre de pila" />
+                  </div>
+                  <div>
+                    <label className="input-label">Apellido *</label>
+                    <input {...register('person1_last')} className="input-field" placeholder="Apellido completo" />
+                  </div>
+                  <div>
+                    <label className="input-label">Apodo (para títulos cortos)</label>
+                    <input {...register('person1_nick')} className="input-field" placeholder="Ej: Conchi, Ale, Pato…" />
+                    <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Se usa en secciones como el cortejo.</p>
+                  </div>
+                  {EVENT_LABELS[watchedEventType]?.parents1Label && (
+                    <div>
+                      <label className="input-label">{EVENT_LABELS[watchedEventType].parents1Label} <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>(opcional)</span></label>
+                      <input {...register('person1_parents')} className="input-field" placeholder={EVENT_LABELS[watchedEventType].parents1Placeholder} />
+                      <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                        Aparece en la portada. Deja vacío para ocultarlo. Si algún padre ha fallecido, puedes omitir su nombre o agregar <strong>†</strong> al final (ej: "Juan García †").
+                      </p>
+                    </div>
+                  )}
                 </div>
 
+                {/* Person 2 */}
                 {EVENT_LABELS[watchedEventType]?.person2 && (
                   <div className="space-y-4">
-                    <h3 className="text-xs tracking-widest uppercase font-body font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                    <h3 className="text-xs tracking-widest uppercase font-body font-semibold pb-2 border-b" style={{ color: 'var(--color-primary)', borderColor: 'var(--color-border)' }}>
                       {EVENT_LABELS[watchedEventType].person2}
                     </h3>
-                    <div><label className="input-label">Nombre</label><input {...register('person2_first')} className="input-field" placeholder="Nombre" /></div>
-                    <div><label className="input-label">Apellido</label><input {...register('person2_last')} className="input-field" placeholder="Apellido" /></div>
-                    <div><label className="input-label">Apodo</label><input {...register('person2_nick')} className="input-field" placeholder="Apodo" /></div>
+                    <div>
+                      <label className="input-label">Nombre *</label>
+                      <input {...register('person2_first')} className="input-field" placeholder="Nombre de pila" />
+                    </div>
+                    <div>
+                      <label className="input-label">Apellido *</label>
+                      <input {...register('person2_last')} className="input-field" placeholder="Apellido completo" />
+                    </div>
+                    <div>
+                      <label className="input-label">Apodo (para títulos cortos)</label>
+                      <input {...register('person2_nick')} className="input-field" placeholder="Ej: Eume, Santi, Caro…" />
+                      <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Se usa en secciones como el cortejo.</p>
+                    </div>
+                    {EVENT_LABELS[watchedEventType]?.parents2Label && (
+                      <div>
+                        <label className="input-label">{EVENT_LABELS[watchedEventType].parents2Label} <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>(opcional)</span></label>
+                        <input {...register('person2_parents')} className="input-field" placeholder={EVENT_LABELS[watchedEventType].parents2Placeholder} />
+                        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                          Aparece en la portada junto a los datos de la otra persona. Deja vacío para ocultarlo.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
+
+              {/* Display name + hashtag + CTA */}
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="input-label">Nombre para mostrar</label>
+                  <label className="input-label">Nombre para mostrar en la portada *</label>
                   <input {...register('display_names')} className="input-field" placeholder={EVENT_LABELS[watchedEventType]?.displayNames ?? 'Nombre del evento'} />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Texto grande en el hero. Ej: "Concepción & Eumelio" o "Fiesta de Ana".</p>
                 </div>
                 <div>
-                  <label className="input-label">Hashtag</label>
+                  <label className="input-label">Hashtag de redes sociales (opcional)</label>
                   <input {...register('hashtag')} className="input-field" placeholder="#NombreEvento2026" />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Aparece en el pie de página y en la pantalla de confirmación del RSVP.</p>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="input-label">Texto del botón de portada (opcional)</label>
+                  <input {...register('hero_cta_label')} className="input-field" placeholder="Ej: Confirmar asistencia, Ver detalles, RSVP…" />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Botón que aparece en la portada y lleva al formulario RSVP. Si lo dejas vacío, usa el título del RSVP o "Confirmar asistencia".</p>
                 </div>
               </div>
             </div>
@@ -1898,12 +1961,19 @@ export default function AdminPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="input-label">Subtítulo (sobre los nombres)</label>
+                  <label className="input-label">Subtítulo de portada</label>
                   <input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} className="input-field" placeholder="Ej: Juntos para siempre" />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Aparece encima de los nombres. Si hay datos de padres configurados en la sección Configuración, se mostrarán en su lugar.</p>
                 </div>
                 <div>
                   <label className="input-label">Opacidad del overlay ({heroOverlay.toFixed(2)})</label>
                   <input type="range" min={0} max={1} step={0.05} value={heroOverlay} onChange={(e) => setHeroOverlay(Number(e.target.value))} className="w-full mt-2 accent-primary" />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>0 = sin oscurecimiento · 1 = completamente oscuro. Recomendado: 0.35–0.55.</p>
+                </div>
+                <div>
+                  <label className="input-label">Texto del botón de acción (opcional)</label>
+                  <input value={heroCta} onChange={(e) => setHeroCta(e.target.value)} className="input-field" placeholder="Confirmar asistencia" />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Botón en la portada que lleva al RSVP. Vacío = usa el título del RSVP.</p>
                 </div>
                 <div className="sm:col-span-2">
                   <label className="input-label">Imagen de fondo (pega URL o selecciona de Media)</label>
@@ -2684,11 +2754,14 @@ function buildDefaultValues(cfg: Record<string, unknown>): ConfigFormData {
     person1_first:           p1.firstName                              ?? sc.couple.person1.firstName,
     person1_last:            p1.lastName                               ?? sc.couple.person1.lastName,
     person1_nick:            p1.nickname                               ?? sc.couple.person1.nickname ?? '',
+    person1_parents:         p1.parents                                ?? '',
     person2_first:           p2.firstName                              ?? sc.couple.person2.firstName,
     person2_last:            p2.lastName                               ?? sc.couple.person2.lastName,
     person2_nick:            p2.nickname                               ?? sc.couple.person2.nickname ?? '',
+    person2_parents:         p2.parents                                ?? '',
     display_names:           (couple.displayNames as string)           ?? sc.couple.displayNames ?? '',
     hashtag:                 (couple.hashtag as string)                ?? sc.couple.hashtag ?? '',
+    hero_cta_label:          ((sections.hero as Record<string, string> | undefined)?.ctaLabel) ?? '',
     ceremony_date:           dates.ceremony                            ?? sc.dates.ceremony,
     display_date:            dates.displayDate                         ?? sc.dates.displayDate ?? '',
     timezone:                dates.timezone                            ?? sc.dates.timezone,

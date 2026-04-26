@@ -16,13 +16,11 @@ export const config: WeddingConfig = {
       firstName: 'Concepción',
       lastName: 'Davila',
       nickname: 'Conchi',
-      parents: 'Padre de Concepción & Madre de Concepción',
     },
     person2: {
       firstName: 'Eumelio',
       lastName: 'Dávalos',
       nickname: 'Eumelio',
-      parents: 'Padre de Eumelio & Madre de Eumelio',
     },
     displayNames: 'Concepción & Eumelio',
     hashtag: '#ConcepciónYEumelio2026',

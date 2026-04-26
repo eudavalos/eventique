@@ -124,6 +124,7 @@ export interface HeroSection {
   overlayOpacity?: number;
   showScrollIndicator?: boolean;
   subtitle?: string;
+  ctaLabel?: string;
 }
 
 export interface CountdownSection {
