@@ -161,11 +161,12 @@ export function DatePicker({
 
       {open && (
         <div
-          className="absolute z-50 mt-2 w-[19rem] rounded-2xl shadow-xl p-4"
+          className="absolute mt-2 w-[19rem] rounded-2xl shadow-xl p-4"
           style={{
             background: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
             boxShadow: '0 10px 40px rgba(0,0,0,0.12)',
+            zIndex: 9999,
           }}
         >
           <div className="flex items-center justify-between mb-3">
