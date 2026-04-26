@@ -6,6 +6,7 @@ import { OrnamentRings, OrnamentFloral } from '../components/Ornament';
 export default function Footer() {
   const config = useConfig();
   const { couple, dates, sections, social } = config;
+  const inviteUrl = typeof window !== 'undefined' ? window.location.href : '';
   const { footer } = sections;
   const names = couple.displayNames ?? `${couple.person1.firstName} & ${couple.person2.firstName}`;
 
@@ -126,7 +127,7 @@ export default function Footer() {
           className="mb-8"
         >
           <a
-            href={`https://wa.me/?text=${encodeURIComponent(`¡Estás invitado! ${names} · ${dates.displayDate ?? dates.ceremony.slice(0, 10)} · ${window.location.href}`)}`}
+            href={`https://wa.me/?text=${encodeURIComponent(`¡Estás invitado! ${names} · ${dates.displayDate ?? dates.ceremony.slice(0, 10)} · ${inviteUrl}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-body text-sm transition-all duration-200 hover:opacity-90"

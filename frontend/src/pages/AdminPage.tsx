@@ -255,10 +255,15 @@ export default function AdminPage() {
 
   // Editing state
   const [editingStoryIdx, setEditingStoryIdx] = useState<number | null>(null);
+  const [storySnapshot, setStorySnapshot] = useState<StoryEvent | null>(null);
   const [editingScheduleIdx, setEditingScheduleIdx] = useState<number | null>(null);
+  const [scheduleSnapshot, setScheduleSnapshot] = useState<ScheduleItem | null>(null);
   const [editingPartyIdx, setEditingPartyIdx] = useState<number | null>(null);
+  const [partySnapshot, setPartySnapshot] = useState<WeddingPartyMember | null>(null);
   const [editingAccomIdx, setEditingAccomIdx] = useState<number | null>(null);
+  const [accomSnapshot, setAccomSnapshot] = useState<Hotel | null>(null);
   const [editingFaqIdx, setEditingFaqIdx] = useState<number | null>(null);
+  const [faqSnapshot, setFaqSnapshot] = useState<FAQItem | null>(null);
 
   // Hero section
   const [heroEnabled, setHeroEnabled] = useState(true);
@@ -548,6 +553,7 @@ export default function AdminPage() {
         sections: {
           ...(eventCfg.sections as object ?? {}),
           rsvp: {
+            ...((eventCfg.sections as Record<string, unknown>)?.rsvp as object ?? {}),
             enabled: formData.rsvp_enabled,
             deadline: formData.rsvp_deadline,
             maxGuestsPerResponse: Number(formData.max_guests),
@@ -1953,12 +1959,12 @@ export default function AdminPage() {
                         <input value={ev.title} onChange={(e) => setStoryEvents((prev) => { const newArr = [...prev]; newArr[i].title = e.target.value; return newArr; })} className="input-field" placeholder="Título del momento" />
                         <input value={ev.description ?? ''} onChange={(e) => setStoryEvents((prev) => { const newArr = [...prev]; newArr[i].description = e.target.value; return newArr; })} className="input-field" placeholder="Descripción breve" />
                         <div className="flex gap-2 justify-end">
-                          <button type="button" onClick={() => setEditingStoryIdx(null)} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
-                          <button type="button" onClick={() => setEditingStoryIdx(null)} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
+                          <button type="button" onClick={() => { if (storySnapshot) setStoryEvents((prev) => { const a = [...prev]; a[editingStoryIdx!] = storySnapshot; return a; }); setEditingStoryIdx(null); setStorySnapshot(null); }} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
+                          <button type="button" onClick={() => { setEditingStoryIdx(null); setStorySnapshot(null); }} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-start gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => setEditingStoryIdx(i)}>
+                      <div className="flex items-start gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => { setStorySnapshot({ ...storyEvents[i] }); setEditingStoryIdx(i); }}>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{ev.title}</p>
                           <p className="text-xs text-muted">{ev.date}{ev.description ? ` · ${ev.description}` : ''}</p>
@@ -2018,12 +2024,12 @@ export default function AdminPage() {
                         <input value={item.title} onChange={(e) => setScheduleItems((prev) => { const newArr = [...prev]; newArr[i].title = e.target.value; return newArr; })} className="input-field" placeholder="Actividad" />
                         <input value={item.description ?? ''} onChange={(e) => setScheduleItems((prev) => { const newArr = [...prev]; newArr[i].description = e.target.value; return newArr; })} className="input-field" placeholder="Descripción (opcional)" />
                         <div className="flex gap-2 justify-end">
-                          <button type="button" onClick={() => setEditingScheduleIdx(null)} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
-                          <button type="button" onClick={() => setEditingScheduleIdx(null)} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
+                          <button type="button" onClick={() => { if (scheduleSnapshot) setScheduleItems((prev) => { const a = [...prev]; a[editingScheduleIdx!] = scheduleSnapshot; return a; }); setEditingScheduleIdx(null); setScheduleSnapshot(null); }} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
+                          <button type="button" onClick={() => { setEditingScheduleIdx(null); setScheduleSnapshot(null); }} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-start gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => setEditingScheduleIdx(i)}>
+                      <div className="flex items-start gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => { setScheduleSnapshot({ ...scheduleItems[i] }); setEditingScheduleIdx(i); }}>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{item.time} — {item.title}</p>
                           {item.description && <p className="text-xs text-muted">{item.description}</p>}
@@ -2082,12 +2088,12 @@ export default function AdminPage() {
                         </select>
                         <input value={m.description ?? ''} onChange={(e) => setPartyMembers((prev) => { const newArr = [...prev]; newArr[i].description = e.target.value; return newArr; })} className="input-field" placeholder="Descripción (opcional)" />
                         <div className="flex gap-2 justify-end">
-                          <button type="button" onClick={() => setEditingPartyIdx(null)} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
-                          <button type="button" onClick={() => setEditingPartyIdx(null)} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
+                          <button type="button" onClick={() => { if (partySnapshot) setPartyMembers((prev) => { const a = [...prev]; a[editingPartyIdx!] = partySnapshot; return a; }); setEditingPartyIdx(null); setPartySnapshot(null); }} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
+                          <button type="button" onClick={() => { setEditingPartyIdx(null); setPartySnapshot(null); }} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => setEditingPartyIdx(i)}>
+                      <div className="flex items-center gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => { setPartySnapshot({ ...partyMembers[i] }); setEditingPartyIdx(i); }}>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{m.name} — {m.role}</p>
                           <p className="text-xs text-muted capitalize">{m.side}{m.description ? ` · ${m.description}` : ''}</p>
@@ -2117,7 +2123,7 @@ export default function AdminPage() {
                 onClick={() => {
                   if (!newMemberName.trim() || !newMemberRole.trim()) return;
                   setPartyMembers((prev) => [...prev, { name: newMemberName, role: newMemberRole, side: newMemberSide, description: newMemberDesc || undefined }]);
-                  setNewMemberName(''); setNewMemberRole(''); setNewMemberDesc('');
+                  setNewMemberName(''); setNewMemberRole(''); setNewMemberDesc(''); setNewMemberSide('both');
                 }}
               >
                 <Plus className="w-3.5 h-3.5" /> Agregar miembro
@@ -2159,12 +2165,12 @@ export default function AdminPage() {
                           ))}
                         </div>
                         <div className="flex gap-2 justify-end">
-                          <button type="button" onClick={() => setEditingAccomIdx(null)} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
-                          <button type="button" onClick={() => setEditingAccomIdx(null)} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
+                          <button type="button" onClick={() => { if (accomSnapshot) setAccomHotels((prev) => { const a = [...prev]; a[editingAccomIdx!] = accomSnapshot; return a; }); setEditingAccomIdx(null); setAccomSnapshot(null); }} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
+                          <button type="button" onClick={() => { setEditingAccomIdx(null); setAccomSnapshot(null); }} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-start gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => setEditingAccomIdx(i)}>
+                      <div className="flex items-start gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => { setAccomSnapshot({ ...accomHotels[i] }); setEditingAccomIdx(i); }}>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{h.name}{h.stars ? ` · ${'⭐'.repeat(Math.min(h.stars, 5))}` : ''}</p>
                           <p className="text-xs text-muted">{h.address}{h.phone ? ` · ${h.phone}` : ''}</p>
@@ -2230,12 +2236,12 @@ export default function AdminPage() {
                         <input value={item.question} onChange={(e) => setFaqItems((prev) => { const newArr = [...prev]; newArr[i].question = e.target.value; return newArr; })} className="input-field" placeholder="¿Pregunta?" />
                         <textarea value={item.answer} onChange={(e) => setFaqItems((prev) => { const newArr = [...prev]; newArr[i].answer = e.target.value; return newArr; })} className="input-field resize-none" rows={2} placeholder="Respuesta" />
                         <div className="flex gap-2 justify-end">
-                          <button type="button" onClick={() => setEditingFaqIdx(null)} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
-                          <button type="button" onClick={() => setEditingFaqIdx(null)} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
+                          <button type="button" onClick={() => { if (faqSnapshot) setFaqItems((prev) => { const a = [...prev]; a[editingFaqIdx!] = faqSnapshot; return a; }); setEditingFaqIdx(null); setFaqSnapshot(null); }} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
+                          <button type="button" onClick={() => { setEditingFaqIdx(null); setFaqSnapshot(null); }} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-start gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => setEditingFaqIdx(i)}>
+                      <div className="flex items-start gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => { setFaqSnapshot({ ...faqItems[i] }); setEditingFaqIdx(i); }}>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{item.question}</p>
                           <p className="text-xs text-muted">{item.answer}</p>
