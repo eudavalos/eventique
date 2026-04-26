@@ -11,6 +11,7 @@ import { rsvpApi } from './lib/api';
 import type { WeddingConfig, EventConfig } from './types';
 import InvitationPage from './pages/InvitationPage';
 import AdminPage from './pages/AdminPage';
+import LandingPage from './pages/LandingPage';
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state = { error: null };
@@ -123,6 +124,7 @@ export default function App() {
           <Route path="/admin" element={<EventAdminRoute defaultSlug="default" />} />
           <Route path="/e/:slug" element={<EventInvitationRoute />} />
           <Route path="/e/:slug/admin" element={<EventAdminRoute />} />
+          <Route path="/landing" element={<LandingPage />} />
         </Routes>
       </BrowserRouter>
     </ErrorBoundary>

@@ -3,8 +3,9 @@ import { useForm } from 'react-hook-form';
 import {
   Users, CheckCircle, XCircle, BarChart3, Download, Lock,
   Settings, Palette, Upload, Trash2, Plus, ExternalLink,
-  Copy, Music2, Calendar,
+  Copy, Music2, Calendar, Pencil, QrCode, X,
 } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 import toast from 'react-hot-toast';
 import { rsvpApi } from '../lib/api';
 import { useEventSlug } from '../context/EventSlugContext';
@@ -60,6 +61,7 @@ interface ConfigFormData {
   rsvp_enabled: boolean;
   rsvp_deadline: string;
   max_guests: number;
+  notification_email: string;
   palette: PaletteKey;
 }
 
@@ -148,6 +150,18 @@ export default function AdminPage() {
   const [newEventName, setNewEventName] = useState('');
   const [newEventSlug, setNewEventSlug] = useState('');
   const [newEventToken, setNewEventToken] = useState('');
+
+  // RSVP edit modal
+  const [editingRsvp, setEditingRsvp] = useState<RSVPRecord | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editForm, setEditForm] = useState<{
+    name: string; email: string; attending: boolean;
+    guest_count: number; dietary_restrictions: string;
+    song_request: string; message: string;
+  }>({ name: '', email: '', attending: true, guest_count: 1, dietary_restrictions: '', song_request: '', message: '' });
+
+  // QR code modal
+  const [showQrFor, setShowQrFor] = useState<string | null>(null);
 
   const { register, handleSubmit, reset, watch } = useForm<ConfigFormData>({
     defaultValues: buildDefaultValues({}),
@@ -289,6 +303,7 @@ export default function AdminPage() {
             maxGuestsPerResponse: Number(formData.max_guests),
           },
         },
+        notification_email: formData.notification_email || undefined,
       } as never);
       toast.success('Configuración guardada correctamente');
       const cfgRes = await rsvpApi.getEventConfig(eventSlug);
@@ -383,6 +398,34 @@ export default function AdminPage() {
     }
   };
 
+  const handleEditRsvp = (rsvp: RSVPRecord) => {
+    setEditForm({
+      name: rsvp.name,
+      email: rsvp.email,
+      attending: rsvp.attending,
+      guest_count: rsvp.guest_count,
+      dietary_restrictions: rsvp.dietary_restrictions ?? '',
+      song_request: rsvp.song_request ?? '',
+      message: rsvp.message ?? '',
+    });
+    setEditingRsvp(rsvp);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingRsvp) return;
+    setSavingEdit(true);
+    try {
+      const res = await rsvpApi.editRsvp(eventSlug, token, editingRsvp.id, editForm);
+      setRsvps((prev) => prev.map((r) => r.id === editingRsvp.id ? (res.data as RSVPRecord) : r));
+      setEditingRsvp(null);
+      toast.success('Confirmación actualizada');
+    } catch {
+      toast.error('Error al guardar los cambios');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const handleDeleteEvent = async (slug: string, name: string) => {
     if (!confirm(`¿Eliminar el evento "${name}"?\nSe eliminarán todos sus RSVPs, configuración y archivos. Esta acción no se puede deshacer.`)) return;
     try {
@@ -443,6 +486,7 @@ export default function AdminPage() {
   // ── Admin dashboard ───────────────────────────────────────────────────────
 
   return (
+    <>
     <div className="min-h-screen p-6 sm:p-10" style={{ background: 'var(--color-bg)' }}>
       <div className="max-w-6xl mx-auto">
 
@@ -539,13 +583,23 @@ export default function AdminPage() {
                       <td className="px-4 py-3 text-muted">{r.song_request ?? '—'}</td>
                       <td className="px-4 py-3 text-muted text-xs">{new Date(r.created_at).toLocaleDateString('es')}</td>
                       <td className="px-4 py-3">
-                        <button
-                          onClick={() => handleDeleteRsvp(r.id)}
-                          className="text-red-400 hover:text-red-600 transition-colors p-1 rounded"
-                          title="Eliminar"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleEditRsvp(r)}
+                            className="p-1 rounded transition-colors hover:bg-secondary"
+                            style={{ color: 'var(--color-text-muted)' }}
+                            title="Editar"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRsvp(r.id)}
+                            className="text-red-400 hover:text-red-600 transition-colors p-1 rounded"
+                            title="Eliminar"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -714,6 +768,13 @@ export default function AdminPage() {
                     <label className="input-label">Máximo de invitados por respuesta</label>
                     <input {...register('max_guests', { valueAsNumber: true })} type="number" min={1} max={20} className="input-field" />
                   </div>
+                </div>
+                <div className="mt-4">
+                  <label className="input-label">Email para notificaciones de RSVP (opcional)</label>
+                  <input {...register('notification_email')} type="email" className="input-field" placeholder="tu@email.com" />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                    Recibirás un aviso cada vez que alguien confirme. Requiere configurar SMTP en el servidor.
+                  </p>
                 </div>
               </div>
             </div>
@@ -1027,6 +1088,14 @@ export default function AdminPage() {
                           >
                             Admin
                           </a>
+                          <button
+                            type="button"
+                            onClick={() => setShowQrFor(ev.slug)}
+                            className="btn-outline text-xs py-1 px-2.5 flex items-center gap-1"
+                            title="Ver código QR"
+                          >
+                            <QrCode className="w-3 h-3" /> QR
+                          </button>
                           {ev.slug !== 'default' && (
                             <button
                               type="button"
@@ -1056,6 +1125,115 @@ export default function AdminPage() {
 
       </div>
     </div>
+
+    {/* ── RSVP Edit Modal ── */}
+    {editingRsvp && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: 'rgba(0,0,0,0.5)' }}
+        onClick={(e) => { if (e.target === e.currentTarget) setEditingRsvp(null); }}
+      >
+        <div className="card w-full max-w-lg p-6 sm:p-8" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>Editar confirmación</h2>
+            <button onClick={() => setEditingRsvp(null)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+              <X className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+            </button>
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="input-label">Nombre</label>
+                <input value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} className="input-field" />
+              </div>
+              <div>
+                <label className="input-label">Email</label>
+                <input type="email" value={editForm.email} onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))} className="input-field" />
+              </div>
+            </div>
+            <div>
+              <label className="input-label">Asistencia</label>
+              <div className="flex gap-4 mt-1">
+                {([{ val: true, label: 'Asistirá' }, { val: false, label: 'No asistirá' }] as const).map(({ val, label }) => (
+                  <label key={String(val)} className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" checked={editForm.attending === val} onChange={() => setEditForm((f) => ({ ...f, attending: val }))} className="w-4 h-4" />
+                    <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            {editForm.attending && (
+              <div>
+                <label className="input-label">Número de invitados</label>
+                <input type="number" min={1} max={20} value={editForm.guest_count} onChange={(e) => setEditForm((f) => ({ ...f, guest_count: Number(e.target.value) }))} className="input-field" />
+              </div>
+            )}
+            <div>
+              <label className="input-label">Restricciones dietéticas</label>
+              <input value={editForm.dietary_restrictions} onChange={(e) => setEditForm((f) => ({ ...f, dietary_restrictions: e.target.value }))} className="input-field" />
+            </div>
+            <div>
+              <label className="input-label">Solicitud musical</label>
+              <input value={editForm.song_request} onChange={(e) => setEditForm((f) => ({ ...f, song_request: e.target.value }))} className="input-field" />
+            </div>
+            <div>
+              <label className="input-label">Mensaje</label>
+              <textarea rows={3} value={editForm.message} onChange={(e) => setEditForm((f) => ({ ...f, message: e.target.value }))} className="input-field resize-none" />
+            </div>
+          </div>
+          <div className="flex gap-3 mt-6">
+            <button onClick={() => setEditingRsvp(null)} className="btn-outline flex-1 justify-center">Cancelar</button>
+            <button onClick={handleSaveEdit} disabled={savingEdit} className="btn-primary flex-1 justify-center">
+              {savingEdit ? 'Guardando…' : 'Guardar cambios'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* ── QR Code Modal ── */}
+    {showQrFor && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: 'rgba(0,0,0,0.5)' }}
+        onClick={(e) => { if (e.target === e.currentTarget) setShowQrFor(null); }}
+      >
+        <div className="card p-6 sm:p-8 text-center" style={{ maxWidth: '340px', width: '100%' }}>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>Código QR</h2>
+            <button onClick={() => setShowQrFor(null)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+              <X className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+            </button>
+          </div>
+          <div className="flex justify-center mb-4 p-4 rounded-xl" style={{ background: 'white' }}>
+            <QRCodeCanvas
+              id="qr-canvas"
+              value={`${window.location.origin}${showQrFor === 'default' ? '/' : `/e/${showQrFor}`}`}
+              size={192}
+              level="M"
+              includeMargin
+            />
+          </div>
+          <p className="text-xs font-mono mb-4" style={{ color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>
+            {window.location.origin}{showQrFor === 'default' ? '/' : `/e/${showQrFor}`}
+          </p>
+          <button
+            className="btn-primary w-full justify-center"
+            onClick={() => {
+              const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+              const url = canvas.toDataURL('image/png');
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `qr-${showQrFor}.png`;
+              a.click();
+            }}
+          >
+            <Download className="w-4 h-4" /> Descargar PNG
+          </button>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 
@@ -1101,6 +1279,7 @@ function buildDefaultValues(cfg: Record<string, unknown>): ConfigFormData {
     rsvp_enabled:            (rsvpSect.enabled as boolean)             ?? sc.sections.rsvp.enabled,
     rsvp_deadline:           (rsvpSect.deadline as string)             ?? sc.sections.rsvp.deadline ?? '',
     max_guests:              (rsvpSect.maxGuestsPerResponse as number) ?? sc.sections.rsvp.maxGuestsPerResponse ?? 4,
+    notification_email:      (cfg.notification_email as string)        ?? '',
     palette:                 (theme.palette as PaletteKey)             ?? sc.theme.palette,
   };
 }

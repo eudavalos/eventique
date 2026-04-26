@@ -2,8 +2,12 @@ import os
 import json
 import secrets
 import shutil
+import smtplib
+import threading
 import uuid
 from datetime import datetime
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from pathlib import Path
 from typing import Optional
 from contextlib import asynccontextmanager
@@ -30,6 +34,15 @@ MAX_IMAGE_SIZE = 10 * 1024 * 1024   # 10 MB
 MAX_AUDIO_SIZE = 50 * 1024 * 1024   # 50 MB
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 ALLOWED_AUDIO_TYPES = {"audio/mpeg", "audio/mp4", "audio/wav", "audio/ogg", "audio/x-m4a"}
+
+# ── Email notifications (optional — set EMAIL_ENABLED=true + SMTP vars to activate) ──
+
+EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "false").lower() == "true"
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASS = os.getenv("SMTP_PASS", "")
+SMTP_FROM = os.getenv("SMTP_FROM", "")
 
 # ── Startup migration ─────────────────────────────────────────────────────────
 
@@ -87,6 +100,89 @@ def run_migrations():
             "VALUES ('default', 'Evento Principal', datetime('now'))"
         ))
         conn.commit()
+
+
+# ── Email helpers ─────────────────────────────────────────────────────────────
+
+
+def _send_email_bg(to: str, subject: str, html: str):
+    """Synchronous email sender — call in a daemon thread to avoid blocking."""
+    if not EMAIL_ENABLED or not SMTP_USER or not SMTP_PASS:
+        return
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = SMTP_FROM or SMTP_USER
+        msg["To"] = to
+        msg.attach(MIMEText(html, "html", "utf-8"))
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as srv:
+            srv.starttls()
+            srv.login(SMTP_USER, SMTP_PASS)
+            srv.sendmail(msg["From"], to, msg.as_string())
+    except Exception:
+        pass  # Non-blocking: RSVP is already saved
+
+
+def _rsvp_confirmation_html(name: str, event_name: str, attending: bool) -> str:
+    icon = "💚" if attending else "💌"
+    msg = ("¡Estamos emocionados de compartir este momento contigo!" if attending
+           else "Lamentamos que no puedas estar, pero te tendremos en mente.")
+    return f"""<!DOCTYPE html>
+<html lang="es">
+<body style="font-family:Georgia,serif;max-width:560px;margin:0 auto;padding:40px 24px;color:#333;">
+  <div style="text-align:center;padding:32px;background:#F8FCF6;border-radius:16px;">
+    <p style="font-size:2.5rem;margin:0;">{icon}</p>
+    <h1 style="font-size:1.4rem;font-weight:normal;color:#3E7B57;margin:12px 0;">¡Gracias, {name}!</h1>
+    <p style="margin:8px 0;">Recibimos tu respuesta para <strong>{event_name}</strong>.</p>
+    <p style="color:#555;margin:8px 0;">{msg}</p>
+  </div>
+  <p style="text-align:center;font-size:0.78rem;color:#9ca3af;margin-top:24px;">
+    Este correo fue enviado automáticamente · No responder
+  </p>
+</body>
+</html>"""
+
+
+def _admin_notification_html(rsvp: models.RSVP, event_name: str) -> str:
+    status = "✅ Asistirá" if rsvp.attending else "❌ No asistirá"
+    guests = f" · {rsvp.guest_count} invitado{'s' if rsvp.guest_count != 1 else ''}" if rsvp.attending else ""
+    extras = ""
+    if rsvp.dietary_restrictions:
+        extras += f"<p><strong>Dieta:</strong> {rsvp.dietary_restrictions}</p>"
+    if rsvp.song_request:
+        extras += f"<p><strong>Canción:</strong> {rsvp.song_request}</p>"
+    if rsvp.message:
+        extras += f"<p><strong>Mensaje:</strong> {rsvp.message}</p>"
+    return f"""<!DOCTYPE html>
+<html lang="es">
+<body style="font-family:Georgia,serif;max-width:560px;margin:0 auto;padding:40px 24px;color:#333;">
+  <h2 style="color:#3E7B57;border-bottom:2px solid #3E7B57;padding-bottom:8px;">Nuevo RSVP — {event_name}</h2>
+  <p><strong>Nombre:</strong> {rsvp.name}</p>
+  <p><strong>Email:</strong> {rsvp.email}</p>
+  <p><strong>Respuesta:</strong> {status}{guests}</p>
+  {extras}
+</body>
+</html>"""
+
+
+def _trigger_rsvp_emails(rsvp: models.RSVP, event: models.Event, db: Session):
+    if not EMAIL_ENABLED or not SMTP_USER:
+        return
+    cfg_row = db.query(models.EventConfig).filter(models.EventConfig.event_slug == event.slug).first()
+    cfg = json.loads(cfg_row.config_json) if cfg_row else {}
+    threading.Thread(
+        target=_send_email_bg,
+        args=(rsvp.email, f"Confirmación — {event.name}",
+              _rsvp_confirmation_html(rsvp.name, event.name, bool(rsvp.attending))),
+        daemon=True,
+    ).start()
+    if notif_email := cfg.get("notification_email"):
+        threading.Thread(
+            target=_send_email_bg,
+            args=(notif_email, f"Nuevo RSVP: {rsvp.name} — {event.name}",
+                  _admin_notification_html(rsvp, event.name)),
+            daemon=True,
+        ).start()
 
 
 # ── Lifespan ──────────────────────────────────────────────────────────────────
@@ -347,7 +443,9 @@ async def create_event_rsvp(
     event: models.Event = Depends(get_event_or_404),
     db: Session = Depends(get_db),
 ):
-    return _upsert_rsvp(event.slug, data, db)
+    rsvp = _upsert_rsvp(event.slug, data, db)
+    _trigger_rsvp_emails(rsvp, event, db)
+    return rsvp
 
 
 @app.get("/events/{event_slug}/rsvp/check", response_model=schemas.CheckResponse)
@@ -384,6 +482,26 @@ async def list_event_rsvps(
         .limit(limit)
         .all()
     )
+
+
+@app.put("/events/{event_slug}/rsvp/{rsvp_id}", response_model=schemas.RSVPResponse)
+async def update_event_rsvp(
+    rsvp_id: int,
+    data: schemas.RSVPCreate,
+    event: models.Event = Depends(verify_event_admin),
+    db: Session = Depends(get_db),
+):
+    rsvp = db.query(models.RSVP).filter(
+        models.RSVP.id == rsvp_id, models.RSVP.event_slug == event.slug
+    ).first()
+    if not rsvp:
+        raise HTTPException(404, detail="RSVP not found")
+    for key, value in data.model_dump().items():
+        setattr(rsvp, key, value)
+    rsvp.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(rsvp)
+    return rsvp
 
 
 @app.delete("/events/{event_slug}/rsvp/{rsvp_id}", status_code=204)

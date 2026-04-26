@@ -85,6 +85,20 @@ export const rsvpApi = {
     client.delete(`/events/${eventSlug}/media/${mediaId}`, {
       headers: { Authorization: `Bearer ${token}` },
     }),
+
+  editRsvp: (
+    eventSlug: string,
+    token: string,
+    id: number,
+    data: {
+      name: string; email: string; attending: boolean;
+      guest_count: number; dietary_restrictions?: string;
+      song_request?: string; message?: string;
+    }
+  ) =>
+    client.put(`/events/${eventSlug}/rsvp/${id}`, data, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
 };
 
 export default client;

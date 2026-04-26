@@ -240,6 +240,7 @@ export interface EventConfig {
   sections: Partial<WeddingConfig['sections']>;
   social?: WeddingConfig['social'];
   music?: WeddingConfig['music'];
+  notification_email?: string;
 }
 
 // ---- Multi-tenancy ----
