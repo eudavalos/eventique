@@ -54,7 +54,7 @@ export default function LandingPage() {
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a
-              href="/e/boda-concepcion-eumelio"
+              href="/e/boda-conce-eume"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: ACCENT, color: '#fff', padding: '13px 28px', borderRadius: '50px', textDecoration: 'none', fontFamily: 'sans-serif', fontSize: '0.92rem', fontWeight: 600 }}
             >
               Ver demo en vivo →
@@ -186,7 +186,7 @@ export default function LandingPage() {
       <footer style={{ padding: '24px', borderTop: '1px solid #e5e7eb', textAlign: 'center', fontFamily: 'sans-serif', fontSize: '0.82rem', color: '#9ca3af' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
           <Heart size={12} color={ACCENT} fill={ACCENT} />
-          <span>Eventique by Tecnopowerpy · {new Date().getFullYear()} · <a href="/e/boda-concepcion-eumelio" style={{ color: ACCENT, textDecoration: 'none' }}>Ver demo</a></span>
+          <span>Eventique by Tecnopowerpy · {new Date().getFullYear()} · <a href="/e/boda-conce-eume" style={{ color: ACCENT, textDecoration: 'none' }}>Ver demo</a></span>
         </div>
       </footer>
     </div>
