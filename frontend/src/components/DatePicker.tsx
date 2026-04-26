@@ -72,10 +72,23 @@ export function DatePicker({
   const [view, setView] = useState<Date>(initial ?? new Date());
   const [hour, setHour] = useState<string>(initial ? format(initial, 'HH') : '12');
   const [minute, setMinute] = useState<string>(initial ? format(initial, 'mm') : '00');
+  const [isAbove, setIsAbove] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    // Check if picker fits below, else position above
+    const checkPosition = () => {
+      if (containerRef.current && pickerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const pickerHeight = 400; // Approximate height
+        const spaceBelow = window.innerHeight - rect.bottom;
+        setIsAbove(spaceBelow < pickerHeight + 20);
+      }
+    };
+    setTimeout(checkPosition, 0);
+
     const onClick = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
@@ -161,12 +174,16 @@ export function DatePicker({
 
       {open && (
         <div
-          className="absolute mt-2 w-[19rem] rounded-2xl shadow-xl p-4"
+          ref={pickerRef}
+          className="absolute w-[19rem] rounded-2xl shadow-xl p-4"
           style={{
             background: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
             boxShadow: '0 10px 40px rgba(0,0,0,0.12)',
             zIndex: 9999,
+            top: isAbove ? 'auto' : undefined,
+            bottom: isAbove ? 'calc(100% + 8px)' : undefined,
+            marginTop: isAbove ? undefined : '8px',
           }}
         >
           <div className="flex items-center justify-between mb-3">
