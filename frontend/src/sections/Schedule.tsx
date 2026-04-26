@@ -21,6 +21,10 @@ export default function Schedule() {
   const { schedule } = config.sections;
   const title = schedule.title ?? 'Itinerario del Día';
 
+  if (!schedule.items || schedule.items.length === 0) {
+    return null;
+  }
+
   return (
     <div className="section-padding" style={{ background: 'var(--color-bg)' }}>
       <div className="max-w-2xl mx-auto">

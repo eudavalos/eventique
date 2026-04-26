@@ -68,6 +68,10 @@ export default function FAQ() {
 
   const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i);
 
+  if (!faq.items || faq.items.length === 0) {
+    return null;
+  }
+
   return (
     <div className="section-padding" style={{ background: 'var(--color-bg)' }}>
       <div className="max-w-2xl mx-auto">

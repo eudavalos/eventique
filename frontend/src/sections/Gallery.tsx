@@ -28,6 +28,10 @@ export default function Gallery() {
     'col-span-1 row-span-1',
   ];
 
+  if (!gallery.photos || gallery.photos.length === 0) {
+    return null;
+  }
+
   return (
     <div className="section-padding" style={{ background: 'var(--color-bg)' }}>
       <div className="max-w-6xl mx-auto">

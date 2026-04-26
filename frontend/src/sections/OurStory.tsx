@@ -92,6 +92,10 @@ export default function OurStory() {
   const title = ourStory.title ?? 'Nuestra Historia';
   const subtitle = ourStory.subtitle;
 
+  if (!ourStory.events || ourStory.events.length === 0) {
+    return null;
+  }
+
   return (
     <div className="section-padding" style={{ background: 'var(--color-bg)' }}>
       <div className="max-w-3xl mx-auto">

@@ -9,6 +9,10 @@ export default function Accommodation() {
   const { accommodation } = config.sections;
   const title = accommodation.title ?? 'Dónde Hospedarse';
 
+  if (!accommodation.hotels || accommodation.hotels.length === 0) {
+    return null;
+  }
+
   return (
     <div className="section-padding" style={{ background: 'var(--color-secondary)' }}>
       <div className="max-w-4xl mx-auto">
