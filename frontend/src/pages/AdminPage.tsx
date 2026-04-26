@@ -14,6 +14,7 @@ import { useEventSlug } from '../context/EventSlugContext';
 import { config as staticConfig } from '../config/wedding';
 import { applyTheme } from '../lib/theme';
 import { setFavicon } from '../lib/favicon';
+import { getRecommendedPalettes } from '../lib/palettesByEventType';
 import type { PaletteKey, EventType, EventInfo, MediaFile, StoryEvent, ScheduleItem, FAQItem, GalleryPhoto, MusicTrack, WeddingPartyMember, Hotel, PartySide } from '../types';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -70,13 +71,24 @@ interface ConfigFormData {
 
 // ── Palette data ───────────────────────────────────────────────────────────
 
-const PALETTE_OPTIONS: { key: PaletteKey; label: string; colors: string[] }[] = [
-  { key: 'nature',    label: 'Nature',    colors: ['#3E7B57', '#C9A93C', '#F8FCF6', '#1C2D22'] },
-  { key: 'rose-gold', label: 'Rose Gold', colors: ['#B76E79', '#C9A84C', '#FAF7F2', '#2A1F1A'] },
-  { key: 'garden',    label: 'Garden',    colors: ['#5E7D5B', '#C4A45A', '#F8F9F5', '#1E2D1B'] },
-  { key: 'navy-gold', label: 'Navy Gold', colors: ['#1C2D5A', '#C9A84C', '#F8F5EE', '#0F1835'] },
-  { key: 'sage',      label: 'Sage',      colors: ['#8FA68A', '#C4B5A5', '#FAFAF7', '#2D2D2D'] },
-  { key: 'midnight',  label: 'Midnight',  colors: ['#9B5A6A', '#E8C977', '#13111E', '#F0E6DC'] },
+const PALETTE_OPTIONS: { key: PaletteKey; label: string; colors: string[]; category: string }[] = [
+  // Existentes
+  { key: 'nature',       label: 'Nature',       colors: ['#3E7B57', '#C9A93C', '#F8FCF6', '#1C2D22'],       category: 'Clásico' },
+  { key: 'rose-gold',    label: 'Rose Gold',    colors: ['#B76E79', '#C9A84C', '#FAF7F2', '#2A1F1A'],    category: 'Clásico' },
+  { key: 'garden',       label: 'Garden',       colors: ['#5E7D5B', '#C4A45A', '#F8F9F5', '#1E2D1B'],       category: 'Clásico' },
+  { key: 'navy-gold',    label: 'Navy Gold',    colors: ['#1C2D5A', '#C9A84C', '#F8F5EE', '#0F1835'],    category: 'Clásico' },
+  { key: 'sage',         label: 'Sage',         colors: ['#8FA68A', '#C4B5A5', '#FAFAF7', '#2D2D2D'],         category: 'Clásico' },
+  { key: 'midnight',     label: 'Midnight',     colors: ['#9B5A6A', '#E8C977', '#13111E', '#F0E6DC'],     category: 'Clásico' },
+  // Enterprise
+  { key: 'platinum',     label: 'Platinum',     colors: ['#2C3E50', '#E74C3C', '#F8F9FA', '#1A1A1A'],     category: 'Enterprise' },
+  { key: 'sapphire',     label: 'Sapphire',     colors: ['#003A70', '#FFB81C', '#F0F4F8', '#001F3F'],     category: 'Enterprise' },
+  { key: 'emerald',      label: 'Emerald',      colors: ['#027A48', '#F59E0B', '#E7F5F0', '#082C2C'],      category: 'Enterprise' },
+  { key: 'coral',        label: 'Coral',        colors: ['#FF6B6B', '#00B4DB', '#FEF5F5', '#2A2A2A'],        category: 'Enterprise' },
+  { key: 'lavender',     label: 'Lavender',     colors: ['#7C3AED', '#FCD34D', '#F3F0FF', '#2D1B4E'],     category: 'Enterprise' },
+  { key: 'teal',         label: 'Teal',         colors: ['#0D9488', '#EA580C', '#F0FDFA', '#134E4A'],         category: 'Enterprise' },
+  { key: 'burgundy',     label: 'Burgundy',     colors: ['#6B2542', '#D4AF37', '#FAF3F7', '#3D1F2A'],     category: 'Enterprise' },
+  { key: 'gold-premium', label: 'Gold Premium', colors: ['#B8860B', '#2C3E50', '#FEF9E7', '#3D2817'], category: 'Enterprise' },
+  { key: 'ocean',        label: 'Ocean',        colors: ['#0369A1', '#EF4444', '#F0F9FF', '#082F49'],        category: 'Enterprise' },
 ];
 
 const EVENT_TYPE_OPTIONS: { value: EventType; label: string; emoji: string }[] = [
@@ -283,18 +295,24 @@ export default function AdminPage() {
   const [dupToken, setDupToken] = useState('');
   const [savingDup, setSavingDup] = useState(false);
 
-  const { register, handleSubmit, reset, watch, control } = useForm<ConfigFormData>({
+  const { register, handleSubmit, reset, watch, control, setValue } = useForm<ConfigFormData>({
     defaultValues: buildDefaultValues({}),
   });
 
   const watchedEventType = watch('event_type');
+  const watchedPalette = watch('palette');
 
-  // Update favicon when event type changes
+  // Update favicon and suggest palette when event type changes
   useEffect(() => {
     if (watchedEventType) {
       setFavicon(watchedEventType);
+      // Suggest default palette for the event type if not yet set
+      const recommendedPalettes = getRecommendedPalettes(watchedEventType);
+      if (recommendedPalettes.length > 0 && !watchedPalette) {
+        setValue('palette', recommendedPalettes[0]);
+      }
     }
-  }, [watchedEventType]);
+  }, [watchedEventType, setValue, watchedPalette]);
 
   // ── Auth ──────────────────────────────────────────────────────────────────
 
@@ -1349,32 +1367,58 @@ export default function AdminPage() {
           <div className="space-y-6">
             <div className="card p-6 sm:p-8">
               <h2 className="font-sub text-lg font-medium mb-6" style={{ color: 'var(--color-text)' }}>Selecciona una paleta de colores</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {PALETTE_OPTIONS.map(({ key, label, colors }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => { setSelectedPalette(key); applyTheme(key); }}
-                    className="flex flex-col gap-3 p-5 rounded-2xl border-2 text-left transition-all duration-200"
-                    style={{
-                      borderColor: selectedPalette === key ? 'var(--color-primary)' : 'var(--color-border)',
-                      background: selectedPalette === key ? 'var(--color-secondary)' : 'var(--color-surface)',
-                      boxShadow: selectedPalette === key ? '0 4px 16px rgba(0,0,0,0.08)' : 'none',
-                    }}
-                  >
-                    <div className="flex gap-2">{colors.map((c) => (<div key={c} className="w-8 h-8 rounded-full border border-black/10 shadow-sm" style={{ background: c }} />))}</div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-sub text-sm font-medium" style={{ color: 'var(--color-text)' }}>{label}</span>
-                      {selectedPalette === key && (
-                        <span className="text-xs font-body px-2 py-0.5 rounded-full" style={{ background: 'var(--color-primary)', color: 'white' }}>Activo</span>
-                      )}
-                    </div>
-                    <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
-                      {colors.map((c, i) => (<div key={i} className="flex-1" style={{ background: c }} />))}
-                    </div>
-                  </button>
-                ))}
-              </div>
+              {(() => {
+                const categories = Array.from(new Set(PALETTE_OPTIONS.map(p => p.category)));
+                const recommendedPalettes = getRecommendedPalettes(watchedEventType as EventType);
+                return (
+                  <div className="space-y-8">
+                    {categories.map(category => (
+                      <div key={category}>
+                        <h3 className="font-sub text-xs uppercase tracking-wider font-semibold mb-4" style={{ color: 'var(--color-text-muted)' }}>
+                          {category}
+                          {category === 'Enterprise' && (
+                            <span className="ml-2 text-[0.65rem] px-2 py-0.5 rounded-full" style={{ background: 'var(--color-accent)', color: 'var(--color-text)' }}>Profesional</span>
+                          )}
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {PALETTE_OPTIONS.filter(p => p.category === category).map(({ key, label, colors }) => {
+                            const isRecommended = recommendedPalettes.includes(key);
+                            return (
+                              <button
+                                key={key}
+                                type="button"
+                                onClick={() => { setSelectedPalette(key); applyTheme(key); }}
+                                className="flex flex-col gap-3 p-5 rounded-2xl border-2 text-left transition-all duration-200 relative"
+                                style={{
+                                  borderColor: selectedPalette === key ? 'var(--color-primary)' : 'var(--color-border)',
+                                  background: selectedPalette === key ? 'var(--color-secondary)' : 'var(--color-surface)',
+                                  boxShadow: selectedPalette === key ? '0 4px 16px rgba(0,0,0,0.08)' : 'none',
+                                }}
+                              >
+                                {isRecommended && (
+                                  <div className="absolute top-3 right-3 flex items-center gap-1" style={{ color: 'var(--color-accent)' }}>
+                                    <span className="text-lg">★</span>
+                                  </div>
+                                )}
+                                <div className="flex gap-2">{colors.map((c) => (<div key={c} className="w-8 h-8 rounded-full border border-black/10 shadow-sm" style={{ background: c }} />))}</div>
+                                <div className="flex items-center justify-between pr-6">
+                                  <span className="font-sub text-sm font-medium" style={{ color: 'var(--color-text)' }}>{label}</span>
+                                  {selectedPalette === key && (
+                                    <span className="text-xs font-body px-2 py-0.5 rounded-full" style={{ background: 'var(--color-primary)', color: 'white' }}>Activo</span>
+                                  )}
+                                </div>
+                                <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
+                                  {colors.map((c, i) => (<div key={i} className="flex-1" style={{ background: c }} />))}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex justify-end">
               <button type="button" onClick={savePalette} disabled={saving} className="btn-primary px-8">

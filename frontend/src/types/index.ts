@@ -3,7 +3,7 @@
 // ============================================================
 
 export type Language = 'es' | 'en';
-export type PaletteKey = 'rose-gold' | 'garden' | 'nature' | 'navy-gold' | 'sage' | 'midnight' | 'custom';
+export type PaletteKey = 'rose-gold' | 'garden' | 'nature' | 'navy-gold' | 'sage' | 'midnight' | 'platinum' | 'sapphire' | 'emerald' | 'coral' | 'lavender' | 'teal' | 'burgundy' | 'gold-premium' | 'ocean' | 'custom';
 export type EventType = 'boda' | 'cumpleanos' | 'bautismo' | 'quinceanera' | 'graduacion' | 'corporativo';
 export type PartySide = 'bride' | 'groom' | 'both';
 export type ScheduleLocation = 'ceremony' | 'reception' | 'other';
