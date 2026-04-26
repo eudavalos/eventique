@@ -178,6 +178,23 @@ export default function AdminPage() {
   const [tokenModal, setTokenModal] = useState<{ slug: string; token: string } | null>(null);
   const [generatingToken, setGeneratingToken] = useState<string | null>(null);
 
+  // Event selector dropdown
+  const [showEventSelector, setShowEventSelector] = useState(false);
+  const eventSelectorRef = useRef<HTMLDivElement>(null);
+
+  // Close event selector on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (eventSelectorRef.current && !eventSelectorRef.current.contains(e.target as Node)) {
+        setShowEventSelector(false);
+      }
+    };
+    if (showEventSelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showEventSelector]);
+
   // Sections content state
   const [storyEnabled, setStoryEnabled] = useState(true);
   const [storyTitle, setStoryTitle] = useState('');
@@ -800,14 +817,46 @@ export default function AdminPage() {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
+          <div className="flex-1">
             <h1 className="section-title text-left text-4xl">Eventique</h1>
             <p className="text-muted text-sm mt-1 flex items-center gap-2 flex-wrap">
               Panel de administración
-              <span className="font-mono text-xs px-2 py-0.5 rounded-full"
-                style={{ background: 'var(--color-secondary)', color: 'var(--color-accent)' }}>
-                {eventSlug}
-              </span>
+              <div className="relative" ref={eventSelectorRef}>
+                <button
+                  onClick={() => setShowEventSelector(!showEventSelector)}
+                  className="font-mono text-xs px-3 py-1 rounded-full transition-all cursor-pointer hover:opacity-80"
+                  style={{ background: 'var(--color-secondary)', color: 'var(--color-accent)' }}
+                  title="Cambiar evento"
+                >
+                  {eventSlug} {events.length > 1 ? '▼' : ''}
+                </button>
+                {showEventSelector && events.length > 1 && (
+                  <div
+                    className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-lg border z-50 min-w-64"
+                    style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+                  >
+                    <div className="p-2 max-h-96 overflow-y-auto">
+                      {events.map((ev) => (
+                        <a
+                          key={ev.slug}
+                          href={ev.slug === 'default' ? '/admin' : `/e/${ev.slug}/admin`}
+                          className={`block px-4 py-2.5 rounded-lg mb-1 transition-colors text-sm ${
+                            ev.slug === eventSlug ? 'font-medium' : ''
+                          }`}
+                          style={{
+                            background: ev.slug === eventSlug ? 'var(--color-primary)' : 'transparent',
+                            color: ev.slug === eventSlug ? 'white' : 'var(--color-text)',
+                          }}
+                          onClick={() => setShowEventSelector(false)}
+                        >
+                          <div className="font-medium">{ev.name}</div>
+                          <div className="text-xs opacity-70 font-mono">/{ev.slug}</div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{names}</span>
             </p>
           </div>

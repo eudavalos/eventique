@@ -25,7 +25,7 @@ export const config: WeddingConfig = {
       parents: 'Padre de Eumelio & Madre de Eumelio',
     },
     displayNames: 'Concepción & Eumelio',
-    hashtag: '#ConcepcionYEumelio2026',
+    hashtag: '#ConcepciónYEumelio2026',
   },
 
   // ──────────────────────────────────────────────────────────
@@ -302,6 +302,6 @@ export const config: WeddingConfig = {
   //  7. REDES SOCIALES
   // ──────────────────────────────────────────────────────────
   social: {
-    hashtag: '#ConcepcionYEumelio2026',
+    hashtag: '#ConcepciónYEumelio2026',
   },
 };
