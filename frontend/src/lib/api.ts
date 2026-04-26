@@ -7,6 +7,33 @@ const client = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// ── RSVP Type Mapper ────────────────────────────────────────────────────────
+// Converts frontend camelCase / string booleans to backend snake_case / bool
+
+export interface RSVPPayload {
+  name: string;
+  email: string;
+  attending: boolean;
+  guest_count: number;
+  plus_one_name?: string;
+  dietary_restrictions?: string;
+  song_request?: string;
+  message?: string;
+}
+
+export function toRSVPPayload(data: RSVPFormData): RSVPPayload {
+  return {
+    name: data.name,
+    email: data.email,
+    attending: data.attending === 'yes',
+    guest_count: data.guestCount ?? 1,
+    plus_one_name: data.plusOneName,
+    dietary_restrictions: data.dietaryRestrictions,
+    song_request: data.songRequest,
+    message: data.message,
+  };
+}
+
 export const rsvpApi = {
   // ── Invitation (public) ────────────────────────────────────────────────────
 
@@ -14,7 +41,7 @@ export const rsvpApi = {
     client.get<EventConfig>(`/events/${eventSlug}/event-config`),
 
   submit: (eventSlug: string, data: RSVPFormData) =>
-    client.post(`/events/${eventSlug}/rsvp`, data),
+    client.post(`/events/${eventSlug}/rsvp`, toRSVPPayload(data)),
 
   checkEmail: (eventSlug: string, email: string) =>
     client.get<{ exists: boolean; attending: boolean }>(

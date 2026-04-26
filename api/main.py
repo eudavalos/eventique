@@ -21,28 +21,28 @@ from sqlalchemy import func, text
 
 from . import models, schemas
 from .database import engine, get_db, SessionLocal
+from .settings import get_settings
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# ── Config (from api/settings.py — all env vars centralized) ────────────────
 
-ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "change-me-in-production")
-ALLOWED_ORIGINS = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:5174,https://eventique.tecnopowerpy.top",
-).split(",")
-UPLOAD_DIR = Path("/app/data/uploads")
-MAX_IMAGE_SIZE = 10 * 1024 * 1024   # 10 MB
-MAX_AUDIO_SIZE = 50 * 1024 * 1024   # 50 MB
-ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
-ALLOWED_AUDIO_TYPES = {"audio/mpeg", "audio/mp4", "audio/wav", "audio/ogg", "audio/x-m4a"}
+settings = get_settings()
 
-# ── Email notifications (optional — set EMAIL_ENABLED=true + SMTP vars to activate) ──
+# Legacy variables (for compatibility with existing code)
+ADMIN_TOKEN = settings.admin_token
+ALLOWED_ORIGINS = settings.allowed_origins if isinstance(settings.allowed_origins, list) else settings.allowed_origins.split(",")
+UPLOAD_DIR = Path(settings.upload_dir)
+MAX_IMAGE_SIZE = settings.max_image_size_mb * 1024 * 1024
+MAX_AUDIO_SIZE = settings.max_audio_size_mb * 1024 * 1024
+ALLOWED_IMAGE_TYPES = set(settings.allowed_image_types if isinstance(settings.allowed_image_types, list) else settings.allowed_image_types.split(","))
+ALLOWED_AUDIO_TYPES = set(settings.allowed_audio_types if isinstance(settings.allowed_audio_types, list) else settings.allowed_audio_types.split(","))
 
-EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "false").lower() == "true"
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASS = os.getenv("SMTP_PASS", "")
-SMTP_FROM = os.getenv("SMTP_FROM", "")
+# Email config
+EMAIL_ENABLED = settings.email_enabled
+SMTP_HOST = settings.smtp_host
+SMTP_PORT = settings.smtp_port
+SMTP_USER = settings.smtp_user
+SMTP_PASS = settings.smtp_pass
+SMTP_FROM = settings.smtp_from
 
 # ── Startup migration ─────────────────────────────────────────────────────────
 
