@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,18 +12,18 @@ import { OrnamentDivider, OrnamentFloral } from '../components/Ornament';
 import { rsvpApi } from '../lib/api';
 import type { RSVPFormData } from '../types';
 
-const schema = z.object({
+const baseSchema = z.object({
   name: z.string().min(2, 'Por favor ingresa tu nombre completo'),
   email: z.string().email('Correo electrónico inválido'),
   attending: z.enum(['yes', 'no']),
-  guestCount: z.number().min(1).max(8).optional(),
+  guestCount: z.number().min(1).optional(),
   plusOneName: z.string().optional(),
   dietaryRestrictions: z.string().optional(),
   songRequest: z.string().optional(),
   message: z.string().optional(),
 });
 
-type FormSchema = z.infer<typeof schema>;
+type FormSchema = z.infer<typeof baseSchema>;
 
 const TOTAL_STEPS = 4;
 
@@ -53,6 +53,12 @@ export default function RSVP() {
   const [attending, setAttending] = useState<'yes' | 'no' | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const maxGuests = rsvp.maxGuestsPerResponse ?? 8;
+  const schema = useMemo(
+    () => baseSchema.extend({ guestCount: z.number().min(1).max(maxGuests).optional() }),
+    [maxGuests],
+  );
 
   const { register, handleSubmit, watch, setValue, trigger, formState: { errors } } = useForm<FormSchema>({
     resolver: zodResolver(schema),
@@ -125,7 +131,7 @@ export default function RSVP() {
           {rsvp.subtitle && <p className="section-subtitle">{rsvp.subtitle}</p>}
           {rsvp.deadline && (
             <p className="text-xs tracking-[0.15em] uppercase font-body font-medium mt-4" style={{ color: 'var(--color-accent)' }}>
-              Antes del {new Date(rsvp.deadline).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })}
+              Antes del {new Date(rsvp.deadline + 'T12:00:00').toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           )}
           <OrnamentDivider />

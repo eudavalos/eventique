@@ -101,7 +101,7 @@ function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): Weddin
   return {
     ...base,
     couple: mergedCouple,
-    dates: dynamic.dates ?? base.dates,
+    dates: dynamic.dates ? { ...base.dates, ...dynamic.dates } : base.dates,
     venues: mergedVenues,
     theme: {
       ...base.theme,

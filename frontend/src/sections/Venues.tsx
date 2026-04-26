@@ -71,15 +71,17 @@ function VenueCard({ venue, label, delay = 0 }: { venue: Venue; label: string; d
           )}
         </div>
 
-        <a
-          href={venue.mapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-outline mt-6 self-start text-xs"
-        >
-          <MapPin className="w-3.5 h-3.5" /> Cómo llegar
-          <ExternalLink className="w-3 h-3 opacity-60" />
-        </a>
+        {venue.mapsUrl && (
+          <a
+            href={venue.mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-outline mt-6 self-start text-xs"
+          >
+            <MapPin className="w-3.5 h-3.5" /> Cómo llegar
+            <ExternalLink className="w-3 h-3 opacity-60" />
+          </a>
+        )}
       </div>
     </motion.div>
   );
