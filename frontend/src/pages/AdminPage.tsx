@@ -559,6 +559,10 @@ export default function AdminPage() {
       } as never);
       applyTheme(selectedPalette);
       toast.success('Tema guardado correctamente');
+      // Reload config to ensure sync
+      const cfgRes = await rsvpApi.getEventConfig(eventSlug);
+      const updatedCfg = cfgRes.data as unknown as Record<string, unknown>;
+      setEventCfg(updatedCfg);
     } catch {
       toast.error('Error al guardar el tema');
     } finally {
@@ -699,8 +703,13 @@ export default function AdminPage() {
     const sects = (current.sections as Record<string, unknown> | undefined) ?? {};
     const updated = { ...current, sections: { ...sects, gallery: { ...(sects.gallery as object ?? {}), photos } } };
     await rsvpApi.updateEventConfig(eventSlug, token, updated as never);
-    setEventCfg(updated as Record<string, unknown>);
-    setGalleryPhotos(photos);
+    // Reload config to ensure sync
+    const cfgRes = await rsvpApi.getEventConfig(eventSlug);
+    const updatedCfg = cfgRes.data as unknown as Record<string, unknown>;
+    setEventCfg(updatedCfg);
+    const sects2 = (updatedCfg.sections as Record<string, unknown> | undefined) ?? {};
+    const gal = sects2.gallery as Record<string, unknown> | undefined;
+    setGalleryPhotos((gal?.photos as GalleryPhoto[]) ?? photos);
   };
 
   const saveMusicConfig = async (tracks: MusicTrack[]) => {
@@ -708,8 +717,12 @@ export default function AdminPage() {
     const mus = (current.music as Record<string, unknown> | undefined) ?? {};
     const updated = { ...current, music: { enabled: musicEnabled, autoplay: musicAutoplay, ...mus, tracks } };
     await rsvpApi.updateEventConfig(eventSlug, token, updated as never);
-    setEventCfg(updated as Record<string, unknown>);
-    setMusicTracks(tracks);
+    // Reload config to ensure sync
+    const cfgRes = await rsvpApi.getEventConfig(eventSlug);
+    const updatedCfg = cfgRes.data as unknown as Record<string, unknown>;
+    setEventCfg(updatedCfg);
+    const mus2 = (updatedCfg.music as Record<string, unknown> | undefined) ?? {};
+    setMusicTracks((mus2.tracks as MusicTrack[]) ?? tracks);
   };
 
   const addPhotoToGallery = async (url: string, filename: string) => {
@@ -765,8 +778,11 @@ export default function AdminPage() {
         social: { hashtag: socialHashtag || undefined, instagram: socialInstagram || undefined },
       };
       await rsvpApi.updateEventConfig(eventSlug, token, updated as never);
-      setEventCfg(updated as Record<string, unknown>);
       toast.success('Secciones guardadas correctamente');
+      // Reload config to ensure sync
+      const cfgRes = await rsvpApi.getEventConfig(eventSlug);
+      const updatedCfg = cfgRes.data as unknown as Record<string, unknown>;
+      setEventCfg(updatedCfg);
     } catch { toast.error('Error al guardar las secciones'); }
     finally { setSavingSections(false); }
   };
