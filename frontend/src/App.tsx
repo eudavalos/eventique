@@ -116,9 +116,6 @@ function EventInvitationRoute({ defaultSlug = 'default' }: { defaultSlug?: strin
       staticConfig.theme.fonts.subheading,
       staticConfig.theme.fonts.body,
     );
-    const { couple } = staticConfig;
-    document.title = `${couple.displayNames ?? `${couple.person1.firstName} & ${couple.person2.firstName}`} — ${staticConfig.dates.displayDate ?? staticConfig.dates.ceremony.slice(0, 10)}`;
-
     rsvpApi.getEventConfig(eventSlug)
       .then(({ data }) => {
         const merged = mergeConfig(staticConfig, data as Partial<EventConfig>);
@@ -127,6 +124,10 @@ function EventInvitationRoute({ defaultSlug = 'default' }: { defaultSlug?: strin
         if (merged.theme.fonts) {
           applyFonts(merged.theme.fonts.heading, merged.theme.fonts.subheading, merged.theme.fonts.body);
         }
+        // Set title from dynamic event data
+        const { couple, dates } = merged;
+        document.title = `${couple.displayNames ?? couple.person1.firstName} — ${dates.displayDate ?? dates.ceremony.slice(0, 10)}`;
+        // Set favicon from event type
         if ((data as Partial<EventConfig>).event_type) {
           setFavicon((data as Partial<EventConfig>).event_type!);
         }
