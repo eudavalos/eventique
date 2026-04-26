@@ -524,21 +524,32 @@ export default function AdminPage() {
   const saveConfig = async (formData: ConfigFormData) => {
     setSaving(true);
     try {
+      // Spread the full current config first so music, social, customColors,
+      // dates.reception, venue photos, and all other fields are never lost.
+      const current = eventCfg as Record<string, unknown>;
+      const currentVenues = (current.venues as Record<string, unknown> | undefined) ?? {};
+      const currentSects  = (current.sections as Record<string, unknown> | undefined) ?? {};
+
       await rsvpApi.updateEventConfig(eventSlug, token, {
+        ...current,
         event_type: formData.event_type,
         couple: {
+          ...(current.couple as object ?? {}),
           person1: { firstName: formData.person1_first, lastName: formData.person1_last, nickname: formData.person1_nick, parents: formData.person1_parents || undefined },
           person2: { firstName: formData.person2_first, lastName: formData.person2_last, nickname: formData.person2_nick, parents: formData.person2_parents || undefined },
           displayNames: formData.display_names,
           hashtag: formData.hashtag,
         },
         dates: {
+          ...(current.dates as object ?? {}),    // preserves dates.reception
           ceremony: formData.ceremony_date,
           displayDate: formData.display_date,
           timezone: formData.timezone || 'America/Asuncion',
         },
         venues: {
+          ...currentVenues,
           ceremony: {
+            ...(currentVenues.ceremony as object ?? {}),   // preserves venue photo
             name: formData.ceremony_venue_name,
             address: formData.ceremony_venue_address,
             city: formData.ceremony_venue_city,
@@ -548,6 +559,7 @@ export default function AdminPage() {
             dresscode: formData.ceremony_venue_dresscode || undefined,
           },
           reception: {
+            ...(currentVenues.reception as object ?? {}),  // preserves venue photo
             name: formData.reception_venue_name,
             address: formData.reception_venue_address,
             city: formData.reception_venue_city,
@@ -558,15 +570,15 @@ export default function AdminPage() {
           },
           sameVenue: formData.same_venue,
         },
-        theme: { palette: formData.palette },
+        theme: { ...(current.theme as object ?? {}), palette: formData.palette },  // preserves customColors
         sections: {
-          ...(eventCfg.sections as object ?? {}),
+          ...currentSects,
           hero: {
-            ...((eventCfg.sections as Record<string, unknown>)?.hero as object ?? {}),
+            ...(currentSects.hero as object ?? {}),
             ctaLabel: formData.hero_cta_label || undefined,
           },
           rsvp: {
-            ...((eventCfg.sections as Record<string, unknown>)?.rsvp as object ?? {}),
+            ...(currentSects.rsvp as object ?? {}),
             enabled: formData.rsvp_enabled,
             deadline: formData.rsvp_deadline,
             maxGuestsPerResponse: Number(formData.max_guests),
@@ -578,10 +590,20 @@ export default function AdminPage() {
         gift_registry_title: formData.gift_registry_title || undefined,
         gift_registry_description: formData.gift_registry_description || undefined,
       } as never);
+
       toast.success('Configuración guardada correctamente');
+
+      // Reload full config from DB and sync all derived UI states
       const cfgRes = await rsvpApi.getEventConfig(eventSlug);
       const updatedCfg = cfgRes.data as unknown as Record<string, unknown>;
       setEventCfg(updatedCfg);
+
+      // Keep Theme tab palette picker in sync
+      setSelectedPalette(formData.palette);
+
+      // Keep Hero section state in sync with ctaLabel saved here
+      setHeroCta(formData.hero_cta_label);
+
       if ((updatedCfg as Partial<ConfigFormData>).event_type) {
         setFavicon((updatedCfg as Partial<ConfigFormData>).event_type!);
       }
