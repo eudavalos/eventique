@@ -7,7 +7,7 @@ Defaults are set to safe/sensible values. Production must override via .env.
 
 from pydantic_settings import BaseSettings
 from pydantic import Field, field_validator
-from typing import Optional
+from typing import Optional, List
 import os
 
 
@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     # ── CORS ───────────────────────────────────────────────────────────
     allowed_origins: str = Field(
         default="http://localhost:5174,http://localhost:5176,http://127.0.0.1:5174,http://127.0.0.1:5176",
-        description="Comma-separated list of allowed CORS origins"
+        description="Comma-separated CORS origins"
     )
 
     # ── Media Upload ────────────────────────────────────────────────────
@@ -80,41 +80,6 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
         case_sensitive = False
 
-    @field_validator("allowed_origins", mode="before")
-    @classmethod
-    def parse_origins(cls, v):
-        """Convert comma-separated origins to list for internal use."""
-        if isinstance(v, str):
-            return [o.strip() for o in v.split(",")]
-        return v
-
-    @field_validator("allowed_image_types", mode="before")
-    @classmethod
-    def parse_image_types(cls, v):
-        if isinstance(v, str):
-            return [t.strip() for t in v.split(",")]
-        return v
-
-    @field_validator("allowed_audio_types", mode="before")
-    @classmethod
-    def parse_audio_types(cls, v):
-        if isinstance(v, str):
-            return [t.strip() for t in v.split(",")]
-        return v
-
-    @field_validator("allowed_image_extensions", mode="before")
-    @classmethod
-    def parse_image_extensions(cls, v):
-        if isinstance(v, str):
-            return [e.strip().lower() for e in v.split(",")]
-        return v
-
-    @field_validator("allowed_audio_extensions", mode="before")
-    @classmethod
-    def parse_audio_extensions(cls, v):
-        if isinstance(v, str):
-            return [e.strip().lower() for e in v.split(",")]
-        return v
 
 
 # Singleton instance — lazy loaded
