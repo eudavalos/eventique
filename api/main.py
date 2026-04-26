@@ -80,14 +80,13 @@ def run_migrations():
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_rsvps_event_slug ON rsvps (event_slug)"))
             conn.commit()
 
-    # Create default event if none exists
-    db = SessionLocal()
-    try:
-        if not db.query(models.Event).filter(models.Event.slug == "default").first():
-            db.add(models.Event(slug="default", name="Evento Principal"))
-            db.commit()
-    finally:
-        db.close()
+    # Create default event — INSERT OR IGNORE avoids race condition on multi-worker restart
+    with engine.connect() as conn:
+        conn.execute(text(
+            "INSERT OR IGNORE INTO events (slug, name, created_at) "
+            "VALUES ('default', 'Evento Principal', datetime('now'))"
+        ))
+        conn.commit()
 
 
 # ── Lifespan ──────────────────────────────────────────────────────────────────
