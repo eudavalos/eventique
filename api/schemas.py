@@ -58,6 +58,7 @@ class EventResponse(BaseModel):
     id: int
     slug: str
     name: str
+    admin_token: Optional[str] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

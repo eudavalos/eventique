@@ -4,7 +4,7 @@ import {
   Users, CheckCircle, XCircle, BarChart3, Download, Lock,
   Settings, Palette, Upload, Trash2, Plus, ExternalLink,
   Copy, Music2, Calendar, Pencil, QrCode, X, FileText,
-  Image as ImageIcon, LogOut,
+  Image as ImageIcon, LogOut, Key, RefreshCw,
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import toast from 'react-hot-toast';
@@ -164,6 +164,10 @@ export default function AdminPage() {
 
   // QR code modal
   const [showQrFor, setShowQrFor] = useState<string | null>(null);
+
+  // Token modal
+  const [tokenModal, setTokenModal] = useState<{ slug: string; token: string } | null>(null);
+  const [generatingToken, setGeneratingToken] = useState<string | null>(null);
 
   // Sections content state
   const [storyEnabled, setStoryEnabled] = useState(true);
@@ -581,6 +585,20 @@ export default function AdminPage() {
       toast.error('Error al guardar los cambios');
     } finally {
       setSavingEdit(false);
+    }
+  };
+
+  const handleGenerateToken = async (slug: string) => {
+    setGeneratingToken(slug);
+    try {
+      const res = await rsvpApi.generateEventToken(token, slug);
+      setTokenModal({ slug, token: res.data.admin_token });
+      setEvents((prev) => prev.map((ev) => ev.slug === slug ? { ...ev, admin_token: res.data.admin_token } : ev));
+      toast.success('Token generado');
+    } catch {
+      toast.error('Error al generar token');
+    } finally {
+      setGeneratingToken(null);
     }
   };
 
@@ -1479,13 +1497,23 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <label className="input-label">Token de admin (opcional — deja vacío para usar el token global)</label>
-                  <input
-                    type="password"
-                    value={newEventToken}
-                    onChange={(e) => setNewEventToken(e.target.value)}
-                    className="input-field"
-                    placeholder="Token personalizado para este evento"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newEventToken}
+                      onChange={(e) => setNewEventToken(e.target.value)}
+                      className="input-field flex-1 font-mono text-sm"
+                      placeholder="Token personalizado para este evento"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setNewEventToken(Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2))}
+                      className="btn-outline flex items-center gap-1.5 whitespace-nowrap"
+                      title="Generar token aleatorio"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" /> Generar
+                    </button>
+                  </div>
                 </div>
                 <div className="flex justify-end">
                   <button type="submit" disabled={creatingEvent || !newEventName || !newEventSlug} className="btn-primary">
@@ -1542,6 +1570,18 @@ export default function AdminPage() {
                             title="Ver código QR"
                           >
                             <QrCode className="w-3 h-3" /> QR
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleGenerateToken(ev.slug)}
+                            disabled={generatingToken === ev.slug}
+                            className="btn-outline text-xs py-1 px-2.5 flex items-center gap-1"
+                            title="Generar token de acceso para admin del evento"
+                          >
+                            {generatingToken === ev.slug
+                              ? <RefreshCw className="w-3 h-3 animate-spin" />
+                              : <Key className="w-3 h-3" />}
+                            Token
                           </button>
                           <button
                             type="button"
@@ -2141,7 +2181,17 @@ export default function AdminPage() {
             </div>
             <div>
               <label className="input-label">Token de admin (opcional)</label>
-              <input type="password" value={dupToken} onChange={(e) => setDupToken(e.target.value)} className="input-field" placeholder="Deja vacío para usar token global" />
+              <div className="flex gap-2">
+                <input type="text" value={dupToken} onChange={(e) => setDupToken(e.target.value)} className="input-field flex-1 font-mono text-sm" placeholder="Deja vacío para usar token global" />
+                <button
+                  type="button"
+                  onClick={() => setDupToken(Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2))}
+                  className="btn-outline flex items-center gap-1.5 whitespace-nowrap"
+                  title="Generar token aleatorio"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" /> Generar
+                </button>
+              </div>
             </div>
             <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => setDuplicatingSlug(null)} className="btn-outline flex-1 justify-center">Cancelar</button>
@@ -2150,6 +2200,68 @@ export default function AdminPage() {
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    )}
+
+    {/* ── Token Modal ── */}
+    {tokenModal && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: 'rgba(0,0,0,0.5)' }}
+        onClick={(e) => { if (e.target === e.currentTarget) setTokenModal(null); }}
+      >
+        <div className="card w-full max-w-md p-6 sm:p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>Token de acceso generado</h2>
+            <button onClick={() => setTokenModal(null)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+              <X className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+            </button>
+          </div>
+          <p className="text-sm text-muted mb-4">
+            Comparte este token con el administrador del evento <span className="font-mono font-medium" style={{ color: 'var(--color-text)' }}>{tokenModal.slug}</span>. Solo se muestra una vez.
+          </p>
+          <div className="mb-4">
+            <label className="input-label">Token</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={tokenModal.token}
+                className="input-field flex-1 font-mono text-sm"
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+              <button
+                type="button"
+                className="btn-outline flex items-center gap-1.5"
+                onClick={() => { navigator.clipboard.writeText(tokenModal.token); toast.success('Token copiado'); }}
+              >
+                <Copy className="w-3.5 h-3.5" /> Copiar
+              </button>
+            </div>
+          </div>
+          <div className="mb-6">
+            <label className="input-label">URL de acceso al admin</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={`${window.location.origin}/e/${tokenModal.slug}/admin`}
+                className="input-field flex-1 font-mono text-sm"
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+              <button
+                type="button"
+                className="btn-outline flex items-center gap-1.5"
+                onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/e/${tokenModal.slug}/admin`); toast.success('URL copiada'); }}
+              >
+                <Copy className="w-3.5 h-3.5" /> Copiar
+              </button>
+            </div>
+          </div>
+          <button type="button" className="btn-primary w-full justify-center" onClick={() => setTokenModal(null)}>
+            Cerrar
+          </button>
         </div>
       </div>
     )}

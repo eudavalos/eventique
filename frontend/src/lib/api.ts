@@ -85,6 +85,9 @@ export const rsvpApi = {
   duplicateEvent: (token: string, sourceSlug: string, data: { name: string; slug: string; admin_token?: string }) =>
     client.post<EventInfo>(`/events/${sourceSlug}/duplicate`, data, { headers: { Authorization: `Bearer ${token}` } }),
 
+  generateEventToken: (token: string, slug: string) =>
+    client.patch<{ slug: string; admin_token: string }>(`/events/${slug}/admin-token`, {}, { headers: { Authorization: `Bearer ${token}` } }),
+
   // ── Media management ───────────────────────────────────────────────────────
 
   listMedia: (eventSlug: string, token: string) =>

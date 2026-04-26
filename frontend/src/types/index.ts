@@ -249,6 +249,7 @@ export interface EventInfo {
   id: number;
   slug: string;
   name: string;
+  admin_token?: string | null;
   created_at: string;
 }
 

@@ -502,6 +502,22 @@ async def delete_event(
 # ── Per-event endpoints ───────────────────────────────────────────────────────
 
 
+@app.patch("/events/{event_slug}/admin-token")
+async def set_event_admin_token(
+    event_slug: str,
+    db: Session = Depends(get_db),
+    _: bool = Depends(verify_admin),
+):
+    """Generate a new random admin token for the event (superadmin only)."""
+    event = db.query(models.Event).filter(models.Event.slug == event_slug).first()
+    if not event:
+        raise HTTPException(404, detail=f"Evento '{event_slug}' no encontrado")
+    new_token = secrets.token_urlsafe(24)
+    event.admin_token = new_token
+    db.commit()
+    return {"slug": event_slug, "admin_token": new_token}
+
+
 @app.get("/events/{event_slug}/event-config")
 async def get_event_config_by_slug(
     event: models.Event = Depends(get_event_or_404),
