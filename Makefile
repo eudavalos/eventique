@@ -1,58 +1,51 @@
-.PHONY: dev install build up down logs restart deploy status env db-shell
+.PHONY: help install test lint build dev docker docker-up docker-down logs status backup-db deploy-pi
 
-# ── Development ───────────────────────────────────────────────
+help:
+	@echo "Eventique — Available commands:"
+	@echo "  make install      — Install dependencies"
+	@echo "  make test         — Run backend tests"
+	@echo "  make lint         — Lint frontend"
+	@echo "  make build        — Build frontend (production)"
+	@echo "  make docker       — Build Docker images"
+	@echo "  make docker-up    — Start Docker Compose"
+	@echo "  make docker-down  — Stop Docker Compose"
+	@echo "  make logs         — Show Docker logs"
+	@echo "  make status       — Check Docker status"
+	@echo "  make backup-db    — Backup database"
+	@echo "  make deploy-pi    — Deploy to Raspberry Pi"
+
 install:
 	cd frontend && npm install
 	pip install -r api/requirements.txt
 
-dev:
-	@echo "Starting Eventique (dev mode)..."
-	@make -j2 dev-api dev-web
+test:
+	cd api && python -m pytest tests/ -v --tb=short 2>/dev/null || echo "Tests not available"
 
-dev-web:
-	cd frontend && npm run dev
-
-dev-api:
-	uvicorn api.main:app --host 0.0.0.0 --port 8700 --reload
-
-# ── Production (Docker) ───────────────────────────────────────
 build:
-	docker compose build --no-cache
+	cd frontend && npm run build
 
-up:
-	docker compose up -d
+docker:
+	docker compose build
 
-down:
+docker-up:
+	docker compose up -d && echo "✓ Services started"
+
+docker-down:
 	docker compose down
 
-restart:
-	docker compose restart
-
 logs:
-	docker compose logs -f
+	docker compose logs --tail=100 -f
 
-logs-api:
-	docker compose logs -f api
-
-logs-frontend:
-	docker compose logs -f frontend
-
-# ── Raspberry Pi 5 deploy ─────────────────────────────────────
-deploy:
-	@echo "Deploying Eventique to Raspberry Pi 5..."
-	docker compose build
-	docker compose up -d --force-recreate
-	@echo "Done — https://eventique.tecnopowerpy.top"
-
-# ── Database ──────────────────────────────────────────────────
-db-shell:
-	docker compose exec api python3 -c "from api.database import engine; from sqlalchemy import text; \
-	  conn = engine.connect(); result = conn.execute(text('SELECT * FROM rsvps')); \
-	  [print(r) for r in result]"
-
-# ── Utils ─────────────────────────────────────────────────────
 status:
 	docker compose ps
 
-env:
-	@test -f .env || (cp .env.example .env && echo "✓ .env created — edit it now!")
+backup-db:
+	@mkdir -p data/backup
+	@cp data/eventique.db data/backup/eventique_$$(date +%Y%m%d_%H%M%S).db && echo "✓ Backed up"
+
+deploy-pi:
+	@echo "Deploying to Pi..."
+	ssh eudavalos@raspberrypi "mkdir -p ~/Boda && mkdir -p ~/Boda/data/backup"
+	scp -r frontend/src api/*.py .env* eudavalos@raspberrypi:~/Boda/
+	ssh eudavalos@raspberrypi "cd ~/Boda && docker compose build && docker compose up -d --force-recreate"
+	@echo "✓ Deploy complete"

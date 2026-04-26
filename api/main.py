@@ -22,6 +22,7 @@ from sqlalchemy import func, text
 from . import models, schemas
 from .database import engine, get_db, SessionLocal
 from .settings import get_settings
+from .ratelimit import check_rate_limit, get_client_ip
 
 # ── Config (from api/settings.py — all env vars centralized) ────────────────
 
@@ -212,9 +213,21 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+
+# ── Security middleware (custom) ───────────────────────────────────────────────
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    return response
 
 bearer = HTTPBearer(auto_error=False)
 
@@ -337,12 +350,16 @@ async def update_event_config(
 
 
 @app.post("/rsvp", response_model=schemas.RSVPResponse, status_code=status.HTTP_201_CREATED)
-async def create_rsvp(data: schemas.RSVPCreate, db: Session = Depends(get_db)):
+async def create_rsvp(request: Request, data: schemas.RSVPCreate, db: Session = Depends(get_db)):
+    if settings.rate_limit_enabled:
+        check_rate_limit(get_client_ip(request), settings.rate_limit_rsvp_check_per_minute, 60, "rsvp-create")
     return _upsert_rsvp("default", data, db)
 
 
 @app.get("/rsvp/check", response_model=schemas.CheckResponse)
-async def check_email(email: str = Query(...), db: Session = Depends(get_db)):
+async def check_email(request: Request, email: str = Query(...), db: Session = Depends(get_db)):
+    if settings.rate_limit_enabled:
+        check_rate_limit(get_client_ip(request), settings.rate_limit_rsvp_check_per_minute, 60, "rsvp-check")
     existing = db.query(models.RSVP).filter(
         models.RSVP.email == email, models.RSVP.event_slug == "default"
     ).first()
@@ -394,11 +411,14 @@ async def create_event(
 
 @app.post("/events/{event_slug}/duplicate", response_model=schemas.EventResponse, status_code=201)
 async def duplicate_event(
+    request: Request,
     event_slug: str,
     data: schemas.EventCreate,
     db: Session = Depends(get_db),
     _: bool = Depends(verify_admin),
 ):
+    if settings.rate_limit_enabled:
+        check_rate_limit(get_client_ip(request), 2, 60, "event-duplicate")
     source = db.query(models.Event).filter(models.Event.slug == event_slug).first()
     if not source:
         raise HTTPException(404, detail="Evento origen no encontrado")
@@ -461,10 +481,13 @@ async def update_event_config_by_slug(
 
 @app.post("/events/{event_slug}/rsvp", response_model=schemas.RSVPResponse, status_code=201)
 async def create_event_rsvp(
+    request: Request,
     data: schemas.RSVPCreate,
     event: models.Event = Depends(get_event_or_404),
     db: Session = Depends(get_db),
 ):
+    if settings.rate_limit_enabled:
+        check_rate_limit(get_client_ip(request), settings.rate_limit_rsvp_check_per_minute, 60, f"rsvp-{event.slug}")
     rsvp = _upsert_rsvp(event.slug, data, db)
     _trigger_rsvp_emails(rsvp, event, db)
     return rsvp
@@ -472,10 +495,13 @@ async def create_event_rsvp(
 
 @app.get("/events/{event_slug}/rsvp/check", response_model=schemas.CheckResponse)
 async def check_event_email(
+    request: Request,
     event: models.Event = Depends(get_event_or_404),
     email: str = Query(...),
     db: Session = Depends(get_db),
 ):
+    if settings.rate_limit_enabled:
+        check_rate_limit(get_client_ip(request), settings.rate_limit_rsvp_check_per_minute, 60, f"rsvp-check-{event.slug}")
     existing = db.query(models.RSVP).filter(
         models.RSVP.email == email, models.RSVP.event_slug == event.slug
     ).first()
@@ -553,10 +579,13 @@ async def list_media(
 
 @app.post("/events/{event_slug}/media", response_model=schemas.MediaResponse, status_code=201)
 async def upload_media(
+    request: Request,
     event: models.Event = Depends(verify_event_admin),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
+    if settings.rate_limit_enabled:
+        check_rate_limit(get_client_ip(request), settings.rate_limit_media_upload_per_minute, 60, f"media-upload-{event.slug}")
     ct = file.content_type or ""
     if ct not in ALLOWED_IMAGE_TYPES | ALLOWED_AUDIO_TYPES:
         raise HTTPException(400, detail=f"Tipo de archivo no permitido: {ct}")
