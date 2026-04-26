@@ -140,7 +140,7 @@ export default function AdminPage() {
         setRsvps(list.data);
         setStats(statsRes.data);
         setAuthed(true);
-        const cfg = cfgRes.data as Record<string, unknown>;
+        const cfg = cfgRes.data as unknown as Record<string, unknown>;
         setEventCfg(cfg);
         const defaults = buildDefaultValues(cfg);
         reset(defaults);
@@ -227,7 +227,7 @@ export default function AdminPage() {
       } as never);
       toast.success('Configuración guardada correctamente');
       const cfgRes = await rsvpApi.getEventConfig();
-      setEventCfg(cfgRes.data as Record<string, unknown>);
+      setEventCfg(cfgRes.data as unknown as Record<string, unknown>);
     } catch {
       toast.error('Error al guardar la configuración');
     } finally {
