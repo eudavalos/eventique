@@ -54,7 +54,7 @@ export default function LandingPage() {
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a
-              href="/"
+              href="/e/boda-concepcion-eumelio"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: ACCENT, color: '#fff', padding: '13px 28px', borderRadius: '50px', textDecoration: 'none', fontFamily: 'sans-serif', fontSize: '0.92rem', fontWeight: 600 }}
             >
               Ver demo en vivo →
