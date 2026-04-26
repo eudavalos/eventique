@@ -81,6 +81,18 @@ const EVENT_TYPE_OPTIONS: { value: EventType; label: string; emoji: string }[] =
   { value: 'corporativo', label: 'Corporativo', emoji: '💼' },
 ];
 
+const EVENT_LABELS: Record<EventType, {
+  person1: string; person2: string; displayNames: string;
+  dateLabel: string; venueLabel: string; singleVenue: boolean;
+}> = {
+  boda:        { person1: 'Novio/a 1',        person2: 'Novio/a 2',   displayNames: 'Ej: Concepción & Eumelio',  dateLabel: 'Fecha de la ceremonia', venueLabel: 'Ceremonia',    singleVenue: false },
+  cumpleanos:  { person1: 'El/La Festejado/a', person2: '',           displayNames: 'Ej: Fiesta de Ana',         dateLabel: 'Fecha del evento',      venueLabel: 'Lugar',        singleVenue: true  },
+  bautismo:    { person1: 'Nombre del Bebé',   person2: 'Padres',     displayNames: 'Ej: Bautismo de Sofía',     dateLabel: 'Fecha del bautismo',    venueLabel: 'Iglesia/Lugar',singleVenue: false },
+  quinceanera: { person1: 'La Quinceañera',    person2: '',           displayNames: 'Ej: Quinceañera de Valeria',dateLabel: 'Fecha del evento',      venueLabel: 'Salón',        singleVenue: true  },
+  graduacion:  { person1: 'El/La Graduado/a',  person2: '',           displayNames: 'Ej: Graduación de Carlos',  dateLabel: 'Fecha de la graduación',venueLabel: 'Institución',  singleVenue: true  },
+  corporativo: { person1: 'Empresa/Org.',      person2: 'Contacto',   displayNames: 'Ej: Congreso Tecnopowerpy', dateLabel: 'Fecha del evento',      venueLabel: 'Sede',         singleVenue: true  },
+};
+
 // ── Tab type ───────────────────────────────────────────────────
 
 type Tab = 'rsvps' | 'config' | 'tema';
@@ -428,7 +440,7 @@ export default function AdminPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <h3 className="text-xs tracking-widest uppercase font-body font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                    Persona 1
+                    {EVENT_LABELS[watchedEventType]?.person1 ?? 'Persona 1'}
                   </h3>
                   <div>
                     <label className="input-label">Nombre</label>
@@ -444,10 +456,10 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {watchedEventType === 'boda' && (
+                {EVENT_LABELS[watchedEventType]?.person2 && (
                   <div className="space-y-4">
                     <h3 className="text-xs tracking-widest uppercase font-body font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                      Persona 2
+                      {EVENT_LABELS[watchedEventType].person2}
                     </h3>
                     <div>
                       <label className="input-label">Nombre</label>
@@ -467,8 +479,8 @@ export default function AdminPage() {
 
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="input-label">Nombres para mostrar</label>
-                  <input {...register('display_names')} className="input-field" placeholder="Ej: Concepción & Eumelio" />
+                  <label className="input-label">Nombre para mostrar</label>
+                  <input {...register('display_names')} className="input-field" placeholder={EVENT_LABELS[watchedEventType]?.displayNames ?? 'Ej: Nombre del evento'} />
                 </div>
                 <div>
                   <label className="input-label">Hashtag</label>
@@ -484,7 +496,7 @@ export default function AdminPage() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="input-label">Fecha y hora (ISO)</label>
+                  <label className="input-label">{EVENT_LABELS[watchedEventType]?.dateLabel ?? 'Fecha y hora'} (ISO)</label>
                   <input {...register('ceremony_date')} className="input-field" placeholder="2026-12-05T16:00:00" />
                 </div>
                 <div>
@@ -501,22 +513,14 @@ export default function AdminPage() {
             {/* Venues */}
             <div className="card p-6 sm:p-8">
               <h2 className="font-sub text-lg font-medium mb-5" style={{ color: 'var(--color-text)' }}>
-                Recintos
+                Recinto{!EVENT_LABELS[watchedEventType]?.singleVenue ? 's' : ''}
               </h2>
 
-              <div className="mb-4">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" {...register('same_venue')} className="w-4 h-4 accent-primary" />
-                  <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>
-                    Mismo recinto para ceremonia y recepción
-                  </span>
-                </label>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {EVENT_LABELS[watchedEventType]?.singleVenue ? (
+                /* Single venue (cumpleanos, quinceanera, graduacion, corporativo) */
                 <div className="space-y-4">
                   <h3 className="text-xs tracking-widest uppercase font-body font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                    Ceremonia
+                    {EVENT_LABELS[watchedEventType].venueLabel}
                   </h3>
                   <input {...register('ceremony_venue_name')} className="input-field" placeholder="Nombre del lugar" />
                   <input {...register('ceremony_venue_address')} className="input-field" placeholder="Dirección" />
@@ -526,20 +530,47 @@ export default function AdminPage() {
                   </div>
                   <input {...register('ceremony_maps_url')} className="input-field" placeholder="URL Google Maps" />
                 </div>
-
-                <div className="space-y-4">
-                  <h3 className="text-xs tracking-widest uppercase font-body font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                    Recepción
-                  </h3>
-                  <input {...register('reception_venue_name')} className="input-field" placeholder="Nombre del lugar" />
-                  <input {...register('reception_venue_address')} className="input-field" placeholder="Dirección" />
-                  <div className="grid grid-cols-2 gap-3">
-                    <input {...register('reception_venue_city')} className="input-field" placeholder="Ciudad" />
-                    <input {...register('reception_venue_country')} className="input-field" placeholder="País" />
+              ) : (
+                /* Two venues: ceremony + reception (boda, bautismo) */
+                <>
+                  <div className="mb-4">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input type="checkbox" {...register('same_venue')} className="w-4 h-4 accent-primary" />
+                      <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>
+                        Mismo recinto para ceremonia y recepción
+                      </span>
+                    </label>
                   </div>
-                  <input {...register('reception_maps_url')} className="input-field" placeholder="URL Google Maps" />
-                </div>
-              </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <h3 className="text-xs tracking-widest uppercase font-body font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                        {EVENT_LABELS[watchedEventType]?.venueLabel ?? 'Ceremonia'}
+                      </h3>
+                      <input {...register('ceremony_venue_name')} className="input-field" placeholder="Nombre del lugar" />
+                      <input {...register('ceremony_venue_address')} className="input-field" placeholder="Dirección" />
+                      <div className="grid grid-cols-2 gap-3">
+                        <input {...register('ceremony_venue_city')} className="input-field" placeholder="Ciudad" />
+                        <input {...register('ceremony_venue_country')} className="input-field" placeholder="País" />
+                      </div>
+                      <input {...register('ceremony_maps_url')} className="input-field" placeholder="URL Google Maps" />
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-xs tracking-widest uppercase font-body font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                        Recepción
+                      </h3>
+                      <input {...register('reception_venue_name')} className="input-field" placeholder="Nombre del lugar" />
+                      <input {...register('reception_venue_address')} className="input-field" placeholder="Dirección" />
+                      <div className="grid grid-cols-2 gap-3">
+                        <input {...register('reception_venue_city')} className="input-field" placeholder="Ciudad" />
+                        <input {...register('reception_venue_country')} className="input-field" placeholder="País" />
+                      </div>
+                      <input {...register('reception_maps_url')} className="input-field" placeholder="URL Google Maps" />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* RSVP settings */}
