@@ -12,7 +12,7 @@ import { rsvpApi } from '../lib/api';
 import { useEventSlug } from '../context/EventSlugContext';
 import { config as staticConfig } from '../config/wedding';
 import { applyTheme } from '../lib/theme';
-import type { PaletteKey, EventType, EventInfo, MediaFile, StoryEvent, ScheduleItem, FAQItem, GalleryPhoto, MusicTrack } from '../types';
+import type { PaletteKey, EventType, EventInfo, MediaFile, StoryEvent, ScheduleItem, FAQItem, GalleryPhoto, MusicTrack, WeddingPartyMember, Hotel, PartySide } from '../types';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -190,6 +190,66 @@ export default function AdminPage() {
   const [newFaqQ, setNewFaqQ] = useState('');
   const [newFaqA, setNewFaqA] = useState('');
 
+  // Hero section
+  const [heroEnabled, setHeroEnabled] = useState(true);
+  const [heroSubtitle, setHeroSubtitle] = useState('');
+  const [heroBgImage, setHeroBgImage] = useState('');
+  const [heroOverlay, setHeroOverlay] = useState(0.45);
+  const [heroScrollIndicator, setHeroScrollIndicator] = useState(true);
+
+  // Countdown section
+  const [countdownEnabled, setCountdownEnabled] = useState(true);
+  const [countdownLabel, setCountdownLabel] = useState('');
+
+  // Gallery extras
+  const [galleryEnabled, setGalleryEnabled] = useState(true);
+  const [galleryTitle, setGalleryTitle] = useState('');
+  const [gallerySubtitle, setGallerySubtitle] = useState('');
+
+  // WeddingParty section
+  const [partyEnabled, setPartyEnabled] = useState(false);
+  const [partyTitle, setPartyTitle] = useState('');
+  const [partyMembers, setPartyMembers] = useState<WeddingPartyMember[]>([]);
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberRole, setNewMemberRole] = useState('');
+  const [newMemberSide, setNewMemberSide] = useState<PartySide>('both');
+  const [newMemberDesc, setNewMemberDesc] = useState('');
+
+  // Accommodation section
+  const [accomEnabled, setAccomEnabled] = useState(false);
+  const [accomTitle, setAccomTitle] = useState('');
+  const [accomHotels, setAccomHotels] = useState<Hotel[]>([]);
+  const [newHotelName, setNewHotelName] = useState('');
+  const [newHotelAddress, setNewHotelAddress] = useState('');
+  const [newHotelPhone, setNewHotelPhone] = useState('');
+  const [newHotelWebsite, setNewHotelWebsite] = useState('');
+  const [newHotelStars, setNewHotelStars] = useState(0);
+  const [newHotelPrice, setNewHotelPrice] = useState('');
+  const [newHotelNotes, setNewHotelNotes] = useState('');
+
+  // RSVP section extras
+  const [rsvpTitle, setRsvpTitle] = useState('');
+  const [rsvpSubtitle, setRsvpSubtitle] = useState('');
+  const [rsvpConfirmMsg, setRsvpConfirmMsg] = useState('');
+
+  // Social
+  const [socialHashtag, setSocialHashtag] = useState('');
+  const [socialInstagram, setSocialInstagram] = useState('');
+
+  // Music extras
+  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [musicAutoplay, setMusicAutoplay] = useState(false);
+  const [newYoutubeUrl, setNewYoutubeUrl] = useState('');
+  const [newYoutubeTitle, setNewYoutubeTitle] = useState('');
+  const [newYoutubeArtist, setNewYoutubeArtist] = useState('');
+
+  // Duplicate event modal
+  const [duplicatingSlug, setDuplicatingSlug] = useState<string | null>(null);
+  const [dupName, setDupName] = useState('');
+  const [dupSlug, setDupSlug] = useState('');
+  const [dupToken, setDupToken] = useState('');
+  const [savingDup, setSavingDup] = useState(false);
+
   const { register, handleSubmit, reset, watch } = useForm<ConfigFormData>({
     defaultValues: buildDefaultValues({}),
   });
@@ -259,6 +319,46 @@ export default function AdminPage() {
         setFooterCredits((foot?.credits as string) ?? '');
         setGalleryPhotos((gal?.photos as GalleryPhoto[]) ?? []);
         setMusicTracks((mus?.tracks as MusicTrack[]) ?? []);
+
+        // Extended sections
+        const hero = sects.hero as Record<string, unknown> | undefined;
+        const countdown = sects.countdown as Record<string, unknown> | undefined;
+        const gallery = sects.gallery as Record<string, unknown> | undefined;
+        const party = sects.weddingParty as Record<string, unknown> | undefined;
+        const accom = sects.accommodation as Record<string, unknown> | undefined;
+        const rsvpS = sects.rsvp as Record<string, unknown> | undefined;
+        const soc = cfg.social as Record<string, unknown> | undefined;
+
+        setHeroEnabled((hero?.enabled as boolean) ?? true);
+        setHeroSubtitle((hero?.subtitle as string) ?? '');
+        setHeroBgImage((hero?.backgroundImage as string) ?? '');
+        setHeroOverlay((hero?.overlayOpacity as number) ?? 0.45);
+        setHeroScrollIndicator((hero?.showScrollIndicator as boolean) ?? true);
+
+        setCountdownEnabled((countdown?.enabled as boolean) ?? true);
+        setCountdownLabel((countdown?.label as string) ?? '');
+
+        setGalleryEnabled((gallery?.enabled as boolean) ?? true);
+        setGalleryTitle((gallery?.title as string) ?? '');
+        setGallerySubtitle((gallery?.subtitle as string) ?? '');
+
+        setPartyEnabled((party?.enabled as boolean) ?? false);
+        setPartyTitle((party?.title as string) ?? '');
+        setPartyMembers((party?.members as WeddingPartyMember[]) ?? []);
+
+        setAccomEnabled((accom?.enabled as boolean) ?? false);
+        setAccomTitle((accom?.title as string) ?? '');
+        setAccomHotels((accom?.hotels as Hotel[]) ?? []);
+
+        setRsvpTitle((rsvpS?.title as string) ?? '');
+        setRsvpSubtitle((rsvpS?.subtitle as string) ?? '');
+        setRsvpConfirmMsg((rsvpS?.confirmationMessage as string) ?? '');
+
+        setSocialHashtag((soc?.hashtag as string) ?? '');
+        setSocialInstagram((soc?.instagram as string) ?? '');
+
+        setMusicEnabled((mus?.enabled as boolean) ?? true);
+        setMusicAutoplay((mus?.autoplay as boolean) ?? false);
 
         // Secondary data (events + media) — don't fail auth on errors
         Promise.allSettled([
@@ -502,7 +602,7 @@ export default function AdminPage() {
   const saveMusicConfig = async (tracks: MusicTrack[]) => {
     const current = eventCfg as Record<string, unknown>;
     const mus = (current.music as Record<string, unknown> | undefined) ?? {};
-    const updated = { ...current, music: { enabled: true, autoplay: false, ...mus, tracks } };
+    const updated = { ...current, music: { enabled: musicEnabled, autoplay: musicAutoplay, ...mus, tracks } };
     await rsvpApi.updateEventConfig(eventSlug, token, updated as never);
     setEventCfg(updated as Record<string, unknown>);
     setMusicTracks(tracks);
@@ -546,18 +646,53 @@ export default function AdminPage() {
         ...current,
         sections: {
           ...sects,
-          ourStory:  { ...(sects.ourStory  as object ?? {}), enabled: storyEnabled,    title: storyTitle    || undefined, events: storyEvents    },
-          schedule:  { ...(sects.schedule  as object ?? {}), enabled: scheduleEnabled, title: scheduleTitle || undefined, items:  scheduleItems  },
-          faq:       { ...(sects.faq       as object ?? {}), enabled: faqEnabled,      title: faqTitle      || undefined, items:  faqItems       },
-          footer:    { ...(sects.footer    as object ?? {}), enabled: footerEnabled,   message: footerMsg   || undefined, credits: footerCredits || undefined },
-          gallery:   { ...(sects.gallery   as object ?? {}), photos: galleryPhotos },
+          hero:         { ...(sects.hero         as object ?? {}), enabled: heroEnabled,     subtitle: heroSubtitle || undefined,    backgroundImage: heroBgImage || undefined, overlayOpacity: heroOverlay, showScrollIndicator: heroScrollIndicator },
+          countdown:    { ...(sects.countdown    as object ?? {}), enabled: countdownEnabled, label: countdownLabel || undefined },
+          ourStory:     { ...(sects.ourStory     as object ?? {}), enabled: storyEnabled,    title: storyTitle    || undefined, events: storyEvents    },
+          schedule:     { ...(sects.schedule     as object ?? {}), enabled: scheduleEnabled, title: scheduleTitle || undefined, items:  scheduleItems  },
+          weddingParty: { ...(sects.weddingParty as object ?? {}), enabled: partyEnabled,   title: partyTitle    || undefined, members: partyMembers  },
+          accommodation:{ ...(sects.accommodation as object ?? {}), enabled: accomEnabled,  title: accomTitle    || undefined, hotels:  accomHotels   },
+          faq:          { ...(sects.faq          as object ?? {}), enabled: faqEnabled,     title: faqTitle      || undefined, items:   faqItems      },
+          gallery:      { ...(sects.gallery      as object ?? {}), enabled: galleryEnabled, title: galleryTitle  || undefined, subtitle: gallerySubtitle || undefined, photos: galleryPhotos },
+          rsvp:         { ...(sects.rsvp         as object ?? {}), title: rsvpTitle || undefined, subtitle: rsvpSubtitle || undefined, confirmationMessage: rsvpConfirmMsg || undefined },
+          footer:       { ...(sects.footer       as object ?? {}), enabled: footerEnabled,  message: footerMsg   || undefined, credits: footerCredits || undefined },
         },
+        music:  { ...(current.music  as object ?? {}), enabled: musicEnabled, autoplay: musicAutoplay, tracks: musicTracks },
+        social: { hashtag: socialHashtag || undefined, instagram: socialInstagram || undefined },
       };
       await rsvpApi.updateEventConfig(eventSlug, token, updated as never);
       setEventCfg(updated as Record<string, unknown>);
       toast.success('Secciones guardadas correctamente');
     } catch { toast.error('Error al guardar las secciones'); }
     finally { setSavingSections(false); }
+  };
+
+  // ── YouTube track + event duplication handlers ────────────────────────────
+
+  const addYoutubeTrack = async () => {
+    if (!newYoutubeUrl.trim()) return;
+    const title = newYoutubeTitle.trim() || 'YouTube Track';
+    try {
+      await saveMusicConfig([...musicTracks, { title, artist: newYoutubeArtist.trim(), url: newYoutubeUrl.trim() }]);
+      setNewYoutubeUrl(''); setNewYoutubeTitle(''); setNewYoutubeArtist('');
+      toast.success('Pista YouTube añadida');
+    } catch { toast.error('Error al añadir pista YouTube'); }
+  };
+
+  const handleDuplicateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dupName || !dupSlug || !duplicatingSlug) return;
+    setSavingDup(true);
+    try {
+      const res = await rsvpApi.duplicateEvent(token, duplicatingSlug, { name: dupName, slug: dupSlug, admin_token: dupToken || undefined });
+      setEvents((prev) => [...prev, res.data]);
+      setDuplicatingSlug(null);
+      setDupName(''); setDupSlug(''); setDupToken('');
+      toast.success(`Evento "${dupName}" duplicado`);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      toast.error(msg ?? 'Error al duplicar el evento');
+    } finally { setSavingDup(false); }
   };
 
   // ── Derived ───────────────────────────────────────────────────────────────
@@ -1238,6 +1373,14 @@ export default function AdminPage() {
                           >
                             <QrCode className="w-3 h-3" /> QR
                           </button>
+                          <button
+                            type="button"
+                            onClick={() => { setDuplicatingSlug(ev.slug); setDupName(`${ev.name} (copia)`); setDupSlug(''); setDupToken(''); }}
+                            className="btn-outline text-xs py-1 px-2.5 flex items-center gap-1"
+                            title="Duplicar evento"
+                          >
+                            <Copy className="w-3 h-3" /> Clonar
+                          </button>
                           {ev.slug !== 'default' && (
                             <button
                               type="button"
@@ -1268,6 +1411,68 @@ export default function AdminPage() {
         {/* ── TAB: Secciones ── */}
         {activeTab === 'secciones' && (
           <div className="space-y-6">
+
+            {/* Hero */}
+            <div className="card p-6 sm:p-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>Hero / Portada</h2>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={heroEnabled} onChange={(e) => setHeroEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                  <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Visible</span>
+                </label>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="input-label">Subtítulo (sobre los nombres)</label>
+                  <input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} className="input-field" placeholder="Ej: Juntos para siempre" />
+                </div>
+                <div>
+                  <label className="input-label">Opacidad del overlay ({heroOverlay.toFixed(2)})</label>
+                  <input type="range" min={0} max={1} step={0.05} value={heroOverlay} onChange={(e) => setHeroOverlay(Number(e.target.value))} className="w-full mt-2 accent-primary" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="input-label">Imagen de fondo (pega URL o selecciona de Media)</label>
+                  <input value={heroBgImage} onChange={(e) => setHeroBgImage(e.target.value)} className="input-field mb-2" placeholder="/api/uploads/slug/imagen.jpg o https://..." />
+                  {imageFiles.length > 0 && (
+                    <div className="grid grid-cols-6 gap-1.5">
+                      {imageFiles.slice(0, 12).map((f) => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onClick={() => setHeroBgImage(f.url)}
+                          className="relative rounded-lg overflow-hidden aspect-square border-2 transition-all"
+                          style={{ borderColor: heroBgImage === f.url ? 'var(--color-primary)' : 'var(--color-border)' }}
+                          title={f.original_filename}
+                        >
+                          <img src={f.url} alt="" className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={heroScrollIndicator} onChange={(e) => setHeroScrollIndicator(e.target.checked)} className="w-4 h-4 accent-primary" />
+                    <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Mostrar indicador de scroll</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Countdown */}
+            <div className="card p-6 sm:p-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>Cuenta regresiva</h2>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={countdownEnabled} onChange={(e) => setCountdownEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                  <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Visible</span>
+                </label>
+              </div>
+              <div>
+                <label className="input-label">Etiqueta</label>
+                <input value={countdownLabel} onChange={(e) => setCountdownLabel(e.target.value)} className="input-field" placeholder="Faltan para el gran día" />
+              </div>
+            </div>
 
             {/* OurStory */}
             <div className="card p-6 sm:p-8">
@@ -1359,6 +1564,114 @@ export default function AdminPage() {
               </button>
             </div>
 
+            {/* WeddingParty */}
+            <div className="card p-6 sm:p-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>Cortejo / Comitiva</h2>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={partyEnabled} onChange={(e) => setPartyEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                  <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Visible</span>
+                </label>
+              </div>
+              <div className="mb-4">
+                <label className="input-label">Título de la sección</label>
+                <input value={partyTitle} onChange={(e) => setPartyTitle(e.target.value)} className="input-field" placeholder="Cortejo de bodas" />
+              </div>
+              <div className="space-y-2 mb-4">
+                {partyMembers.map((m, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{m.name} — {m.role}</p>
+                      <p className="text-xs text-muted capitalize">{m.side}{m.description ? ` · ${m.description}` : ''}</p>
+                    </div>
+                    <button type="button" onClick={() => setPartyMembers((prev) => prev.filter((_, j) => j !== i))} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    </button>
+                  </div>
+                ))}
+                {partyMembers.length === 0 && <p className="text-sm text-muted py-1">No hay miembros aún.</p>}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} className="input-field" placeholder="Nombre completo" />
+                <input value={newMemberRole} onChange={(e) => setNewMemberRole(e.target.value)} className="input-field" placeholder="Rol (ej: Dama de honor)" />
+                <select value={newMemberSide} onChange={(e) => setNewMemberSide(e.target.value as PartySide)} className="input-field">
+                  <option value="bride">Novia / lado de la novia</option>
+                  <option value="groom">Novio / lado del novio</option>
+                  <option value="both">Ambos</option>
+                </select>
+                <input value={newMemberDesc} onChange={(e) => setNewMemberDesc(e.target.value)} className="input-field" placeholder="Descripción (opcional)" />
+              </div>
+              <button
+                type="button"
+                className="btn-outline mt-3 flex items-center gap-2"
+                onClick={() => {
+                  if (!newMemberName.trim() || !newMemberRole.trim()) return;
+                  setPartyMembers((prev) => [...prev, { name: newMemberName, role: newMemberRole, side: newMemberSide, description: newMemberDesc || undefined }]);
+                  setNewMemberName(''); setNewMemberRole(''); setNewMemberDesc('');
+                }}
+              >
+                <Plus className="w-3.5 h-3.5" /> Agregar miembro
+              </button>
+            </div>
+
+            {/* Accommodation */}
+            <div className="card p-6 sm:p-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>Hospedaje</h2>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={accomEnabled} onChange={(e) => setAccomEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                  <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Visible</span>
+                </label>
+              </div>
+              <div className="mb-4">
+                <label className="input-label">Título de la sección</label>
+                <input value={accomTitle} onChange={(e) => setAccomTitle(e.target.value)} className="input-field" placeholder="¿Dónde hospedarse?" />
+              </div>
+              <div className="space-y-2 mb-4">
+                {accomHotels.map((h, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{h.name}{h.stars ? ` · ${'⭐'.repeat(Math.min(h.stars, 5))}` : ''}</p>
+                      <p className="text-xs text-muted">{h.address}{h.phone ? ` · ${h.phone}` : ''}</p>
+                    </div>
+                    <button type="button" onClick={() => setAccomHotels((prev) => prev.filter((_, j) => j !== i))} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    </button>
+                  </div>
+                ))}
+                {accomHotels.length === 0 && <p className="text-sm text-muted py-1">No hay hoteles aún.</p>}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input value={newHotelName} onChange={(e) => setNewHotelName(e.target.value)} className="input-field" placeholder="Nombre del hotel *" />
+                <input value={newHotelAddress} onChange={(e) => setNewHotelAddress(e.target.value)} className="input-field" placeholder="Dirección *" />
+                <input value={newHotelPhone} onChange={(e) => setNewHotelPhone(e.target.value)} className="input-field" placeholder="Teléfono" />
+                <input value={newHotelWebsite} onChange={(e) => setNewHotelWebsite(e.target.value)} className="input-field" placeholder="Sitio web (https://...)" />
+                <input value={newHotelPrice} onChange={(e) => setNewHotelPrice(e.target.value)} className="input-field" placeholder="Rango de precios" />
+                <input value={newHotelNotes} onChange={(e) => setNewHotelNotes(e.target.value)} className="input-field" placeholder="Notas (código descuento, etc.)" />
+                <div className="sm:col-span-2 flex items-center gap-2 flex-wrap">
+                  <span className="font-body text-sm" style={{ color: 'var(--color-text-muted)' }}>Estrellas:</span>
+                  {[0, 1, 2, 3, 4, 5].map((n) => (
+                    <button key={n} type="button" onClick={() => setNewHotelStars(n)}
+                      className="text-sm px-2.5 py-1 rounded-lg transition-colors"
+                      style={{ background: newHotelStars === n ? 'var(--color-primary)' : 'var(--color-secondary)', color: newHotelStars === n ? 'white' : 'var(--color-text)' }}>
+                      {n === 0 ? '—' : n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn-outline mt-3 flex items-center gap-2"
+                onClick={() => {
+                  if (!newHotelName.trim() || !newHotelAddress.trim()) return;
+                  setAccomHotels((prev) => [...prev, { name: newHotelName, address: newHotelAddress, phone: newHotelPhone || undefined, website: newHotelWebsite || undefined, priceRange: newHotelPrice || undefined, notes: newHotelNotes || undefined, stars: newHotelStars || undefined }]);
+                  setNewHotelName(''); setNewHotelAddress(''); setNewHotelPhone(''); setNewHotelWebsite(''); setNewHotelPrice(''); setNewHotelNotes(''); setNewHotelStars(0);
+                }}
+              >
+                <Plus className="w-3.5 h-3.5" /> Agregar hotel
+              </button>
+            </div>
+
             {/* FAQ */}
             <div className="card p-6 sm:p-8">
               <div className="flex items-center justify-between mb-4">
@@ -1403,6 +1716,25 @@ export default function AdminPage() {
               </button>
             </div>
 
+            {/* RSVP — Textos */}
+            <div className="card p-6 sm:p-8">
+              <h2 className="font-sub text-lg font-medium mb-4" style={{ color: 'var(--color-text)' }}>RSVP — Textos</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="input-label">Título de la sección</label>
+                  <input value={rsvpTitle} onChange={(e) => setRsvpTitle(e.target.value)} className="input-field" placeholder="Confirma tu asistencia" />
+                </div>
+                <div>
+                  <label className="input-label">Subtítulo</label>
+                  <input value={rsvpSubtitle} onChange={(e) => setRsvpSubtitle(e.target.value)} className="input-field" placeholder="Por favor confirma antes del..." />
+                </div>
+                <div>
+                  <label className="input-label">Mensaje tras confirmar</label>
+                  <textarea rows={2} value={rsvpConfirmMsg} onChange={(e) => setRsvpConfirmMsg(e.target.value)} className="input-field resize-none" placeholder="¡Gracias! Nos alegra contar con tu presencia." />
+                </div>
+              </div>
+            </div>
+
             {/* Footer */}
             <div className="card p-6 sm:p-8">
               <div className="flex items-center justify-between mb-4">
@@ -1424,11 +1756,42 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Social */}
+            <div className="card p-6 sm:p-8">
+              <h2 className="font-sub text-lg font-medium mb-4" style={{ color: 'var(--color-text)' }}>Redes sociales</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="input-label">Hashtag (con o sin #)</label>
+                  <input value={socialHashtag} onChange={(e) => setSocialHashtag(e.target.value)} className="input-field" placeholder="#NombreEvento2026" />
+                </div>
+                <div>
+                  <label className="input-label">Instagram (usuario)</label>
+                  <input value={socialInstagram} onChange={(e) => setSocialInstagram(e.target.value)} className="input-field" placeholder="@usuario" />
+                </div>
+              </div>
+            </div>
+
             {/* Gallery (linked to Media) */}
             <div className="card p-6 sm:p-8">
-              <h2 className="font-sub text-lg font-medium mb-1" style={{ color: 'var(--color-text)' }}>
-                Galería ({galleryPhotos.length} fotos)
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>
+                  Galería ({galleryPhotos.length} fotos)
+                </h2>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={galleryEnabled} onChange={(e) => setGalleryEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                  <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Visible</span>
+                </label>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="input-label">Título</label>
+                  <input value={galleryTitle} onChange={(e) => setGalleryTitle(e.target.value)} className="input-field" placeholder="Nuestra Galería" />
+                </div>
+                <div>
+                  <label className="input-label">Subtítulo</label>
+                  <input value={gallerySubtitle} onChange={(e) => setGallerySubtitle(e.target.value)} className="input-field" placeholder="Nuestros momentos juntos" />
+                </div>
+              </div>
               <p className="text-xs text-muted mb-4">Agrega o quita fotos con el botón "Galería" en la pestaña Media.</p>
               {galleryPhotos.length > 0 ? (
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
@@ -1451,14 +1814,23 @@ export default function AdminPage() {
               )}
             </div>
 
-            {/* Music (linked to Media) */}
+            {/* Music (linked to Media + YouTube) */}
             <div className="card p-6 sm:p-8">
-              <h2 className="font-sub text-lg font-medium mb-1" style={{ color: 'var(--color-text)' }}>
+              <h2 className="font-sub text-lg font-medium mb-3" style={{ color: 'var(--color-text)' }}>
                 Reproductor ({musicTracks.length} pistas)
               </h2>
-              <p className="text-xs text-muted mb-4">Agrega o quita pistas con el botón de música en la pestaña Media.</p>
+              <div className="flex items-center gap-6 mb-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={musicEnabled} onChange={(e) => setMusicEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                  <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Habilitar música</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={musicAutoplay} onChange={(e) => setMusicAutoplay(e.target.checked)} className="w-4 h-4 accent-primary" />
+                  <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Autoplay</span>
+                </label>
+              </div>
               {musicTracks.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-2 mb-4">
                   {musicTracks.map((track, i) => (
                     <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
                       <Music2 className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-primary)' }} />
@@ -1473,8 +1845,20 @@ export default function AdminPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted">No hay pistas en el reproductor.</p>
+                <p className="text-sm text-muted mb-4">No hay pistas en el reproductor.</p>
               )}
+              <div className="pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
+                <p className="text-xs font-body font-medium mb-3" style={{ color: 'var(--color-text-muted)' }}>Agregar pista de YouTube</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <input value={newYoutubeUrl} onChange={(e) => setNewYoutubeUrl(e.target.value)} className="input-field" placeholder="https://youtube.com/watch?v=..." />
+                  <input value={newYoutubeTitle} onChange={(e) => setNewYoutubeTitle(e.target.value)} className="input-field" placeholder="Título" />
+                  <input value={newYoutubeArtist} onChange={(e) => setNewYoutubeArtist(e.target.value)} className="input-field" placeholder="Artista (opcional)" />
+                </div>
+                <button type="button" onClick={addYoutubeTrack} className="btn-outline mt-3 flex items-center gap-2">
+                  <Plus className="w-3.5 h-3.5" /> Agregar YouTube
+                </button>
+              </div>
+              <p className="text-xs text-muted mt-3">Para MP3, sube el archivo en la pestaña Media y actívalo ahí.</p>
             </div>
 
             {/* Save */}
@@ -1550,6 +1934,46 @@ export default function AdminPage() {
               {savingEdit ? 'Guardando…' : 'Guardar cambios'}
             </button>
           </div>
+        </div>
+      </div>
+    )}
+
+    {/* ── Duplicate Event Modal ── */}
+    {duplicatingSlug && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: 'rgba(0,0,0,0.5)' }}
+        onClick={(e) => { if (e.target === e.currentTarget) setDuplicatingSlug(null); }}
+      >
+        <div className="card w-full max-w-md p-6 sm:p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>Clonar evento</h2>
+            <button onClick={() => setDuplicatingSlug(null)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+              <X className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+            </button>
+          </div>
+          <p className="text-xs text-muted mb-4">Se copiará la configuración de <span className="font-mono">{duplicatingSlug}</span> a un nuevo evento.</p>
+          <form onSubmit={handleDuplicateEvent} className="space-y-4">
+            <div>
+              <label className="input-label">Nombre del nuevo evento</label>
+              <input value={dupName} onChange={(e) => { setDupName(e.target.value); setDupSlug(slugify(e.target.value)); }} className="input-field" required />
+            </div>
+            <div>
+              <label className="input-label">Slug (URL)</label>
+              <input value={dupSlug} onChange={(e) => setDupSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''))} className="input-field font-mono" placeholder="nuevo-slug-2026" required />
+              {dupSlug && <p className="text-xs mt-1 text-muted font-mono">/e/{dupSlug}</p>}
+            </div>
+            <div>
+              <label className="input-label">Token de admin (opcional)</label>
+              <input type="password" value={dupToken} onChange={(e) => setDupToken(e.target.value)} className="input-field" placeholder="Deja vacío para usar token global" />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => setDuplicatingSlug(null)} className="btn-outline flex-1 justify-center">Cancelar</button>
+              <button type="submit" disabled={savingDup || !dupName || !dupSlug} className="btn-primary flex-1 justify-center">
+                {savingDup ? 'Clonando…' : 'Clonar evento'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     )}

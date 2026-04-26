@@ -55,6 +55,9 @@ export const rsvpApi = {
   deleteEvent: (token: string, slug: string) =>
     client.delete(`/events/${slug}`, { headers: { Authorization: `Bearer ${token}` } }),
 
+  duplicateEvent: (token: string, sourceSlug: string, data: { name: string; slug: string; admin_token?: string }) =>
+    client.post<EventInfo>(`/events/${sourceSlug}/duplicate`, data, { headers: { Authorization: `Bearer ${token}` } }),
+
   // ── Media management ───────────────────────────────────────────────────────
 
   listMedia: (eventSlug: string, token: string) =>

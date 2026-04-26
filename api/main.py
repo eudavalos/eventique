@@ -392,6 +392,28 @@ async def create_event(
     return event
 
 
+@app.post("/events/{event_slug}/duplicate", response_model=schemas.EventResponse, status_code=201)
+async def duplicate_event(
+    event_slug: str,
+    data: schemas.EventCreate,
+    db: Session = Depends(get_db),
+    _: bool = Depends(verify_admin),
+):
+    source = db.query(models.Event).filter(models.Event.slug == event_slug).first()
+    if not source:
+        raise HTTPException(404, detail="Evento origen no encontrado")
+    if db.query(models.Event).filter(models.Event.slug == data.slug).first():
+        raise HTTPException(400, detail="El slug ya existe")
+    new_event = models.Event(slug=data.slug, name=data.name, admin_token=data.admin_token or None)
+    db.add(new_event)
+    db.commit()
+    db.refresh(new_event)
+    src_cfg = db.query(models.EventConfig).filter(models.EventConfig.event_slug == event_slug).first()
+    if src_cfg:
+        _upsert_event_config(data.slug, json.loads(src_cfg.config_json), db)
+    return new_event
+
+
 @app.delete("/events/{event_slug}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_event(
     event_slug: str,
