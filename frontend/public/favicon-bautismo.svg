@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Vertical beam -->
+  <rect x="13" y="3" width="6" height="26" rx="3" fill="#64B5F6"/>
+  <!-- Horizontal beam -->
+  <rect x="5" y="9" width="22" height="6" rx="3" fill="#64B5F6"/>
+  <!-- Soft glow center -->
+  <circle cx="16" cy="12" r="3" fill="white" opacity="0.35"/>
+</svg>

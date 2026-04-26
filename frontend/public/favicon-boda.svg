@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- White background needed for the cutout interlocking effect -->
+  <rect width="32" height="32" fill="white" rx="4"/>
+  <!-- Ring 1 (left) center=(11,16) r=8 -->
+  <circle cx="11" cy="16" r="8" fill="none" stroke="#C9A93C" stroke-width="2.6"/>
+  <!-- Ring 2 (right) center=(21,16) r=8 -->
+  <circle cx="21" cy="16" r="8" fill="none" stroke="#C9A93C" stroke-width="2.6"/>
+  <!-- White cutout on Ring 1's inner arc → makes Ring 2 appear in front -->
+  <!-- Inner/right arc of Ring 1: from (16,9.76) clockwise to (16,22.24) -->
+  <path d="M 16,9.76 A 8,8 0 0 1 16,22.24"
+        fill="none" stroke="white" stroke-width="4"/>
+</svg>

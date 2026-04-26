@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Mortarboard top (diamond/square tilted) -->
+  <polygon points="16,3 30,10 16,17 2,10" fill="#1A237E"/>
+  <!-- Hat cylinder -->
+  <path d="M10,10 L10,20 Q10,23 16,23 Q22,23 22,20 L22,10"
+        fill="#283593"/>
+  <!-- Tassel cord -->
+  <line x1="28" y1="10" x2="28" y2="21" stroke="#F9C74F" stroke-width="2" stroke-linecap="round"/>
+  <!-- Tassel ends -->
+  <circle cx="26" cy="22" r="1.5" fill="#F9C74F"/>
+  <circle cx="28" cy="24" r="1.5" fill="#F9C74F"/>
+  <circle cx="30" cy="22" r="1.5" fill="#F9C74F"/>
+</svg>

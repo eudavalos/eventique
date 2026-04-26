@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { config } from './config/wedding';
 import { applyTheme, applyFonts } from './lib/theme';
+import { setFavicon } from './lib/favicon';
 import { ConfigContext } from './context/ConfigContext';
 import { rsvpApi } from './lib/api';
 import type { WeddingConfig, EventConfig } from './types';
@@ -70,6 +71,9 @@ export default function App() {
         applyTheme(merged.theme.palette, merged.theme.customColors);
         if (merged.theme.fonts) {
           applyFonts(merged.theme.fonts.heading, merged.theme.fonts.subheading, merged.theme.fonts.body);
+        }
+        if ((data as Partial<EventConfig>).event_type) {
+          setFavicon((data as Partial<EventConfig>).event_type!);
         }
       })
       .catch(() => {}); // silently use static defaults
