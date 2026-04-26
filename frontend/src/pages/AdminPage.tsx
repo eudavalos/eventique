@@ -235,6 +235,13 @@ export default function AdminPage() {
   const [newFaqQ, setNewFaqQ] = useState('');
   const [newFaqA, setNewFaqA] = useState('');
 
+  // Editing state
+  const [editingStoryIdx, setEditingStoryIdx] = useState<number | null>(null);
+  const [editingScheduleIdx, setEditingScheduleIdx] = useState<number | null>(null);
+  const [editingPartyIdx, setEditingPartyIdx] = useState<number | null>(null);
+  const [editingAccomIdx, setEditingAccomIdx] = useState<number | null>(null);
+  const [editingFaqIdx, setEditingFaqIdx] = useState<number | null>(null);
+
   // Hero section
   const [heroEnabled, setHeroEnabled] = useState(true);
   const [heroSubtitle, setHeroSubtitle] = useState('');
@@ -1869,14 +1876,28 @@ export default function AdminPage() {
               </div>
               <div className="space-y-2 mb-4">
                 {storyEvents.map((ev, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{ev.title}</p>
-                      <p className="text-xs text-muted">{ev.date}{ev.description ? ` · ${ev.description}` : ''}</p>
-                    </div>
-                    <button type="button" onClick={() => setStoryEvents((prev) => prev.filter((_, j) => j !== i))} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
-                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                    </button>
+                  <div key={i} className="rounded-xl" style={{ background: 'var(--color-secondary)' }}>
+                    {editingStoryIdx === i ? (
+                      <div className="p-3 space-y-2">
+                        <DatePicker mode="date" outputFormat="d 'de' MMMM 'de' yyyy" value={ev.date} onChange={(v) => setStoryEvents((prev) => { const newArr = [...prev]; newArr[i].date = v; return newArr; })} />
+                        <input value={ev.title} onChange={(e) => setStoryEvents((prev) => { const newArr = [...prev]; newArr[i].title = e.target.value; return newArr; })} className="input-field" placeholder="Título del momento" />
+                        <input value={ev.description ?? ''} onChange={(e) => setStoryEvents((prev) => { const newArr = [...prev]; newArr[i].description = e.target.value; return newArr; })} className="input-field" placeholder="Descripción breve" />
+                        <div className="flex gap-2 justify-end">
+                          <button type="button" onClick={() => setEditingStoryIdx(null)} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
+                          <button type="button" onClick={() => setEditingStoryIdx(null)} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => setEditingStoryIdx(i)}>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{ev.title}</p>
+                          <p className="text-xs text-muted">{ev.date}{ev.description ? ` · ${ev.description}` : ''}</p>
+                        </div>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setStoryEvents((prev) => prev.filter((_, j) => j !== i)); }} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {storyEvents.length === 0 && <p className="text-sm text-muted py-1">No hay momentos aún.</p>}
@@ -1920,14 +1941,28 @@ export default function AdminPage() {
               </div>
               <div className="space-y-2 mb-4">
                 {scheduleItems.map((item, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{item.time} — {item.title}</p>
-                      {item.description && <p className="text-xs text-muted">{item.description}</p>}
-                    </div>
-                    <button type="button" onClick={() => setScheduleItems((prev) => prev.filter((_, j) => j !== i))} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
-                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                    </button>
+                  <div key={i} className="rounded-xl" style={{ background: 'var(--color-secondary)' }}>
+                    {editingScheduleIdx === i ? (
+                      <div className="p-3 space-y-2">
+                        <TimePicker value={item.time} onChange={(v) => setScheduleItems((prev) => { const newArr = [...prev]; newArr[i].time = v; return newArr; })} />
+                        <input value={item.title} onChange={(e) => setScheduleItems((prev) => { const newArr = [...prev]; newArr[i].title = e.target.value; return newArr; })} className="input-field" placeholder="Actividad" />
+                        <input value={item.description ?? ''} onChange={(e) => setScheduleItems((prev) => { const newArr = [...prev]; newArr[i].description = e.target.value; return newArr; })} className="input-field" placeholder="Descripción (opcional)" />
+                        <div className="flex gap-2 justify-end">
+                          <button type="button" onClick={() => setEditingScheduleIdx(null)} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
+                          <button type="button" onClick={() => setEditingScheduleIdx(null)} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => setEditingScheduleIdx(i)}>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{item.time} — {item.title}</p>
+                          {item.description && <p className="text-xs text-muted">{item.description}</p>}
+                        </div>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setScheduleItems((prev) => prev.filter((_, j) => j !== i)); }} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {scheduleItems.length === 0 && <p className="text-sm text-muted py-1">No hay actividades aún.</p>}
@@ -1965,14 +2000,33 @@ export default function AdminPage() {
               </div>
               <div className="space-y-2 mb-4">
                 {partyMembers.map((m, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{m.name} — {m.role}</p>
-                      <p className="text-xs text-muted capitalize">{m.side}{m.description ? ` · ${m.description}` : ''}</p>
-                    </div>
-                    <button type="button" onClick={() => setPartyMembers((prev) => prev.filter((_, j) => j !== i))} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
-                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                    </button>
+                  <div key={i} className="rounded-xl" style={{ background: 'var(--color-secondary)' }}>
+                    {editingPartyIdx === i ? (
+                      <div className="p-3 space-y-2">
+                        <input value={m.name} onChange={(e) => setPartyMembers((prev) => { const newArr = [...prev]; newArr[i].name = e.target.value; return newArr; })} className="input-field" placeholder="Nombre completo" />
+                        <input value={m.role} onChange={(e) => setPartyMembers((prev) => { const newArr = [...prev]; newArr[i].role = e.target.value; return newArr; })} className="input-field" placeholder="Rol (ej: Dama de honor)" />
+                        <select value={m.side} onChange={(e) => setPartyMembers((prev) => { const newArr = [...prev]; newArr[i].side = e.target.value as PartySide; return newArr; })} className="input-field">
+                          <option value="bride">Novia / lado de la novia</option>
+                          <option value="groom">Novio / lado del novio</option>
+                          <option value="both">Ambos</option>
+                        </select>
+                        <input value={m.description ?? ''} onChange={(e) => setPartyMembers((prev) => { const newArr = [...prev]; newArr[i].description = e.target.value; return newArr; })} className="input-field" placeholder="Descripción (opcional)" />
+                        <div className="flex gap-2 justify-end">
+                          <button type="button" onClick={() => setEditingPartyIdx(null)} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
+                          <button type="button" onClick={() => setEditingPartyIdx(null)} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => setEditingPartyIdx(i)}>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{m.name} — {m.role}</p>
+                          <p className="text-xs text-muted capitalize">{m.side}{m.description ? ` · ${m.description}` : ''}</p>
+                        </div>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setPartyMembers((prev) => prev.filter((_, j) => j !== i)); }} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {partyMembers.length === 0 && <p className="text-sm text-muted py-1">No hay miembros aún.</p>}
@@ -2015,14 +2069,41 @@ export default function AdminPage() {
               </div>
               <div className="space-y-2 mb-4">
                 {accomHotels.map((h, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{h.name}{h.stars ? ` · ${'⭐'.repeat(Math.min(h.stars, 5))}` : ''}</p>
-                      <p className="text-xs text-muted">{h.address}{h.phone ? ` · ${h.phone}` : ''}</p>
-                    </div>
-                    <button type="button" onClick={() => setAccomHotels((prev) => prev.filter((_, j) => j !== i))} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
-                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                    </button>
+                  <div key={i} className="rounded-xl" style={{ background: 'var(--color-secondary)' }}>
+                    {editingAccomIdx === i ? (
+                      <div className="p-3 space-y-2">
+                        <input value={h.name} onChange={(e) => setAccomHotels((prev) => { const newArr = [...prev]; newArr[i].name = e.target.value; return newArr; })} className="input-field" placeholder="Nombre del hotel" />
+                        <input value={h.address} onChange={(e) => setAccomHotels((prev) => { const newArr = [...prev]; newArr[i].address = e.target.value; return newArr; })} className="input-field" placeholder="Dirección" />
+                        <input value={h.phone ?? ''} onChange={(e) => setAccomHotels((prev) => { const newArr = [...prev]; newArr[i].phone = e.target.value; return newArr; })} className="input-field" placeholder="Teléfono" />
+                        <input value={h.website ?? ''} onChange={(e) => setAccomHotels((prev) => { const newArr = [...prev]; newArr[i].website = e.target.value; return newArr; })} className="input-field" placeholder="Sitio web (https://...)" />
+                        <input value={h.priceRange ?? ''} onChange={(e) => setAccomHotels((prev) => { const newArr = [...prev]; newArr[i].priceRange = e.target.value; return newArr; })} className="input-field" placeholder="Rango de precios" />
+                        <input value={h.notes ?? ''} onChange={(e) => setAccomHotels((prev) => { const newArr = [...prev]; newArr[i].notes = e.target.value; return newArr; })} className="input-field" placeholder="Notas" />
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Estrellas:</span>
+                          {[0, 1, 2, 3, 4, 5].map((n) => (
+                            <button key={n} type="button" onClick={() => setAccomHotels((prev) => { const newArr = [...prev]; newArr[i].stars = n; return newArr; })}
+                              className="text-xs px-2 py-1 rounded transition-colors"
+                              style={{ background: (h.stars ?? 0) === n ? 'var(--color-primary)' : 'var(--color-border)', color: (h.stars ?? 0) === n ? 'white' : 'var(--color-text-muted)' }}>
+                              {n === 0 ? '—' : n}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                          <button type="button" onClick={() => setEditingAccomIdx(null)} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
+                          <button type="button" onClick={() => setEditingAccomIdx(null)} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => setEditingAccomIdx(i)}>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{h.name}{h.stars ? ` · ${'⭐'.repeat(Math.min(h.stars, 5))}` : ''}</p>
+                          <p className="text-xs text-muted">{h.address}{h.phone ? ` · ${h.phone}` : ''}</p>
+                        </div>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setAccomHotels((prev) => prev.filter((_, j) => j !== i)); }} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {accomHotels.length === 0 && <p className="text-sm text-muted py-1">No hay hoteles aún.</p>}
@@ -2073,14 +2154,27 @@ export default function AdminPage() {
               </div>
               <div className="space-y-2 mb-4">
                 {faqItems.map((item, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{item.question}</p>
-                      <p className="text-xs text-muted">{item.answer}</p>
-                    </div>
-                    <button type="button" onClick={() => setFaqItems((prev) => prev.filter((_, j) => j !== i))} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
-                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                    </button>
+                  <div key={i} className="rounded-xl" style={{ background: 'var(--color-secondary)' }}>
+                    {editingFaqIdx === i ? (
+                      <div className="p-3 space-y-2">
+                        <input value={item.question} onChange={(e) => setFaqItems((prev) => { const newArr = [...prev]; newArr[i].question = e.target.value; return newArr; })} className="input-field" placeholder="¿Pregunta?" />
+                        <textarea value={item.answer} onChange={(e) => setFaqItems((prev) => { const newArr = [...prev]; newArr[i].answer = e.target.value; return newArr; })} className="input-field resize-none" rows={2} placeholder="Respuesta" />
+                        <div className="flex gap-2 justify-end">
+                          <button type="button" onClick={() => setEditingFaqIdx(null)} className="btn-outline text-sm px-3 py-1.5">Cancelar</button>
+                          <button type="button" onClick={() => setEditingFaqIdx(null)} className="btn-primary text-sm px-3 py-1.5">Guardar</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-3 p-3 cursor-pointer hover:opacity-75 transition-opacity" onClick={() => setEditingFaqIdx(i)}>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{item.question}</p>
+                          <p className="text-xs text-muted">{item.answer}</p>
+                        </div>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setFaqItems((prev) => prev.filter((_, j) => j !== i)); }} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {faqItems.length === 0 && <p className="text-sm text-muted py-1">No hay preguntas aún.</p>}
