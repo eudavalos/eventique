@@ -88,16 +88,16 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 
 ---
 
-## Estado del proyecto (2026-04-25)
+## Estado del proyecto (2026-04-26)
 
 | Fase | Estado | Descripción |
 |------|--------|-------------|
 | Fase 1 — MVP | ✅ COMPLETO | React SPA + FastAPI RSVP + Docker deploy en Pi |
 | Fase 2 — Diseño enterprise | ✅ COMPLETO | 6 paletas, Framer Motion, 10 secciones configurables |
-| Fase 3 — Config dinámica + Admin | ✅ COMPLETO | ConfigContext, PUT /event-config, Admin 3 tabs, event types |
+| Fase 3 — Config dinámica + Admin | ✅ COMPLETO | ConfigContext, PUT /event-config, Admin 5 tabs, event types |
 | Fase 4 — GitHub + CI | ✅ COMPLETO | Repo eudavalos/eventique, README enterprise, git flow |
-| Fase 5 — Multi-tenancy | 🔲 PENDIENTE | Múltiples eventos desde un único deploy |
-| Fase 6 — Media management | 🔲 PENDIENTE | Upload de fotos/música desde admin |
+| Fase 5 — Multi-tenancy | ✅ COMPLETO | Event model, /e/:slug routes, EventSlugContext, admin Eventos tab |
+| Fase 6 — Media management | ✅ COMPLETO | Upload fotos/audio desde admin, galería drag-drop, serve via API |
 
 **Cliente actual**: Concepción & Eumelio · boda · 2026-12-05 · paleta `nature`  
 **Recintos**: placeholders — el cliente debe completar desde /admin  
@@ -159,13 +159,36 @@ En cada sesión significativa, actualizar estos tres artefactos:
 
 ## API Endpoints
 
+### Backward-compat (default event)
 | Method | Path | Auth | Descripción |
 |---|---|---|---|
 | GET | /health | — | Health check |
-| GET | /event-config | — | Config actual del evento (JSON) |
-| PUT | /event-config | Admin | Guardar nueva config (JSON arbitrario) |
-| POST | /rsvp | — | Enviar confirmación de asistencia |
-| GET | /rsvp/check?email= | — | Verificar si email ya confirmó |
-| GET | /rsvp | Admin | Listar todas las confirmaciones |
-| GET | /rsvp/stats | Admin | Estadísticas de asistencia |
-| DELETE | /rsvp/{id} | Admin | Eliminar confirmación |
+| GET | /event-config | — | Config del evento default |
+| PUT | /event-config | Admin | Guardar config del evento default |
+| POST | /rsvp | — | RSVP al evento default |
+| GET | /rsvp/check?email= | — | Verificar email en evento default |
+| GET | /rsvp | Admin | Listar RSVPs del evento default |
+| GET | /rsvp/stats | Admin | Stats del evento default |
+| DELETE | /rsvp/{id} | Admin | Eliminar RSVP del evento default |
+
+### Multi-tenant (Fase 5)
+| Method | Path | Auth | Descripción |
+|---|---|---|---|
+| GET | /events | Superadmin | Listar todos los eventos |
+| POST | /events | Superadmin | Crear nuevo evento |
+| DELETE | /events/{slug} | Superadmin | Eliminar evento y todos sus datos |
+| GET | /events/{slug}/event-config | — | Config del evento |
+| PUT | /events/{slug}/event-config | EventAdmin | Guardar config del evento |
+| POST | /events/{slug}/rsvp | — | RSVP al evento |
+| GET | /events/{slug}/rsvp/check | — | Verificar email en evento |
+| GET | /events/{slug}/rsvp | EventAdmin | Listar RSVPs del evento |
+| GET | /events/{slug}/rsvp/stats | EventAdmin | Stats del evento |
+| DELETE | /events/{slug}/rsvp/{id} | EventAdmin | Eliminar RSVP del evento |
+
+### Media (Fase 6)
+| Method | Path | Auth | Descripción |
+|---|---|---|---|
+| GET | /events/{slug}/media | EventAdmin | Listar archivos del evento |
+| POST | /events/{slug}/media | EventAdmin | Subir imagen (10MB) o audio (50MB) |
+| DELETE | /events/{slug}/media/{id} | EventAdmin | Eliminar archivo |
+| GET | /uploads/{slug}/{filename} | — | Servir archivo subido |
