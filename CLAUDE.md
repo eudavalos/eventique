@@ -98,6 +98,7 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 | Fase 4 — GitHub + CI | ✅ COMPLETO | Repo eudavalos/eventique, README enterprise, git flow |
 | Fase 5 — Multi-tenancy | ✅ COMPLETO | Event model, /e/:slug routes, EventSlugContext, admin Eventos tab |
 | Fase 6 — Media management | ✅ COMPLETO | Upload fotos/audio desde admin, galería drag-drop, serve via API |
+| Fase 7 — Product polish | ✅ COMPLETO | Email SMTP notifications, QR codes admin, RSVP edit modal, /landing page |
 
 **Cliente actual**: Concepción & Eumelio · boda · 2026-12-05 · paleta `nature`  
 **Recintos**: placeholders — el cliente debe completar desde /admin  
