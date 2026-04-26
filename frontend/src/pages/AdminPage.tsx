@@ -149,6 +149,7 @@ export default function AdminPage() {
 
   // Events state
   const [events, setEvents] = useState<EventInfo[]>([]);
+  const [isSuperadmin, setIsSuperadmin] = useState(false);
   const [creatingEvent, setCreatingEvent] = useState(false);
   const [newEventName, setNewEventName] = useState('');
   const [newEventSlug, setNewEventSlug] = useState('');
@@ -406,7 +407,12 @@ export default function AdminPage() {
           rsvpApi.listEvents(token),
         ]).then(([mediaRes, eventsRes]) => {
           if (mediaRes.status === 'fulfilled') setMediaFiles(mediaRes.value.data);
-          if (eventsRes.status === 'fulfilled') setEvents(eventsRes.value.data);
+          if (eventsRes.status === 'fulfilled') {
+            setEvents(eventsRes.value.data);
+            setIsSuperadmin(true);
+          } else {
+            setIsSuperadmin(false);
+          }
         });
       })
       .catch(() => {
@@ -1538,6 +1544,7 @@ export default function AdminPage() {
         {activeTab === 'eventos' && (
           <div className="space-y-6">
             {/* Create new event */}
+            {isSuperadmin ? (
             <div className="card p-6 sm:p-8">
               <h2 className="font-sub text-lg font-medium mb-5" style={{ color: 'var(--color-text)' }}>
                 <Plus className="w-5 h-5 inline mr-2" style={{ color: 'var(--color-primary)' }} />
@@ -1614,6 +1621,14 @@ export default function AdminPage() {
                 </div>
               </form>
             </div>
+            ) : (
+            <div className="card p-6 sm:p-8 bg-yellow-50 border border-yellow-200" style={{ background: 'color-mix(in srgb, var(--color-primary) 5%, transparent)', borderColor: 'var(--color-primary)' }}>
+              <p className="text-sm" style={{ color: 'var(--color-text)' }}>
+                <Lock className="w-4 h-4 inline mr-2" style={{ color: 'var(--color-primary)' }} />
+                Solo administradores globales pueden crear eventos. Contacta al administrador si necesitas crear un nuevo evento.
+              </p>
+            </div>
+            )}
 
             {/* Events list */}
             <div className="card overflow-x-auto">
