@@ -17,7 +17,6 @@ const NAV_LINKS = [
   { label: 'Nuestra Historia', href: '#historia' },
   { label: 'Ceremonia', href: '#recintos' },
   { label: 'Itinerario', href: '#itinerario' },
-  { label: 'RSVP', href: '#rsvp' },
 ];
 
 export default function InvitationPage() {
