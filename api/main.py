@@ -18,6 +18,8 @@ from fastapi.responses import FileResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text
+import bcrypt
+import bleach
 
 from . import models, schemas
 from .database import engine, get_db, SessionLocal
@@ -27,6 +29,27 @@ from .ratelimit import check_rate_limit, get_client_ip
 # ── Config (from api/settings.py — all env vars centralized) ────────────────
 
 settings = get_settings()
+
+# ── Security helpers ──────────────────────────────────────────────────────────
+
+def hash_token(token: str) -> str:
+    """Hash a token using bcrypt."""
+    return bcrypt.hashpw(token.encode(), bcrypt.gensalt()).decode()
+
+def verify_token_hash(token: str, token_hash: str) -> bool:
+    """Verify a token against its bcrypt hash."""
+    try:
+        return bcrypt.checkpw(token.encode(), token_hash.encode())
+    except (ValueError, TypeError):
+        return False
+
+def sanitize_html(text: str, max_length: int = 5000) -> str:
+    """Sanitize HTML/script content from user input."""
+    if not text or len(text) > max_length:
+        return text[:max_length] if text else ""
+    tags = bleach.ALLOWED_TAGS
+    attrs = bleach.ALLOWED_ATTRIBUTES
+    return bleach.clean(text, tags=tags, attributes=attrs, strip=True)
 
 # Legacy variables (for compatibility with existing code)
 ADMIN_TOKEN = settings.admin_token
@@ -281,8 +304,13 @@ async def verify_event_admin(
     token = credentials.credentials
     if secrets.compare_digest(token, ADMIN_TOKEN):
         return event
-    if event.admin_token and secrets.compare_digest(token, event.admin_token):
-        return event
+    if event.admin_token:
+        if event.admin_token.startswith("$2"):
+            if verify_token_hash(token, event.admin_token):
+                return event
+        else:
+            if secrets.compare_digest(token, event.admin_token):
+                return event
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
 
 
@@ -302,16 +330,23 @@ def _upsert_event_config(event_slug: str, payload: dict, db: Session):
 
 
 def _upsert_rsvp(event_slug: str, data: schemas.RSVPCreate, db: Session) -> models.RSVP:
+    data_dict = data.model_dump()
+    data_dict["name"] = sanitize_html(data_dict.get("name", ""))
+    data_dict["plus_one_name"] = sanitize_html(data_dict.get("plus_one_name", ""))
+    data_dict["dietary_restrictions"] = sanitize_html(data_dict.get("dietary_restrictions", ""))
+    data_dict["song_request"] = sanitize_html(data_dict.get("song_request", ""))
+    data_dict["message"] = sanitize_html(data_dict.get("message", ""))
+
     existing = db.query(models.RSVP).filter(
-        models.RSVP.email == data.email, models.RSVP.event_slug == event_slug
+        models.RSVP.email == data_dict["email"], models.RSVP.event_slug == event_slug
     ).first()
     if existing:
-        for key, value in data.model_dump().items():
+        for key, value in data_dict.items():
             setattr(existing, key, value)
         db.commit()
         db.refresh(existing)
         return existing
-    rsvp = models.RSVP(event_slug=event_slug, **data.model_dump())
+    rsvp = models.RSVP(event_slug=event_slug, **data_dict)
     db.add(rsvp)
     db.commit()
     db.refresh(rsvp)
@@ -513,7 +548,7 @@ async def set_event_admin_token(
     if not event:
         raise HTTPException(404, detail=f"Evento '{event_slug}' no encontrado")
     new_token = secrets.token_urlsafe(24)
-    event.admin_token = new_token
+    event.admin_token = hash_token(new_token)
     db.commit()
     return {"slug": event_slug, "admin_token": new_token}
 
