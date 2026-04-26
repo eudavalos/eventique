@@ -3,7 +3,8 @@ import { useForm } from 'react-hook-form';
 import {
   Users, CheckCircle, XCircle, BarChart3, Download, Lock,
   Settings, Palette, Upload, Trash2, Plus, ExternalLink,
-  Copy, Music2, Calendar, Pencil, QrCode, X,
+  Copy, Music2, Calendar, Pencil, QrCode, X, FileText,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import toast from 'react-hot-toast';
@@ -11,7 +12,7 @@ import { rsvpApi } from '../lib/api';
 import { useEventSlug } from '../context/EventSlugContext';
 import { config as staticConfig } from '../config/wedding';
 import { applyTheme } from '../lib/theme';
-import type { PaletteKey, EventType, EventInfo, MediaFile } from '../types';
+import type { PaletteKey, EventType, EventInfo, MediaFile, StoryEvent, ScheduleItem, FAQItem, GalleryPhoto, MusicTrack } from '../types';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -97,7 +98,7 @@ const EVENT_LABELS: Record<EventType, {
   corporativo: { person1: 'Empresa/Org.',      person2: 'Contacto',   displayNames: 'Ej: Congreso Tecnopowerpy',   dateLabel: 'Fecha del evento',        venueLabel: 'Sede',          singleVenue: true  },
 };
 
-type Tab = 'rsvps' | 'config' | 'tema' | 'media' | 'eventos';
+type Tab = 'rsvps' | 'config' | 'tema' | 'media' | 'eventos' | 'secciones';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -163,6 +164,32 @@ export default function AdminPage() {
   // QR code modal
   const [showQrFor, setShowQrFor] = useState<string | null>(null);
 
+  // Sections content state
+  const [storyEnabled, setStoryEnabled] = useState(true);
+  const [storyTitle, setStoryTitle] = useState('');
+  const [storyEvents, setStoryEvents] = useState<StoryEvent[]>([]);
+  const [scheduleEnabled, setScheduleEnabled] = useState(true);
+  const [scheduleTitle, setScheduleTitle] = useState('');
+  const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
+  const [faqEnabled, setFaqEnabled] = useState(true);
+  const [faqTitle, setFaqTitle] = useState('');
+  const [faqItems, setFaqItems] = useState<FAQItem[]>([]);
+  const [footerEnabled, setFooterEnabled] = useState(true);
+  const [footerMsg, setFooterMsg] = useState('');
+  const [footerCredits, setFooterCredits] = useState('');
+  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
+  const [musicTracks, setMusicTracks] = useState<MusicTrack[]>([]);
+  const [savingSections, setSavingSections] = useState(false);
+  // Section add-form state
+  const [newStoryDate, setNewStoryDate] = useState('');
+  const [newStoryTitle, setNewStoryTitle] = useState('');
+  const [newStoryDesc, setNewStoryDesc] = useState('');
+  const [newItemTime, setNewItemTime] = useState('');
+  const [newItemTitle, setNewItemTitle] = useState('');
+  const [newItemDesc, setNewItemDesc] = useState('');
+  const [newFaqQ, setNewFaqQ] = useState('');
+  const [newFaqA, setNewFaqA] = useState('');
+
   const { register, handleSubmit, reset, watch } = useForm<ConfigFormData>({
     defaultValues: buildDefaultValues({}),
   });
@@ -209,6 +236,29 @@ export default function AdminPage() {
         const defaults = buildDefaultValues(cfg);
         reset(defaults);
         if (defaults.palette) setSelectedPalette(defaults.palette);
+
+        // Load section content
+        const sects = (cfg.sections as Record<string, unknown> | undefined) ?? {};
+        const story = sects.ourStory as Record<string, unknown> | undefined;
+        const sched = sects.schedule as Record<string, unknown> | undefined;
+        const faq   = sects.faq    as Record<string, unknown> | undefined;
+        const foot  = sects.footer as Record<string, unknown> | undefined;
+        const gal   = sects.gallery as Record<string, unknown> | undefined;
+        const mus   = cfg.music as Record<string, unknown> | undefined;
+        setStoryEnabled((story?.enabled as boolean) ?? true);
+        setStoryTitle((story?.title as string) ?? '');
+        setStoryEvents((story?.events as StoryEvent[]) ?? []);
+        setScheduleEnabled((sched?.enabled as boolean) ?? true);
+        setScheduleTitle((sched?.title as string) ?? '');
+        setScheduleItems((sched?.items as ScheduleItem[]) ?? []);
+        setFaqEnabled((faq?.enabled as boolean) ?? true);
+        setFaqTitle((faq?.title as string) ?? '');
+        setFaqItems((faq?.items as FAQItem[]) ?? []);
+        setFooterEnabled((foot?.enabled as boolean) ?? true);
+        setFooterMsg((foot?.message as string) ?? '');
+        setFooterCredits((foot?.credits as string) ?? '');
+        setGalleryPhotos((gal?.photos as GalleryPhoto[]) ?? []);
+        setMusicTracks((mus?.tracks as MusicTrack[]) ?? []);
 
         // Secondary data (events + media) — don't fail auth on errors
         Promise.allSettled([
@@ -297,6 +347,7 @@ export default function AdminPage() {
         },
         theme: { palette: formData.palette },
         sections: {
+          ...(eventCfg.sections as object ?? {}),
           rsvp: {
             enabled: formData.rsvp_enabled,
             deadline: formData.rsvp_deadline,
@@ -437,6 +488,78 @@ export default function AdminPage() {
     }
   };
 
+  // ── Gallery / Music config helpers ───────────────────────────────────────
+
+  const saveGalleryConfig = async (photos: GalleryPhoto[]) => {
+    const current = eventCfg as Record<string, unknown>;
+    const sects = (current.sections as Record<string, unknown> | undefined) ?? {};
+    const updated = { ...current, sections: { ...sects, gallery: { ...(sects.gallery as object ?? {}), photos } } };
+    await rsvpApi.updateEventConfig(eventSlug, token, updated as never);
+    setEventCfg(updated as Record<string, unknown>);
+    setGalleryPhotos(photos);
+  };
+
+  const saveMusicConfig = async (tracks: MusicTrack[]) => {
+    const current = eventCfg as Record<string, unknown>;
+    const mus = (current.music as Record<string, unknown> | undefined) ?? {};
+    const updated = { ...current, music: { enabled: true, autoplay: false, ...mus, tracks } };
+    await rsvpApi.updateEventConfig(eventSlug, token, updated as never);
+    setEventCfg(updated as Record<string, unknown>);
+    setMusicTracks(tracks);
+  };
+
+  const addPhotoToGallery = async (url: string, filename: string) => {
+    try {
+      await saveGalleryConfig([...galleryPhotos, { url, alt: filename }]);
+      toast.success('Foto añadida a la galería');
+    } catch { toast.error('Error al añadir foto a la galería'); }
+  };
+
+  const removePhotoFromGallery = async (url: string) => {
+    try {
+      await saveGalleryConfig(galleryPhotos.filter((p) => p.url !== url));
+      toast.success('Foto eliminada de la galería');
+    } catch { toast.error('Error al eliminar foto de la galería'); }
+  };
+
+  const addTrackToPlayer = async (url: string, filename: string) => {
+    const title = filename.replace(/\.[^/.]+$/, '');
+    try {
+      await saveMusicConfig([...musicTracks, { title, artist: '', url }]);
+      toast.success('Pista añadida al reproductor');
+    } catch { toast.error('Error al añadir pista al reproductor'); }
+  };
+
+  const removeTrackFromPlayer = async (url: string) => {
+    try {
+      await saveMusicConfig(musicTracks.filter((t) => t.url !== url));
+      toast.success('Pista eliminada del reproductor');
+    } catch { toast.error('Error al eliminar pista del reproductor'); }
+  };
+
+  const saveSections = async () => {
+    setSavingSections(true);
+    try {
+      const current = eventCfg as Record<string, unknown>;
+      const sects = (current.sections as Record<string, unknown> | undefined) ?? {};
+      const updated = {
+        ...current,
+        sections: {
+          ...sects,
+          ourStory:  { ...(sects.ourStory  as object ?? {}), enabled: storyEnabled,    title: storyTitle    || undefined, events: storyEvents    },
+          schedule:  { ...(sects.schedule  as object ?? {}), enabled: scheduleEnabled, title: scheduleTitle || undefined, items:  scheduleItems  },
+          faq:       { ...(sects.faq       as object ?? {}), enabled: faqEnabled,      title: faqTitle      || undefined, items:  faqItems       },
+          footer:    { ...(sects.footer    as object ?? {}), enabled: footerEnabled,   message: footerMsg   || undefined, credits: footerCredits || undefined },
+          gallery:   { ...(sects.gallery   as object ?? {}), photos: galleryPhotos },
+        },
+      };
+      await rsvpApi.updateEventConfig(eventSlug, token, updated as never);
+      setEventCfg(updated as Record<string, unknown>);
+      toast.success('Secciones guardadas correctamente');
+    } catch { toast.error('Error al guardar las secciones'); }
+    finally { setSavingSections(false); }
+  };
+
   // ── Derived ───────────────────────────────────────────────────────────────
 
   const cfgCouple = (eventCfg.couple as Record<string, unknown> | undefined) ?? {};
@@ -513,7 +636,8 @@ export default function AdminPage() {
             { key: 'config',   label: 'Configuración',  icon: Settings   },
             { key: 'tema',     label: 'Tema',           icon: Palette    },
             { key: 'media',    label: 'Media',          icon: Upload     },
-            { key: 'eventos',  label: 'Eventos',        icon: Calendar   },
+            { key: 'eventos',   label: 'Eventos',    icon: Calendar  },
+            { key: 'secciones', label: 'Secciones',  icon: FileText  },
           ] as { key: Tab; label: string; icon: React.ElementType }[]).map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -925,6 +1049,15 @@ export default function AdminPage() {
                         </button>
                         <button
                           type="button"
+                          onClick={() => galleryPhotos.some((p) => p.url === file.url) ? removePhotoFromGallery(file.url) : addPhotoToGallery(file.url, file.original_filename)}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs transition-colors"
+                          style={{ background: galleryPhotos.some((p) => p.url === file.url) ? 'rgba(62,123,87,0.9)' : 'rgba(255,255,255,0.2)' }}
+                          title={galleryPhotos.some((p) => p.url === file.url) ? 'Quitar de galería' : 'Añadir a galería'}
+                        >
+                          <ImageIcon className="w-3 h-3" /> {galleryPhotos.some((p) => p.url === file.url) ? '✓ Galería' : 'Galería'}
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleDeleteMedia(file.id)}
                           className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs bg-red-500/70 hover:bg-red-500/90 transition-colors"
                           title="Eliminar"
@@ -965,6 +1098,15 @@ export default function AdminPage() {
                         title="Copiar URL"
                       >
                         <Copy className="w-4 h-4 text-muted" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => musicTracks.some((t) => t.url === file.url) ? removeTrackFromPlayer(file.url) : addTrackToPlayer(file.url, file.original_filename)}
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ color: musicTracks.some((t) => t.url === file.url) ? 'var(--color-primary)' : 'var(--color-text-muted)', background: musicTracks.some((t) => t.url === file.url) ? 'var(--color-secondary)' : 'transparent' }}
+                        title={musicTracks.some((t) => t.url === file.url) ? 'Quitar del reproductor' : 'Añadir al reproductor'}
+                      >
+                        <Music2 className="w-4 h-4" />
                       </button>
                       <button
                         type="button"
@@ -1119,6 +1261,227 @@ export default function AdminPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB: Secciones ── */}
+        {activeTab === 'secciones' && (
+          <div className="space-y-6">
+
+            {/* OurStory */}
+            <div className="card p-6 sm:p-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>Nuestra Historia</h2>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={storyEnabled} onChange={(e) => setStoryEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                  <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Visible</span>
+                </label>
+              </div>
+              <div className="mb-4">
+                <label className="input-label">Título de la sección (vacío = predeterminado)</label>
+                <input value={storyTitle} onChange={(e) => setStoryTitle(e.target.value)} className="input-field" placeholder="Nuestra Historia" />
+              </div>
+              <div className="space-y-2 mb-4">
+                {storyEvents.map((ev, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{ev.title}</p>
+                      <p className="text-xs text-muted">{ev.date}{ev.description ? ` · ${ev.description}` : ''}</p>
+                    </div>
+                    <button type="button" onClick={() => setStoryEvents((prev) => prev.filter((_, j) => j !== i))} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    </button>
+                  </div>
+                ))}
+                {storyEvents.length === 0 && <p className="text-sm text-muted py-1">No hay momentos aún.</p>}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input value={newStoryDate} onChange={(e) => setNewStoryDate(e.target.value)} className="input-field" placeholder="Fecha (ej: Junio 2020)" />
+                <input value={newStoryTitle} onChange={(e) => setNewStoryTitle(e.target.value)} className="input-field" placeholder="Título del momento" />
+                <input value={newStoryDesc} onChange={(e) => setNewStoryDesc(e.target.value)} className="input-field" placeholder="Descripción breve" />
+              </div>
+              <button
+                type="button"
+                className="btn-outline mt-3 flex items-center gap-2"
+                onClick={() => {
+                  if (!newStoryTitle.trim()) return;
+                  setStoryEvents((prev) => [...prev, { date: newStoryDate, title: newStoryTitle, description: newStoryDesc }]);
+                  setNewStoryDate(''); setNewStoryTitle(''); setNewStoryDesc('');
+                }}
+              >
+                <Plus className="w-3.5 h-3.5" /> Agregar momento
+              </button>
+            </div>
+
+            {/* Schedule */}
+            <div className="card p-6 sm:p-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>Cronograma</h2>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={scheduleEnabled} onChange={(e) => setScheduleEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                  <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Visible</span>
+                </label>
+              </div>
+              <div className="mb-4">
+                <label className="input-label">Título de la sección</label>
+                <input value={scheduleTitle} onChange={(e) => setScheduleTitle(e.target.value)} className="input-field" placeholder="Cronograma del día" />
+              </div>
+              <div className="space-y-2 mb-4">
+                {scheduleItems.map((item, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{item.time} — {item.title}</p>
+                      {item.description && <p className="text-xs text-muted">{item.description}</p>}
+                    </div>
+                    <button type="button" onClick={() => setScheduleItems((prev) => prev.filter((_, j) => j !== i))} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    </button>
+                  </div>
+                ))}
+                {scheduleItems.length === 0 && <p className="text-sm text-muted py-1">No hay actividades aún.</p>}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input value={newItemTime} onChange={(e) => setNewItemTime(e.target.value)} className="input-field" placeholder="Hora (ej: 17:00)" />
+                <input value={newItemTitle} onChange={(e) => setNewItemTitle(e.target.value)} className="input-field" placeholder="Actividad" />
+                <input value={newItemDesc} onChange={(e) => setNewItemDesc(e.target.value)} className="input-field" placeholder="Descripción (opcional)" />
+              </div>
+              <button
+                type="button"
+                className="btn-outline mt-3 flex items-center gap-2"
+                onClick={() => {
+                  if (!newItemTitle.trim()) return;
+                  setScheduleItems((prev) => [...prev, { time: newItemTime, title: newItemTitle, description: newItemDesc || undefined }]);
+                  setNewItemTime(''); setNewItemTitle(''); setNewItemDesc('');
+                }}
+              >
+                <Plus className="w-3.5 h-3.5" /> Agregar actividad
+              </button>
+            </div>
+
+            {/* FAQ */}
+            <div className="card p-6 sm:p-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>Preguntas frecuentes</h2>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={faqEnabled} onChange={(e) => setFaqEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                  <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Visible</span>
+                </label>
+              </div>
+              <div className="mb-4">
+                <label className="input-label">Título de la sección</label>
+                <input value={faqTitle} onChange={(e) => setFaqTitle(e.target.value)} className="input-field" placeholder="Preguntas Frecuentes" />
+              </div>
+              <div className="space-y-2 mb-4">
+                {faqItems.map((item, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{item.question}</p>
+                      <p className="text-xs text-muted">{item.answer}</p>
+                    </div>
+                    <button type="button" onClick={() => setFaqItems((prev) => prev.filter((_, j) => j !== i))} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    </button>
+                  </div>
+                ))}
+                {faqItems.length === 0 && <p className="text-sm text-muted py-1">No hay preguntas aún.</p>}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input value={newFaqQ} onChange={(e) => setNewFaqQ(e.target.value)} className="input-field" placeholder="¿Pregunta?" />
+                <input value={newFaqA} onChange={(e) => setNewFaqA(e.target.value)} className="input-field" placeholder="Respuesta" />
+              </div>
+              <button
+                type="button"
+                className="btn-outline mt-3 flex items-center gap-2"
+                onClick={() => {
+                  if (!newFaqQ.trim() || !newFaqA.trim()) return;
+                  setFaqItems((prev) => [...prev, { question: newFaqQ, answer: newFaqA }]);
+                  setNewFaqQ(''); setNewFaqA('');
+                }}
+              >
+                <Plus className="w-3.5 h-3.5" /> Agregar pregunta
+              </button>
+            </div>
+
+            {/* Footer */}
+            <div className="card p-6 sm:p-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>Pie de página</h2>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={footerEnabled} onChange={(e) => setFooterEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                  <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Visible</span>
+                </label>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="input-label">Mensaje</label>
+                  <textarea rows={3} value={footerMsg} onChange={(e) => setFooterMsg(e.target.value)} className="input-field resize-none" placeholder="Con amor, los invitamos a celebrar este día especial con nosotros." />
+                </div>
+                <div>
+                  <label className="input-label">Créditos</label>
+                  <input value={footerCredits} onChange={(e) => setFooterCredits(e.target.value)} className="input-field" placeholder="Invitación digital creada con Eventique" />
+                </div>
+              </div>
+            </div>
+
+            {/* Gallery (linked to Media) */}
+            <div className="card p-6 sm:p-8">
+              <h2 className="font-sub text-lg font-medium mb-1" style={{ color: 'var(--color-text)' }}>
+                Galería ({galleryPhotos.length} fotos)
+              </h2>
+              <p className="text-xs text-muted mb-4">Agrega o quita fotos con el botón "Galería" en la pestaña Media.</p>
+              {galleryPhotos.length > 0 ? (
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {galleryPhotos.map((photo, i) => (
+                    <div key={i} className="relative group rounded-lg overflow-hidden">
+                      <img src={photo.url} alt={photo.alt ?? ''} className="w-full aspect-square object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removePhotoFromGallery(photo.url)}
+                        className="absolute inset-0 bg-red-500/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                        title="Quitar de galería"
+                      >
+                        <Trash2 className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted">No hay fotos en la galería.</p>
+              )}
+            </div>
+
+            {/* Music (linked to Media) */}
+            <div className="card p-6 sm:p-8">
+              <h2 className="font-sub text-lg font-medium mb-1" style={{ color: 'var(--color-text)' }}>
+                Reproductor ({musicTracks.length} pistas)
+              </h2>
+              <p className="text-xs text-muted mb-4">Agrega o quita pistas con el botón de música en la pestaña Media.</p>
+              {musicTracks.length > 0 ? (
+                <div className="space-y-2">
+                  {musicTracks.map((track, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
+                      <Music2 className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-primary)' }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-body font-medium truncate" style={{ color: 'var(--color-text)' }}>{track.title}</p>
+                        {track.artist && <p className="text-xs text-muted">{track.artist}</p>}
+                      </div>
+                      <button type="button" onClick={() => removeTrackFromPlayer(track.url)} className="p-1 rounded hover:bg-red-50 transition-colors">
+                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted">No hay pistas en el reproductor.</p>
+              )}
+            </div>
+
+            {/* Save */}
+            <div className="flex justify-end">
+              <button type="button" onClick={saveSections} disabled={savingSections} className="btn-primary px-8">
+                {savingSections ? 'Guardando…' : 'Guardar secciones'}
+              </button>
             </div>
           </div>
         )}

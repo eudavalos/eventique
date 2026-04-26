@@ -8,7 +8,16 @@ import { setFavicon } from './lib/favicon';
 import { ConfigContext } from './context/ConfigContext';
 import { EventSlugContext } from './context/EventSlugContext';
 import { rsvpApi } from './lib/api';
-import type { WeddingConfig, EventConfig } from './types';
+import type { WeddingConfig, EventConfig, EventType } from './types';
+
+const EVENT_TYPE_SECTION_LABELS: Partial<Record<EventType, { storyTitle?: string; scheduleTitle?: string; faqTitle?: string }>> = {
+  boda:        { storyTitle: 'Nuestra Historia',   scheduleTitle: 'Cronograma',        faqTitle: 'Preguntas Frecuentes' },
+  cumpleanos:  { storyTitle: 'Nuestra Historia',   scheduleTitle: 'Programa del día',  faqTitle: 'Preguntas Frecuentes' },
+  bautismo:    { storyTitle: 'Nuestra Historia',   scheduleTitle: 'Programa',          faqTitle: 'Preguntas Frecuentes' },
+  quinceanera: { storyTitle: 'Mi Historia',        scheduleTitle: 'Programa de la noche', faqTitle: 'Preguntas Frecuentes' },
+  graduacion:  { storyTitle: 'Mi Trayectoria',     scheduleTitle: 'Programa',          faqTitle: 'Preguntas Frecuentes' },
+  corporativo: { storyTitle: 'Sobre el Evento',    scheduleTitle: 'Agenda',            faqTitle: 'Preguntas Frecuentes' },
+};
 import InvitationPage from './pages/InvitationPage';
 import AdminPage from './pages/AdminPage';
 import LandingPage from './pages/LandingPage';
@@ -34,6 +43,18 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 }
 
 function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): WeddingConfig {
+  const typeLabels = dynamic.event_type ? (EVENT_TYPE_SECTION_LABELS[dynamic.event_type] ?? {}) : {};
+  const baseSections = { ...base.sections };
+  // Apply event-type defaults at lowest priority (only if DB config doesn't already set the title)
+  if (typeLabels.storyTitle && !dynamic.sections?.ourStory?.title) {
+    baseSections.ourStory = { ...baseSections.ourStory, title: typeLabels.storyTitle };
+  }
+  if (typeLabels.scheduleTitle && !dynamic.sections?.schedule?.title) {
+    baseSections.schedule = { ...baseSections.schedule, title: typeLabels.scheduleTitle };
+  }
+  if (typeLabels.faqTitle && !dynamic.sections?.faq?.title) {
+    baseSections.faq = { ...baseSections.faq, title: typeLabels.faqTitle };
+  }
   return {
     ...base,
     couple: dynamic.couple ?? base.couple,
@@ -44,7 +65,7 @@ function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): Weddin
       palette: dynamic.theme?.palette ?? base.theme.palette,
       customColors: dynamic.theme?.customColors ?? base.theme.customColors,
     },
-    sections: { ...base.sections, ...dynamic.sections },
+    sections: { ...baseSections, ...dynamic.sections },
     social: dynamic.social ?? base.social,
     music: dynamic.music ?? base.music,
   };
