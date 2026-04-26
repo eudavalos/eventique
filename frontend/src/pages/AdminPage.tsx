@@ -127,7 +127,7 @@ function formatBytes(bytes: number): string {
 export default function AdminPage() {
   const eventSlug = useEventSlug();
 
-  const [token, setToken] = useState(sessionStorage.getItem('admin_token') ?? '');
+  const [token, setToken] = useState(localStorage.getItem('eventique_admin_token') ?? '');
   const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState('');
   const [rsvps, setRsvps] = useState<RSVPRecord[]>([]);
@@ -280,7 +280,7 @@ export default function AdminPage() {
       const data = await rsvpApi.listAll(eventSlug, password);
       if (data.status === 200) {
         setToken(password);
-        sessionStorage.setItem('admin_token', password);
+        localStorage.setItem('eventique_admin_token', password);
         setAuthed(true);
         setRsvps(data.data);
       }
@@ -386,7 +386,7 @@ export default function AdminPage() {
       .catch(() => {
         setToken('');
         setAuthed(false);
-        sessionStorage.removeItem('admin_token');
+        localStorage.removeItem('eventique_admin_token');
       })
       .finally(() => setLoading(false));
   }, [token, eventSlug]); // eslint-disable-line
@@ -394,7 +394,7 @@ export default function AdminPage() {
   const handleLogout = () => {
     setToken('');
     setAuthed(false);
-    sessionStorage.removeItem('admin_token');
+    localStorage.removeItem('eventique_admin_token');
   };
 
   // ── CSV Export ────────────────────────────────────────────────────────────
