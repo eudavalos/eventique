@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import {
   Users, CheckCircle, XCircle, BarChart3, Download, Lock,
   Settings, Palette, Upload, Trash2, Plus, ExternalLink,
@@ -9,6 +9,7 @@ import {
 import { QRCodeCanvas } from 'qrcode.react';
 import toast from 'react-hot-toast';
 import { rsvpApi } from '../lib/api';
+import { DatePicker, TimePicker } from '../components/DatePicker';
 import { useEventSlug } from '../context/EventSlugContext';
 import { config as staticConfig } from '../config/wedding';
 import { applyTheme } from '../lib/theme';
@@ -250,7 +251,7 @@ export default function AdminPage() {
   const [dupToken, setDupToken] = useState('');
   const [savingDup, setSavingDup] = useState(false);
 
-  const { register, handleSubmit, reset, watch } = useForm<ConfigFormData>({
+  const { register, handleSubmit, reset, watch, control } = useForm<ConfigFormData>({
     defaultValues: buildDefaultValues({}),
   });
 
@@ -1087,12 +1088,30 @@ export default function AdminPage() {
               <h2 className="font-sub text-lg font-medium mb-5" style={{ color: 'var(--color-text)' }}>Fecha y hora</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="input-label">{EVENT_LABELS[watchedEventType]?.dateLabel ?? 'Fecha y hora'} (ISO)</label>
-                  <input {...register('ceremony_date')} className="input-field" placeholder="2026-12-05T16:00:00" />
+                  <label className="input-label">{EVENT_LABELS[watchedEventType]?.dateLabel ?? 'Fecha y hora'}</label>
+                  <Controller
+                    name="ceremony_date"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker mode="datetime" value={field.value ?? ''} onChange={field.onChange} />
+                    )}
+                  />
                 </div>
                 <div>
                   <label className="input-label">Fecha para mostrar</label>
-                  <input {...register('display_date')} className="input-field" placeholder="Sábado, 5 de Diciembre de 2026" />
+                  <Controller
+                    name="display_date"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        mode="date"
+                        outputFormat="EEEE, d 'de' MMMM 'de' yyyy"
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        placeholder="Ej: Sábado, 5 de Diciembre de 2026"
+                      />
+                    )}
+                  />
                 </div>
                 <div>
                   <label className="input-label">Zona horaria</label>
@@ -1166,7 +1185,13 @@ export default function AdminPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="input-label">Fecha límite</label>
-                    <input {...register('rsvp_deadline')} type="date" className="input-field" />
+                    <Controller
+                      name="rsvp_deadline"
+                      control={control}
+                      render={({ field }) => (
+                        <DatePicker mode="date" value={field.value ?? ''} onChange={field.onChange} />
+                      )}
+                    />
                   </div>
                   <div>
                     <label className="input-label">Máximo de invitados por respuesta</label>
@@ -1647,7 +1672,13 @@ export default function AdminPage() {
                 {storyEvents.length === 0 && <p className="text-sm text-muted py-1">No hay momentos aún.</p>}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input value={newStoryDate} onChange={(e) => setNewStoryDate(e.target.value)} className="input-field" placeholder="Fecha (ej: Junio 2020)" />
+                <DatePicker
+                  mode="date"
+                  outputFormat="d 'de' MMMM 'de' yyyy"
+                  value={newStoryDate}
+                  onChange={setNewStoryDate}
+                  placeholder="Fecha del momento"
+                />
                 <input value={newStoryTitle} onChange={(e) => setNewStoryTitle(e.target.value)} className="input-field" placeholder="Título del momento" />
                 <input value={newStoryDesc} onChange={(e) => setNewStoryDesc(e.target.value)} className="input-field" placeholder="Descripción breve" />
               </div>
@@ -1692,7 +1723,7 @@ export default function AdminPage() {
                 {scheduleItems.length === 0 && <p className="text-sm text-muted py-1">No hay actividades aún.</p>}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input value={newItemTime} onChange={(e) => setNewItemTime(e.target.value)} className="input-field" placeholder="Hora (ej: 17:00)" />
+                <TimePicker value={newItemTime} onChange={setNewItemTime} placeholder="Hora" />
                 <input value={newItemTitle} onChange={(e) => setNewItemTitle(e.target.value)} className="input-field" placeholder="Actividad" />
                 <input value={newItemDesc} onChange={(e) => setNewItemDesc(e.target.value)} className="input-field" placeholder="Descripción (opcional)" />
               </div>
