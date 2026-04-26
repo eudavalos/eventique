@@ -223,6 +223,8 @@ export interface WeddingConfig {
   venuesTitle?: string;
   gift_registry_url?: string;
   gift_registry_label?: string;
+  gift_registry_title?: string;
+  gift_registry_description?: string;
 }
 
 // ---- Event Config (dynamic, stored in DB) ----
@@ -246,6 +248,8 @@ export interface EventConfig {
   notification_email?: string;
   gift_registry_url?: string;
   gift_registry_label?: string;
+  gift_registry_title?: string;
+  gift_registry_description?: string;
 }
 
 // ---- Multi-tenancy ----

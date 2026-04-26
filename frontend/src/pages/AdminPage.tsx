@@ -67,6 +67,8 @@ interface ConfigFormData {
   reception_venue_dresscode: string;
   gift_registry_url: string;
   gift_registry_label: string;
+  gift_registry_title: string;
+  gift_registry_description: string;
   same_venue: boolean;
   rsvp_enabled: boolean;
   rsvp_deadline: string;
@@ -562,6 +564,8 @@ export default function AdminPage() {
         notification_email: formData.notification_email || undefined,
         gift_registry_url: formData.gift_registry_url || undefined,
         gift_registry_label: formData.gift_registry_label || undefined,
+        gift_registry_title: formData.gift_registry_title || undefined,
+        gift_registry_description: formData.gift_registry_description || undefined,
       } as never);
       toast.success('Configuración guardada correctamente');
       const cfgRes = await rsvpApi.getEventConfig(eventSlug);
@@ -1416,18 +1420,26 @@ export default function AdminPage() {
 
             {/* Gift Registry */}
             <div className="card p-6 sm:p-8">
-              <h2 className="font-sub text-lg font-medium mb-5" style={{ color: 'var(--color-text)' }}>Mesa de Regalos (opcional)</h2>
+              <h2 className="font-sub text-lg font-medium mb-1" style={{ color: 'var(--color-text)' }}>Mesa de Regalos</h2>
+              <p className="text-xs mb-5" style={{ color: 'var(--color-text-muted)' }}>Deja la URL vacía para ocultar esta sección en la invitación.</p>
               <div className="space-y-4">
                 <div>
-                  <label className="input-label">URL de la mesa de regalos</label>
+                  <label className="input-label">URL de la mesa de regalos *</label>
                   <input {...register('gift_registry_url')} type="url" className="input-field" placeholder="https://mesaderegalos.liverpool.com.mx/..." />
-                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                    Si lo dejas vacío, la sección no se mostrará.
-                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="input-label">Título de la sección (opcional)</label>
+                    <input {...register('gift_registry_title')} className="input-field" placeholder="Mesa de Regalos" />
+                  </div>
+                  <div>
+                    <label className="input-label">Texto del botón (opcional)</label>
+                    <input {...register('gift_registry_label')} className="input-field" placeholder="Ver lista de regalos" />
+                  </div>
                 </div>
                 <div>
-                  <label className="input-label">Texto del botón (opcional)</label>
-                  <input {...register('gift_registry_label')} className="input-field" placeholder="Ver lista de regalos" />
+                  <label className="input-label">Descripción (opcional)</label>
+                  <textarea {...register('gift_registry_description')} rows={2} className="input-field resize-none" placeholder="Hemos preparado una selección especial para ayudarte a elegirnos el obsequio perfecto..." />
                 </div>
               </div>
             </div>
@@ -2696,6 +2708,8 @@ function buildDefaultValues(cfg: Record<string, unknown>): ConfigFormData {
     reception_venue_dresscode:rv.dresscode                              ?? '',
     gift_registry_url:        (cfg.gift_registry_url as string)        ?? '',
     gift_registry_label:      (cfg.gift_registry_label as string)      ?? '',
+    gift_registry_title:      (cfg.gift_registry_title as string)      ?? '',
+    gift_registry_description:(cfg.gift_registry_description as string)?? '',
     same_venue:              (venues.sameVenue as boolean)             ?? sc.venues.sameVenue ?? false,
     rsvp_enabled:            (rsvpSect.enabled as boolean)             ?? sc.sections.rsvp.enabled,
     rsvp_deadline:           (rsvpSect.deadline as string)             ?? sc.sections.rsvp.deadline ?? '',

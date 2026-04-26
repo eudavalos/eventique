@@ -60,6 +60,8 @@
   },
   "gift_registry_url": "https://www.liverpool.com.mx/tienda/pdp/mesa-de-regalos",
   "gift_registry_label": "Ver nuestra mesa de regalos",
+  "gift_registry_title": "Mesa de Regalos",
+  "gift_registry_description": "Hemos preparado una selección especial para ayudarte a elegirnos el obsequio perfecto. Si deseas honrarnos con un regalo, aquí encontrarás nuestras opciones favoritas.",
   "notification_email": "eudavalos91@gmail.com",
   "sections": {
     "hero": {
