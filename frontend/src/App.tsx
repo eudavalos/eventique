@@ -78,9 +78,19 @@ function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): Weddin
     ? dynamicVenues
     : base.venues;
 
+  // Deep merge couple so person2 always has fallback values from base.
+  // Events like cumpleaños only have person1 — accessing couple.person2.firstName
+  // without this crashes Hero, Footer, InvitationPage, WeddingParty.
+  const mergedCouple = {
+    ...base.couple,
+    ...(dynamic.couple ?? {}),
+    person1: { ...base.couple.person1, ...(dynamic.couple?.person1 ?? {}) },
+    person2: { ...base.couple.person2, ...(dynamic.couple?.person2 ?? {}) },
+  };
+
   return {
     ...base,
-    couple: dynamic.couple ?? base.couple,
+    couple: mergedCouple,
     dates: dynamic.dates ?? base.dates,
     venues: mergedVenues,
     theme: {
