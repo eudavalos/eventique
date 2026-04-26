@@ -975,7 +975,19 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <label className="input-label">Fecha para mostrar</label>
-                  <input {...register('display_date')} className="input-field" placeholder="Sábado, 5 de Diciembre de 2026" />
+                  <Controller
+                    name="display_date"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        mode="date"
+                        outputFormat="EEEE, d 'de' MMMM 'de' yyyy"
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        placeholder="Ej: Sábado, 5 de Diciembre de 2026"
+                      />
+                    )}
+                  />
                 </div>
                 <div>
                   <label className="input-label">Zona horaria</label>
@@ -1536,7 +1548,13 @@ export default function AdminPage() {
                 {storyEvents.length === 0 && <p className="text-sm text-muted py-1">No hay momentos aún.</p>}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input value={newStoryDate} onChange={(e) => setNewStoryDate(e.target.value)} className="input-field" placeholder="Fecha (ej: Junio 2020)" />
+                <DatePicker
+                  mode="date"
+                  outputFormat="d 'de' MMMM 'de' yyyy"
+                  value={newStoryDate}
+                  onChange={setNewStoryDate}
+                  placeholder="Fecha del momento"
+                />
                 <input value={newStoryTitle} onChange={(e) => setNewStoryTitle(e.target.value)} className="input-field" placeholder="Título del momento" />
                 <input value={newStoryDesc} onChange={(e) => setNewStoryDesc(e.target.value)} className="input-field" placeholder="Descripción breve" />
               </div>

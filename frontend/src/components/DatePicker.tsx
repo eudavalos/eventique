@@ -19,6 +19,14 @@ interface DatePickerProps {
   value: string;
   onChange: (next: string) => void;
   mode?: Mode;
+  /**
+   * Output format for the persisted string (date-fns tokens, Spanish locale).
+   * If omitted, the picker stores ISO `yyyy-MM-dd` (date) or
+   * `yyyy-MM-dd'T'HH:mm:ss` (datetime). Use this when you want to store and
+   * display the value in a human-friendly Spanish format such as
+   * "EEEE, d 'de' MMMM 'de' yyyy" → "Sábado, 5 de Diciembre de 2026".
+   */
+  outputFormat?: string;
   placeholder?: string;
   className?: string;
   id?: string;
@@ -27,22 +35,24 @@ interface DatePickerProps {
 const DATE_FMT = 'yyyy-MM-dd';
 const DATETIME_FMT = "yyyy-MM-dd'T'HH:mm:ss";
 
-function tryParse(value: string, mode: Mode): Date | null {
+function tryParse(value: string, mode: Mode, outputFormat?: string): Date | null {
   if (!value) return null;
-  const fmts =
+  const base =
     mode === 'datetime'
       ? [DATETIME_FMT, "yyyy-MM-dd'T'HH:mm", DATE_FMT]
       : [DATE_FMT, DATETIME_FMT, "yyyy-MM-dd'T'HH:mm"];
+  const fmts = outputFormat ? [outputFormat, ...base] : base;
   for (const fmt of fmts) {
-    const parsed = parse(value, fmt, new Date());
+    const parsed = parse(value, fmt, new Date(), { locale: es });
     if (!Number.isNaN(parsed.getTime())) return parsed;
   }
   const fallback = new Date(value);
   return Number.isNaN(fallback.getTime()) ? null : fallback;
 }
 
-function formatLabel(date: Date | null, mode: Mode): string {
+function formatLabel(date: Date | null, mode: Mode, outputFormat?: string): string {
   if (!date) return '';
+  if (outputFormat) return format(date, outputFormat, { locale: es });
   return mode === 'datetime'
     ? format(date, "EEEE, d 'de' MMMM 'de' yyyy · HH:mm", { locale: es })
     : format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
@@ -52,11 +62,12 @@ export function DatePicker({
   value,
   onChange,
   mode = 'date',
+  outputFormat,
   placeholder,
   className = '',
   id,
 }: DatePickerProps) {
-  const initial = useMemo(() => tryParse(value, mode), [value, mode]);
+  const initial = useMemo(() => tryParse(value, mode, outputFormat), [value, mode, outputFormat]);
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<Date>(initial ?? new Date());
   const [hour, setHour] = useState<string>(initial ? format(initial, 'HH') : '12');
@@ -75,13 +86,13 @@ export function DatePicker({
   }, [open]);
 
   useEffect(() => {
-    const parsed = tryParse(value, mode);
+    const parsed = tryParse(value, mode, outputFormat);
     if (parsed) {
       setView((prev) => (isSameMonth(prev, parsed) ? prev : parsed));
       setHour(format(parsed, 'HH'));
       setMinute(format(parsed, 'mm'));
     }
-  }, [value, mode]);
+  }, [value, mode, outputFormat]);
 
   const selected = initial;
 
@@ -109,9 +120,9 @@ export function DatePicker({
       const hh = Number.isFinite(Number(h)) ? Math.min(23, Math.max(0, Number(h))) : 0;
       const mm = Number.isFinite(Number(m)) ? Math.min(59, Math.max(0, Number(m))) : 0;
       const next = new Date(d.getFullYear(), d.getMonth(), d.getDate(), hh, mm, 0, 0);
-      onChange(format(next, DATETIME_FMT));
+      onChange(format(next, outputFormat ?? DATETIME_FMT, { locale: es }));
     } else {
-      onChange(format(d, DATE_FMT));
+      onChange(format(d, outputFormat ?? DATE_FMT, { locale: es }));
     }
   };
 
@@ -143,7 +154,7 @@ export function DatePicker({
           className="truncate capitalize"
           style={{ color: selected ? 'var(--color-text)' : 'var(--color-text-muted)' }}
         >
-          {selected ? formatLabel(selected, mode) : placeholderText}
+          {selected ? formatLabel(selected, mode, outputFormat) : placeholderText}
         </span>
         <Calendar className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-text-muted)' }} />
       </button>
