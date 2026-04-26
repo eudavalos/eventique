@@ -6,10 +6,7 @@ import { OrnamentDivider } from '../components/Ornament';
 
 export default function GiftRegistry() {
   const config = useConfig();
-  const { gift_registry_url, gift_registry_label } = config as typeof config & {
-    gift_registry_url?: string;
-    gift_registry_label?: string;
-  };
+  const { gift_registry_url, gift_registry_label } = config;
 
   if (!gift_registry_url) return null;
 

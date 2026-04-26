@@ -1,6 +1,12 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, EmailStr, Field
+
+EventType = Literal[
+    'boda', 'cumpleanos', 'bautismo', 'quinceanera',
+    'graduacion', 'corporativo', 'primera-comunion',
+    'aniversario', 'baby-shower',
+]
 
 
 class RSVPCreate(BaseModel):
@@ -46,6 +52,7 @@ class CheckResponse(BaseModel):
 
 class EventConfigPayload(BaseModel):
     model_config = {"extra": "allow"}
+    event_type: Optional[EventType] = None
 
 
 class EventCreate(BaseModel):

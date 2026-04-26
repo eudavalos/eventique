@@ -10,13 +10,19 @@ import { EventSlugContext } from './context/EventSlugContext';
 import { rsvpApi } from './lib/api';
 import type { WeddingConfig, EventConfig, EventType } from './types';
 
-const EVENT_TYPE_SECTION_LABELS: Partial<Record<EventType, { storyTitle?: string; scheduleTitle?: string; faqTitle?: string }>> = {
-  boda:        { storyTitle: 'Nuestra Historia',   scheduleTitle: 'Cronograma',        faqTitle: 'Preguntas Frecuentes' },
-  cumpleanos:  { storyTitle: 'Nuestra Historia',   scheduleTitle: 'Programa del día',  faqTitle: 'Preguntas Frecuentes' },
-  bautismo:    { storyTitle: 'Nuestra Historia',   scheduleTitle: 'Programa',          faqTitle: 'Preguntas Frecuentes' },
-  quinceanera: { storyTitle: 'Mi Historia',        scheduleTitle: 'Programa de la noche', faqTitle: 'Preguntas Frecuentes' },
-  graduacion:  { storyTitle: 'Mi Trayectoria',     scheduleTitle: 'Programa',          faqTitle: 'Preguntas Frecuentes' },
-  corporativo: { storyTitle: 'Sobre el Evento',    scheduleTitle: 'Agenda',            faqTitle: 'Preguntas Frecuentes' },
+const EVENT_TYPE_SECTION_LABELS: Record<EventType, {
+  storyTitle: string; scheduleTitle: string; faqTitle: string;
+  venuesTitle: string; weddingPartyTitle: string;
+}> = {
+  boda:              { storyTitle: 'Nuestra Historia',  scheduleTitle: 'Cronograma',           faqTitle: 'Preguntas Frecuentes', venuesTitle: 'Los Recintos',  weddingPartyTitle: 'Cortejo Nupcial'        },
+  cumpleanos:        { storyTitle: 'Nuestra Historia',  scheduleTitle: 'Programa del Día',     faqTitle: 'Preguntas Frecuentes', venuesTitle: 'El Lugar',      weddingPartyTitle: 'Quienes Estarán'        },
+  bautismo:          { storyTitle: 'Nuestra Historia',  scheduleTitle: 'Programa',             faqTitle: 'Preguntas Frecuentes', venuesTitle: 'Los Recintos',  weddingPartyTitle: 'Padrinos y Familia'     },
+  quinceanera:       { storyTitle: 'Mi Historia',       scheduleTitle: 'Programa de la Noche', faqTitle: 'Preguntas Frecuentes', venuesTitle: 'El Salón',      weddingPartyTitle: 'Chambelanes y Damas'    },
+  graduacion:        { storyTitle: 'Mi Trayectoria',    scheduleTitle: 'Programa',             faqTitle: 'Preguntas Frecuentes', venuesTitle: 'El Lugar',      weddingPartyTitle: 'Invitados de Honor'     },
+  corporativo:       { storyTitle: 'Sobre el Evento',   scheduleTitle: 'Agenda',               faqTitle: 'Preguntas Frecuentes', venuesTitle: 'La Sede',       weddingPartyTitle: 'Participantes'          },
+  'primera-comunion':{ storyTitle: 'Su Historia',       scheduleTitle: 'Programa',             faqTitle: 'Preguntas Frecuentes', venuesTitle: 'Los Recintos',  weddingPartyTitle: 'Padrinos y Familia'     },
+  aniversario:       { storyTitle: 'Nuestra Historia',  scheduleTitle: 'Itinerario',           faqTitle: 'Preguntas Frecuentes', venuesTitle: 'El Lugar',      weddingPartyTitle: 'Quienes Nos Acompañan'  },
+  'baby-shower':     { storyTitle: 'Nuestra Historia',  scheduleTitle: 'Programa del Evento',  faqTitle: 'Preguntas Frecuentes', venuesTitle: 'El Lugar',      weddingPartyTitle: 'Organizadoras'          },
 };
 import InvitationPage from './pages/InvitationPage';
 import AdminPage from './pages/AdminPage';
@@ -43,19 +49,22 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 }
 
 function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): WeddingConfig {
-  const typeLabels = dynamic.event_type ? (EVENT_TYPE_SECTION_LABELS[dynamic.event_type] ?? {}) : {};
+  const typeLabels = dynamic.event_type ? EVENT_TYPE_SECTION_LABELS[dynamic.event_type] : null;
   const baseSections = { ...base.sections };
   const dynamicSections = (dynamic.sections && typeof dynamic.sections === 'object') ? dynamic.sections : {};
 
-  // Apply event-type defaults at lowest priority
-  if (typeLabels.storyTitle && !dynamicSections?.ourStory?.title) {
+  // Apply event-type defaults at lowest priority (skip if admin has set a custom title)
+  if (typeLabels?.storyTitle && !dynamicSections?.ourStory?.title) {
     baseSections.ourStory = { ...baseSections.ourStory, title: typeLabels.storyTitle };
   }
-  if (typeLabels.scheduleTitle && !dynamicSections?.schedule?.title) {
+  if (typeLabels?.scheduleTitle && !dynamicSections?.schedule?.title) {
     baseSections.schedule = { ...baseSections.schedule, title: typeLabels.scheduleTitle };
   }
-  if (typeLabels.faqTitle && !dynamicSections?.faq?.title) {
+  if (typeLabels?.faqTitle && !dynamicSections?.faq?.title) {
     baseSections.faq = { ...baseSections.faq, title: typeLabels.faqTitle };
+  }
+  if (typeLabels?.weddingPartyTitle && !dynamicSections?.weddingParty?.title) {
+    baseSections.weddingParty = { ...baseSections.weddingParty, title: typeLabels.weddingPartyTitle };
   }
 
   // Deep merge each section individually so arrays from base (photos, items, events,
@@ -88,6 +97,7 @@ function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): Weddin
     person2: { ...base.couple.person2, ...(dynamic.couple?.person2 ?? {}) },
   };
 
+  const dyn = dynamic as Record<string, unknown>;
   return {
     ...base,
     couple: mergedCouple,
@@ -101,6 +111,9 @@ function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): Weddin
     sections: mergedSections,
     social: dynamic.social ?? base.social,
     music: dynamic.music ?? base.music,
+    venuesTitle: typeLabels?.venuesTitle ?? base.venuesTitle ?? 'Los Recintos',
+    gift_registry_url: (dyn.gift_registry_url as string | undefined) ?? base.gift_registry_url,
+    gift_registry_label: (dyn.gift_registry_label as string | undefined) ?? base.gift_registry_label,
   };
 }
 

@@ -220,6 +220,9 @@ export interface WeddingConfig {
     hashtag?: string;
     instagram?: string;
   };
+  venuesTitle?: string;
+  gift_registry_url?: string;
+  gift_registry_label?: string;
 }
 
 // ---- Event Config (dynamic, stored in DB) ----

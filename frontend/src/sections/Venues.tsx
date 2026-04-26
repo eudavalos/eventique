@@ -89,12 +89,13 @@ export default function Venues() {
   const config = useConfig();
   const { venues } = config;
   const sameVenue = venues.sameVenue;
+  const title = config.venuesTitle ?? 'Los Recintos';
 
   return (
     <div className="section-padding" style={{ background: 'var(--color-secondary)' }}>
       <div className="max-w-5xl mx-auto">
         <AnimatedSection className="text-center mb-14">
-          <h2 className="section-title">Los Recintos</h2>
+          <h2 className="section-title">{title}</h2>
           <OrnamentDivider />
         </AnimatedSection>
 
