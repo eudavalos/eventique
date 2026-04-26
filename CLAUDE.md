@@ -100,6 +100,9 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 | Fase 6 — Media management | ✅ COMPLETO | Upload fotos/audio desde admin, galería drag-drop, serve via API |
 | Fase 7 — Product polish | ✅ COMPLETO | Email SMTP notifications, QR codes admin, RSVP edit modal, /landing page |
 | Fase 8 — Content management | ✅ COMPLETO | Secciones tab (OurStory/Schedule/FAQ/Footer CRUD), gallery/music ↔ media integration, saveConfig fix, event-type adaptive titles |
+| Fase 9 — Full section editors | ✅ COMPLETO | Hero/Countdown/WeddingParty/Accommodation/Gallery/RSVP/Social editors en Secciones tab |
+| Fase 10 — Music enhancements | ✅ COMPLETO | YouTube track management desde admin, music.enabled/autoplay toggles |
+| Fase 11 — Event duplication | ✅ COMPLETO | POST /events/{slug}/duplicate, modal "Clonar" en tab Eventos |
 
 **Cliente actual**: Concepción & Eumelio · boda · 2026-12-05 · paleta `nature`  
 **Recintos**: placeholders — el cliente debe completar desde /admin  
