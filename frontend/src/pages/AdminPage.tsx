@@ -98,7 +98,7 @@ const EVENT_LABELS: Record<EventType, {
   corporativo: { person1: 'Empresa/Org.',      person2: 'Contacto',   displayNames: 'Ej: Congreso Tecnopowerpy',   dateLabel: 'Fecha del evento',        venueLabel: 'Sede',          singleVenue: true  },
 };
 
-type Tab = 'rsvps' | 'config' | 'tema' | 'media' | 'eventos' | 'secciones';
+type Tab = 'dashboard' | 'rsvps' | 'config' | 'tema' | 'media' | 'eventos' | 'secciones';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -133,7 +133,7 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<Tab>('rsvps');
+  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [eventCfg, setEventCfg] = useState<Record<string, unknown>>({});
   const [saving, setSaving] = useState(false);
   const [selectedPalette, setSelectedPalette] = useState<PaletteKey>(staticConfig.theme.palette);
@@ -786,14 +786,15 @@ export default function AdminPage() {
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-1 mb-8 p-1 rounded-xl overflow-x-auto" style={{ background: 'var(--color-secondary)', maxWidth: '640px' }}>
+        <div className="flex gap-1 mb-8 p-1 rounded-xl overflow-x-auto" style={{ background: 'var(--color-secondary)' }}>
           {([
-            { key: 'rsvps',    label: 'RSVPs',          icon: BarChart3  },
-            { key: 'config',   label: 'Configuración',  icon: Settings   },
-            { key: 'tema',     label: 'Tema',           icon: Palette    },
-            { key: 'media',    label: 'Media',          icon: Upload     },
-            { key: 'eventos',   label: 'Eventos',    icon: Calendar  },
-            { key: 'secciones', label: 'Secciones',  icon: FileText  },
+            { key: 'dashboard', label: 'Inicio',          icon: BarChart3  },
+            { key: 'rsvps',     label: 'RSVPs',          icon: Users      },
+            { key: 'config',    label: 'Configuración',  icon: Settings   },
+            { key: 'tema',      label: 'Tema',           icon: Palette    },
+            { key: 'media',     label: 'Media',          icon: Upload     },
+            { key: 'eventos',   label: 'Eventos',        icon: Calendar   },
+            { key: 'secciones', label: 'Secciones',      icon: FileText   },
           ] as { key: Tab; label: string; icon: React.ElementType }[]).map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -810,6 +811,129 @@ export default function AdminPage() {
             </button>
           ))}
         </div>
+
+        {/* ── TAB: Dashboard ── */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-8">
+            {/* Event Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="card p-6">
+                <h2 className="font-heading text-lg mb-4" style={{ color: 'var(--color-text)' }}>Evento actual</h2>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-muted font-medium mb-1">Nombre</p>
+                    <p className="font-medium text-lg">{names}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-muted font-medium mb-1">Identificador</p>
+                    <p className="font-mono text-sm" style={{ color: 'var(--color-primary)' }}>{eventSlug}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-muted font-medium mb-1">Tipo de evento</p>
+                    <p className="text-sm">{EVENT_TYPE_OPTIONS.find(t => t.value === eventCfg.event_type)?.label ?? 'Boda'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="card p-6">
+                <h2 className="font-heading text-lg mb-4" style={{ color: 'var(--color-text)' }}>Resumen</h2>
+                {stats && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { icon: Users,       label: 'Confirmaciones',  value: stats.total_responses },
+                      { icon: CheckCircle, label: 'Asistentes',      value: stats.attending       },
+                      { icon: XCircle,     label: 'No asisten',      value: stats.not_attending   },
+                      { icon: BarChart3,   label: 'Invitados total', value: stats.total_guests    },
+                    ].map(({ icon: Icon, label, value }) => (
+                      <div key={label} className="flex flex-col items-center p-3 rounded-lg" style={{ background: 'var(--color-secondary)' }}>
+                        <Icon className="w-5 h-5 mb-1" style={{ color: 'var(--color-primary)' }} />
+                        <p className="text-2xl font-heading">{value}</p>
+                        <p className="text-xs text-muted text-center mt-1">{label}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="card p-6">
+              <h2 className="font-heading text-lg mb-4" style={{ color: 'var(--color-text)' }}>Accesos rápidos</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={() => setActiveTab('config')}
+                  className="btn-outline p-4 text-left flex items-start gap-3 hover:bg-secondary transition-colors"
+                >
+                  <Settings className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
+                  <div>
+                    <p className="font-medium">Editar configuración</p>
+                    <p className="text-xs text-muted">Nombres, fecha, lugares</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('secciones')}
+                  className="btn-outline p-4 text-left flex items-start gap-3 hover:bg-secondary transition-colors"
+                >
+                  <FileText className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
+                  <div>
+                    <p className="font-medium">Editar secciones</p>
+                    <p className="text-xs text-muted">Historia, agenda, galería</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('media')}
+                  className="btn-outline p-4 text-left flex items-start gap-3 hover:bg-secondary transition-colors"
+                >
+                  <Upload className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
+                  <div>
+                    <p className="font-medium">Subir multimedia</p>
+                    <p className="text-xs text-muted">Fotos, videos y música</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('rsvps')}
+                  className="btn-outline p-4 text-left flex items-start gap-3 hover:bg-secondary transition-colors"
+                >
+                  <Users className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
+                  <div>
+                    <p className="font-medium">Ver confirmaciones</p>
+                    <p className="text-xs text-muted">Exportar lista de RSVPs</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Publishing Info */}
+            <div className="card p-6 bg-gradient-to-r" style={{ background: 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary) 100%)' }}>
+              <div className="flex items-start gap-4">
+                <ExternalLink className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
+                <div className="flex-1">
+                  <h3 className="font-heading mb-2">Link público de invitación</h3>
+                  <p className="text-sm text-muted mb-3">Comparte este link con tus invitados</p>
+                  <button
+                    onClick={() => {
+                      const url = `${window.location.origin}${eventSlug === 'default' ? '/' : `/e/${eventSlug}`}`;
+                      navigator.clipboard.writeText(url);
+                      toast.success('Link copiado al portapapeles');
+                    }}
+                    className="btn-outline text-sm flex items-center gap-2"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Copiar link
+                  </button>
+                </div>
+                <button
+                  onClick={() => setShowQrFor(eventSlug === 'default' ? 'default' : eventSlug)}
+                  className="btn-outline text-sm flex items-center gap-2 flex-shrink-0"
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  Ver QR
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── TAB: RSVPs ── */}
         {activeTab === 'rsvps' && (
