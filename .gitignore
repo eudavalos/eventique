@@ -1,0 +1,56 @@
+# Env
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Database
+*.db
+*.sqlite
+data/
+
+# Cloudflare credentials (NEVER commit)
+cloudflared/creds.json
+*.cloudflared
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+
+# Media (large binary assets)
+frontend/public/photos/*.jpg
+frontend/public/photos/*.jpeg
+frontend/public/photos/*.png
+frontend/public/photos/*.webp
+frontend/public/music/*.mp3
+frontend/public/music/*.ogg
+frontend/public/music/*.wav
+
+# Claude Code local settings (contains private URLs/tokens)
+.claude/settings.local.json
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,19 @@
+# Cloudflare Tunnel — Eventique
+# Reference config for host-based cloudflared (systemd on Raspberry Pi).
+# This file is NOT used by Docker — cloudflared runs on the Pi host, never in Docker.
+#
+# Setup:
+#   1. dash.cloudflare.com → Zero Trust → Networks → Tunnels → tecnopowerpy
+#   2. Add Public Hostname: eventique.tecnopowerpy.top → http://localhost:5176
+#   3. Copy tunnel credentials JSON to /home/eudavalos/.cloudflared/<tunnel-id>.json
+#   4. Install: sudo systemctl restart cloudflared
+#
+# Tunnel: tecnopowerpy (ID: 7ff99efa-ac3f-4e5d-acfe-c2dde45fa3b5)
+
+tunnel: 7ff99efa-ac3f-4e5d-acfe-c2dde45fa3b5
+credentials-file: /home/eudavalos/.cloudflared/7ff99efa-ac3f-4e5d-acfe-c2dde45fa3b5.json
+
+ingress:
+  - hostname: eventique.tecnopowerpy.top
+    service: http://localhost:5176
+  - service: http_status:404

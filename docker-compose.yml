@@ -1,0 +1,60 @@
+services:
+  # ─────────────────────────────────────────
+  # Frontend — React/Vite build served by Nginx
+  # Nginx también hace proxy de /api → FastAPI
+  # ─────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: /api
+    image: eventique-frontend:latest
+    container_name: eventique-frontend
+    restart: unless-stopped
+    ports:
+      - "5176:80"
+    volumes:
+      - ./frontend/public/photos:/usr/share/nginx/html/photos:ro
+      - ./frontend/public/music:/usr/share/nginx/html/music:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ > /dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - eventique
+
+  # ─────────────────────────────────────────
+  # API — FastAPI RSVP backend (interno)
+  # ─────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    image: eventique-api:latest
+    container_name: eventique-api
+    restart: unless-stopped
+    environment:
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////app/data/eventique.db}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://eventique.tecnopowerpy.top}
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8700/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eventique
+
+networks:
+  eventique:
+    driver: bridge
+
+volumes:
+  data:

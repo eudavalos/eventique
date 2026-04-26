@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Custom Properties (default: rose-gold) ─────────── */
+:root {
+  --color-primary: #B76E79;
+  --color-primary-light: #D4939D;
+  --color-primary-dark: #8F4652;
+  --color-secondary: #F5F0EB;
+  --color-accent: #C9A84C;
+  --color-bg: #FAF7F2;
+  --color-surface: #FFFFFF;
+  --color-text: #2A1F1A;
+  --color-text-muted: #8B7355;
+  --color-border: #E8DDD4;
+
+  --font-heading: 'Cormorant Garamond', Georgia, serif;
+  --font-subheading: 'Playfair Display', Georgia, serif;
+  --font-body: 'Jost', system-ui, sans-serif;
+}
+
+/* ── Base ─────────────────────────────────────────────────── */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.7;
+  }
+
+  h1, h2, h3 { font-family: var(--font-heading); }
+  h4, h5, h6 { font-family: var(--font-subheading); }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: white;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--color-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
+}
+
+/* ── Component Classes ────────────────────────────────────── */
+@layer components {
+  .section-padding {
+    @apply py-24 px-6 sm:px-10 md:px-16 lg:px-24;
+  }
+
+  .section-title {
+    font-family: var(--font-heading);
+    color: var(--color-text);
+    @apply text-5xl sm:text-6xl font-light tracking-wide leading-tight text-center;
+  }
+
+  .section-subtitle {
+    font-family: var(--font-body);
+    color: var(--color-text-muted);
+    @apply text-base sm:text-lg font-light text-center mt-4 max-w-2xl mx-auto leading-relaxed;
+  }
+
+  .btn-primary {
+    font-family: var(--font-body);
+    background-color: var(--color-primary);
+    color: white;
+    @apply inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-xs tracking-[0.2em] uppercase font-medium transition-all duration-300 cursor-pointer;
+  }
+  .btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-outline {
+    font-family: var(--font-body);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    @apply inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-xs tracking-[0.2em] uppercase font-medium transition-all duration-300 border cursor-pointer;
+  }
+  .btn-outline:hover {
+    background-color: var(--color-primary);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    @apply rounded-2xl overflow-hidden;
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.06);
+  }
+
+  .input-field {
+    font-family: var(--font-body);
+    background-color: var(--color-secondary);
+    border: 1.5px solid var(--color-border);
+    color: var(--color-text);
+    @apply w-full px-5 py-3.5 rounded-xl text-sm transition-all duration-200 outline-none;
+  }
+  .input-field:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
+  }
+  .input-field::placeholder { color: var(--color-text-muted); opacity: 0.7; }
+
+  .input-label {
+    font-family: var(--font-body);
+    color: var(--color-text-muted);
+    @apply block text-xs tracking-[0.18em] uppercase mb-2 font-medium;
+  }
+
+  .ornament-line {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--color-accent), transparent);
+    @apply w-full max-w-xs mx-auto;
+  }
+
+  .tag {
+    font-family: var(--font-body);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    @apply inline-block text-xs tracking-[0.15em] uppercase px-3 py-1 rounded-full border;
+  }
+}
+
+/* ── Utilities ─────────────────────────────────────────────── */
+@layer utilities {
+  .text-primary { color: var(--color-primary); }
+  .text-accent  { color: var(--color-accent); }
+  .text-muted   { color: var(--color-text-muted); }
+  .bg-primary   { background-color: var(--color-primary); }
+  .bg-secondary { background-color: var(--color-secondary); }
+  .bg-surface   { background-color: var(--color-surface); }
+  .bg-page      { background-color: var(--color-bg); }
+  .border-color { border-color: var(--color-border); }
+  .font-heading { font-family: var(--font-heading); }
+  .font-sub     { font-family: var(--font-subheading); }
+  .font-body    { font-family: var(--font-body); }
+}
+
+/* ── Page Transition ──────────────────────────────────────── */
+.page-enter { animation: fadeIn 0.6s ease forwards; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Lightbox overrides ───────────────────────────────────── */
+.yarl__root { --yarl__color_backdrop: rgba(0, 0, 0, 0.92); }
