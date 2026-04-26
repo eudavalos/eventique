@@ -186,7 +186,7 @@ export default function LandingPage() {
       <footer style={{ padding: '24px', borderTop: '1px solid #e5e7eb', textAlign: 'center', fontFamily: 'sans-serif', fontSize: '0.82rem', color: '#9ca3af' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
           <Heart size={12} color={ACCENT} fill={ACCENT} />
-          <span>Eventique by Tecnopowerpy · {new Date().getFullYear()} · <a href="/" style={{ color: ACCENT, textDecoration: 'none' }}>Ver demo</a></span>
+          <span>Eventique by Tecnopowerpy · {new Date().getFullYear()} · <a href="/e/boda-concepcion-eumelio" style={{ color: ACCENT, textDecoration: 'none' }}>Ver demo</a></span>
         </div>
       </footer>
     </div>
