@@ -54,7 +54,7 @@ export default function RSVP() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormSchema>({
+  const { register, handleSubmit, watch, setValue, trigger, formState: { errors } } = useForm<FormSchema>({
     resolver: zodResolver(schema),
     defaultValues: { guestCount: 1 },
   });
@@ -176,7 +176,15 @@ export default function RSVP() {
                     {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
                   </div>
 
-                  <button type="button" onClick={nextStep} className="btn-primary w-full justify-center mt-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const isValid = await trigger(['name', 'email']);
+                      if (isValid) nextStep();
+                    }}
+                    disabled={!!(errors.name || errors.email)}
+                    className="btn-primary w-full justify-center mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     Continuar <ChevronRight className="w-4 h-4" />
                   </button>
                 </motion.div>

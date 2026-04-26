@@ -152,6 +152,7 @@ export default function AdminPage() {
   const [newEventName, setNewEventName] = useState('');
   const [newEventSlug, setNewEventSlug] = useState('');
   const [newEventToken, setNewEventToken] = useState('');
+  const [eventFormErrors, setEventFormErrors] = useState<{ name?: string; slug?: string }>({});
 
   // RSVP edit modal
   const [editingRsvp, setEditingRsvp] = useState<RSVPRecord | null>(null);
@@ -164,6 +165,14 @@ export default function AdminPage() {
 
   // QR code modal
   const [showQrFor, setShowQrFor] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showQrFor) setShowQrFor(null);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showQrFor]);
 
   // Token modal
   const [tokenModal, setTokenModal] = useState<{ slug: string; token: string } | null>(null);
@@ -539,7 +548,16 @@ export default function AdminPage() {
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEventName || !newEventSlug) return;
+    const errors: { name?: string; slug?: string } = {};
+    if (!newEventName.trim()) errors.name = 'El nombre del evento es obligatorio';
+    if (!newEventSlug.trim()) errors.slug = 'El slug es obligatorio';
+    else if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(newEventSlug)) errors.slug = 'Solo letras minúsculas, números y guiones';
+    if (Object.keys(errors).length > 0) {
+      setEventFormErrors(errors);
+      toast.error('Por favor completa los campos requeridos');
+      return;
+    }
+    setEventFormErrors({});
     setCreatingEvent(true);
     try {
       const res = await rsvpApi.createEvent(token, {
@@ -1472,23 +1490,35 @@ export default function AdminPage() {
                       onChange={(e) => {
                         setNewEventName(e.target.value);
                         setNewEventSlug(slugify(e.target.value));
+                        setEventFormErrors((prev) => ({ ...prev, name: undefined }));
                       }}
                       className="input-field"
+                      style={{ borderColor: eventFormErrors.name ? 'var(--color-primary)' : undefined }}
                       placeholder="Ej: Boda de Ana y Carlos"
                       required
                     />
+                    {eventFormErrors.name && (
+                      <p className="text-xs mt-1 text-red-500">{eventFormErrors.name}</p>
+                    )}
                   </div>
                   <div>
                     <label className="input-label">Slug único (URL)</label>
                     <input
                       value={newEventSlug}
-                      onChange={(e) => setNewEventSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''))}
+                      onChange={(e) => {
+                        setNewEventSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''));
+                        setEventFormErrors((prev) => ({ ...prev, slug: undefined }));
+                      }}
                       className="input-field font-mono"
+                      style={{ borderColor: eventFormErrors.slug ? 'var(--color-primary)' : undefined }}
                       placeholder="ana-carlos-2026"
                       pattern="[a-z0-9][a-z0-9-]*[a-z0-9]"
                       required
                     />
-                    {newEventSlug && (
+                    {eventFormErrors.slug && (
+                      <p className="text-xs mt-1 text-red-500">{eventFormErrors.slug}</p>
+                    )}
+                    {newEventSlug && !eventFormErrors.slug && (
                       <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
                         URL: <span className="font-mono">/e/{newEventSlug}</span>
                       </p>

@@ -252,8 +252,9 @@ app = FastAPI(
     title="Eventique — Event Invitations API",
     version="3.0.0",
     description="API multi-tenant para gestión de invitaciones digitales",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/api/docs",
+    openapi_url="/api/openapi.json",
+    redoc_url="/api/redoc",
     lifespan=lifespan,
 )
 
