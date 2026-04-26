@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import {
   addMonths,
@@ -72,30 +73,72 @@ export function DatePicker({
   const [view, setView] = useState<Date>(initial ?? new Date());
   const [hour, setHour] = useState<string>(initial ? format(initial, 'HH') : '12');
   const [minute, setMinute] = useState<string>(initial ? format(initial, 'mm') : '00');
-  const [isAbove, setIsAbove] = useState(false);
+  const [pickerPos, setPickerPos] = useState<{ top?: number; bottom?: number; left: number }>(
+    { left: 0, top: 0 }
+  );
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!open) return;
-    // Check if picker fits below, else position above
-    const checkPosition = () => {
-      if (containerRef.current && pickerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const pickerHeight = 400; // Approximate height
-        const spaceBelow = window.innerHeight - rect.bottom;
-        setIsAbove(spaceBelow < pickerHeight + 20);
-      }
-    };
-    setTimeout(checkPosition, 0);
+    if (!open || !buttonRef.current) return;
 
-    const onClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+    // Calculate picker position relative to viewport
+    const calculatePosition = () => {
+      const rect = buttonRef.current!.getBoundingClientRect();
+      const pickerHeight = 420;
+      const pickerWidth = 304;
+      const padding = 8;
+
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+
+      let top: number | undefined;
+      let bottom: number | undefined;
+
+      if (spaceBelow >= pickerHeight + padding) {
+        // Plenty of space below - position below
+        top = rect.bottom + padding;
+      } else if (spaceAbove >= pickerHeight + padding) {
+        // Not enough space below but space above - position above
+        bottom = window.innerHeight - rect.top + padding;
+      } else {
+        // Limited space - position below anyway but allow scroll
+        top = rect.bottom + padding;
+      }
+
+      // Ensure picker doesn't overflow horizontally
+      let left = rect.left;
+      if (left + pickerWidth > window.innerWidth) {
+        left = window.innerWidth - pickerWidth - 16;
+      }
+      if (left < 8) left = 8;
+
+      setPickerPos({ top, bottom, left });
+    };
+
+    calculatePosition();
+    window.addEventListener('resize', calculatePosition);
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(target) &&
+        pickerRef.current &&
+        !pickerRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', calculatePosition);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -158,6 +201,7 @@ export function DatePicker({
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <button
+        ref={buttonRef}
         id={id}
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -172,20 +216,21 @@ export function DatePicker({
         <Calendar className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-text-muted)' }} />
       </button>
 
-      {open && (
-        <div
-          ref={pickerRef}
-          className="absolute w-[19rem] rounded-2xl shadow-xl p-4"
-          style={{
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.12)',
-            zIndex: 9999,
-            top: isAbove ? 'auto' : undefined,
-            bottom: isAbove ? 'calc(100% + 8px)' : undefined,
-            marginTop: isAbove ? undefined : '8px',
-          }}
-        >
+      {open &&
+        createPortal(
+          <div
+            ref={pickerRef}
+            className="fixed w-[19rem] rounded-2xl shadow-xl p-4"
+            style={{
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+              zIndex: 999999,
+              top: pickerPos.top !== undefined ? `${pickerPos.top}px` : undefined,
+              bottom: pickerPos.bottom !== undefined ? `${pickerPos.bottom}px` : undefined,
+              left: `${pickerPos.left}px`,
+            }}
+          >
           <div className="flex items-center justify-between mb-3">
             <button
               type="button"
@@ -291,8 +336,9 @@ export function DatePicker({
               </button>
             </div>
           )}
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
