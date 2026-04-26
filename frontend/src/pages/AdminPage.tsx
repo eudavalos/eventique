@@ -1148,26 +1148,45 @@ export default function AdminPage() {
           <form onSubmit={handleSubmit(saveConfig)} className="space-y-8">
 
             {/* Event type */}
-            <div className="card p-6 sm:p-8">
-              <h2 className="font-sub text-lg font-medium mb-5" style={{ color: 'var(--color-text)' }}>Tipo de evento</h2>
-              <div className="flex flex-wrap gap-3">
-                {EVENT_TYPE_OPTIONS.map(({ value, label, emoji }) => (
-                  <label
-                    key={value}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 cursor-pointer transition-all duration-200 font-body text-sm font-medium"
-                    style={{
-                      borderColor: watchedEventType === value ? 'var(--color-primary)' : 'var(--color-border)',
-                      background: watchedEventType === value ? 'var(--color-secondary)' : 'var(--color-surface)',
-                      color: watchedEventType === value ? 'var(--color-primary)' : 'var(--color-text)',
-                    }}
-                  >
-                    <input type="radio" value={value} {...register('event_type')} className="sr-only" />
-                    <span>{emoji}</span>
-                    <span>{label}</span>
-                  </label>
-                ))}
+            {isSuperadmin ? (
+              <div className="card p-6 sm:p-8">
+                <h2 className="font-sub text-lg font-medium mb-5" style={{ color: 'var(--color-text)' }}>Tipo de evento</h2>
+                <div className="flex flex-wrap gap-3">
+                  {EVENT_TYPE_OPTIONS.map(({ value, label, emoji }) => (
+                    <label
+                      key={value}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 cursor-pointer transition-all duration-200 font-body text-sm font-medium"
+                      style={{
+                        borderColor: watchedEventType === value ? 'var(--color-primary)' : 'var(--color-border)',
+                        background: watchedEventType === value ? 'var(--color-secondary)' : 'var(--color-surface)',
+                        color: watchedEventType === value ? 'var(--color-primary)' : 'var(--color-text)',
+                      }}
+                    >
+                      <input type="radio" value={value} {...register('event_type')} className="sr-only" />
+                      <span>{emoji}</span>
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="card p-6 sm:p-8">
+                <h2 className="font-sub text-lg font-medium mb-5" style={{ color: 'var(--color-text)' }}>Tipo de evento</h2>
+                <div className="flex items-center gap-3">
+                  {(() => {
+                    const typeInfo = EVENT_TYPE_OPTIONS.find(t => t.value === watchedEventType);
+                    return (
+                      <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
+                        style={{ background: 'var(--color-secondary)', borderColor: 'var(--color-border)', border: '1px solid' }}>
+                        <span className="text-xl">{typeInfo?.emoji}</span>
+                        <span className="font-body font-medium" style={{ color: 'var(--color-text)' }}>{typeInfo?.label}</span>
+                      </div>
+                    );
+                  })()}
+                  <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Solo super admin puede cambiar</p>
+                </div>
+              </div>
+            )}
 
             {/* People */}
             <div className="card p-6 sm:p-8">
