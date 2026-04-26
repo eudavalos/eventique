@@ -116,6 +116,7 @@ function EventInvitationRoute({ defaultSlug = 'default' }: { defaultSlug?: strin
       staticConfig.theme.fonts.subheading,
       staticConfig.theme.fonts.body,
     );
+    setFavicon('boda');
     rsvpApi.getEventConfig(eventSlug)
       .then(({ data }) => {
         const merged = mergeConfig(staticConfig, data as Partial<EventConfig>);

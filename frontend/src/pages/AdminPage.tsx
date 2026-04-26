@@ -13,6 +13,7 @@ import { DatePicker, TimePicker } from '../components/DatePicker';
 import { useEventSlug } from '../context/EventSlugContext';
 import { config as staticConfig } from '../config/wedding';
 import { applyTheme } from '../lib/theme';
+import { setFavicon } from '../lib/favicon';
 import type { PaletteKey, EventType, EventInfo, MediaFile, StoryEvent, ScheduleItem, FAQItem, GalleryPhoto, MusicTrack, WeddingPartyMember, Hotel, PartySide } from '../types';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -287,6 +288,13 @@ export default function AdminPage() {
 
   const watchedEventType = watch('event_type');
 
+  // Update favicon when event type changes
+  useEffect(() => {
+    if (watchedEventType) {
+      setFavicon(watchedEventType);
+    }
+  }, [watchedEventType]);
+
   // ── Auth ──────────────────────────────────────────────────────────────────
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -327,6 +335,7 @@ export default function AdminPage() {
         const defaults = buildDefaultValues(cfg);
         reset(defaults);
         if (defaults.palette) setSelectedPalette(defaults.palette);
+        if (defaults.event_type) setFavicon(defaults.event_type);
 
         // Load section content
         const sects = (cfg.sections as Record<string, unknown> | undefined) ?? {};
@@ -495,7 +504,11 @@ export default function AdminPage() {
       } as never);
       toast.success('Configuración guardada correctamente');
       const cfgRes = await rsvpApi.getEventConfig(eventSlug);
-      setEventCfg(cfgRes.data as unknown as Record<string, unknown>);
+      const updatedCfg = cfgRes.data as unknown as Record<string, unknown>;
+      setEventCfg(updatedCfg);
+      if ((updatedCfg as Partial<ConfigFormData>).event_type) {
+        setFavicon((updatedCfg as Partial<ConfigFormData>).event_type!);
+      }
     } catch {
       toast.error('Error al guardar la configuración');
     } finally {
