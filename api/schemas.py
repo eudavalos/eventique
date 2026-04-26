@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Any, Dict
+from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -46,4 +46,32 @@ class CheckResponse(BaseModel):
 
 class EventConfigPayload(BaseModel):
     model_config = {"extra": "allow"}
-    # Accepts any fields — the whole payload becomes the event config JSON
+
+
+class EventCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=200)
+    slug: str = Field(..., min_length=2, max_length=100, pattern=r"^[a-z0-9][a-z0-9-]*[a-z0-9]$")
+    admin_token: Optional[str] = Field(None, max_length=200)
+
+
+class EventResponse(BaseModel):
+    id: int
+    slug: str
+    name: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class MediaResponse(BaseModel):
+    id: int
+    event_slug: str
+    filename: str
+    original_filename: str
+    file_type: str
+    mime_type: str
+    size: int
+    url: str
+    uploaded_at: datetime
+
+    model_config = {"from_attributes": True}

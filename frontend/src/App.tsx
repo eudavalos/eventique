@@ -1,11 +1,12 @@
 import { useEffect, useState, Component } from 'react';
 import type { ReactNode } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { config } from './config/wedding';
+import { config as staticConfig } from './config/wedding';
 import { applyTheme, applyFonts } from './lib/theme';
 import { setFavicon } from './lib/favicon';
 import { ConfigContext } from './context/ConfigContext';
+import { EventSlugContext } from './context/EventSlugContext';
 import { rsvpApi } from './lib/api';
 import type { WeddingConfig, EventConfig } from './types';
 import InvitationPage from './pages/InvitationPage';
@@ -48,25 +49,24 @@ function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): Weddin
   };
 }
 
-export default function App() {
-  const [eventConfig, setEventConfig] = useState<WeddingConfig>(config);
+function EventInvitationRoute({ defaultSlug = 'default' }: { defaultSlug?: string }) {
+  const { slug: paramSlug } = useParams<{ slug: string }>();
+  const eventSlug = paramSlug ?? defaultSlug;
+  const [eventConfig, setEventConfig] = useState<WeddingConfig>(staticConfig);
 
   useEffect(() => {
-    applyTheme(config.theme.palette, config.theme.customColors);
+    applyTheme(staticConfig.theme.palette, staticConfig.theme.customColors);
     applyFonts(
-      config.theme.fonts.heading,
-      config.theme.fonts.subheading,
-      config.theme.fonts.body,
+      staticConfig.theme.fonts.heading,
+      staticConfig.theme.fonts.subheading,
+      staticConfig.theme.fonts.body,
     );
+    const { couple } = staticConfig;
+    document.title = `${couple.displayNames ?? `${couple.person1.firstName} & ${couple.person2.firstName}`} — ${staticConfig.dates.displayDate ?? staticConfig.dates.ceremony.slice(0, 10)}`;
 
-    // Update document title
-    const { couple } = config;
-    document.title = `${couple.displayNames ?? `${couple.person1.firstName} & ${couple.person2.firstName}`} — ${config.dates.displayDate ?? config.dates.ceremony.slice(0, 10)}`;
-
-    // Fetch dynamic event config from API and merge with static defaults
-    rsvpApi.getEventConfig()
+    rsvpApi.getEventConfig(eventSlug)
       .then(({ data }) => {
-        const merged = mergeConfig(config, data as Partial<EventConfig>);
+        const merged = mergeConfig(staticConfig, data as Partial<EventConfig>);
         setEventConfig(merged);
         applyTheme(merged.theme.palette, merged.theme.customColors);
         if (merged.theme.fonts) {
@@ -76,34 +76,55 @@ export default function App() {
           setFavicon((data as Partial<EventConfig>).event_type!);
         }
       })
-      .catch(() => {}); // silently use static defaults
-  }, []);
+      .catch(() => {});
+  }, [eventSlug]);
 
   return (
-    <ConfigContext.Provider value={eventConfig}>
-      <ErrorBoundary>
-        <BrowserRouter>
-          <Toaster
-            position="bottom-center"
-            toastOptions={{
-              style: {
-                fontFamily: 'var(--font-body)',
-                background: 'var(--color-surface)',
-                color: 'var(--color-text)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '12px',
-                padding: '12px 20px',
-                fontSize: '14px',
-              },
-              success: { iconTheme: { primary: 'var(--color-primary)', secondary: 'white' } },
-            }}
-          />
-          <Routes>
-            <Route path="/" element={<InvitationPage />} />
-            <Route path="/admin" element={<AdminPage />} />
-          </Routes>
-        </BrowserRouter>
-      </ErrorBoundary>
-    </ConfigContext.Provider>
+    <EventSlugContext.Provider value={eventSlug}>
+      <ConfigContext.Provider value={eventConfig}>
+        <InvitationPage />
+      </ConfigContext.Provider>
+    </EventSlugContext.Provider>
+  );
+}
+
+function EventAdminRoute({ defaultSlug = 'default' }: { defaultSlug?: string }) {
+  const { slug: paramSlug } = useParams<{ slug: string }>();
+  const eventSlug = paramSlug ?? defaultSlug;
+
+  return (
+    <EventSlugContext.Provider value={eventSlug}>
+      <AdminPage />
+    </EventSlugContext.Provider>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Toaster
+          position="bottom-center"
+          toastOptions={{
+            style: {
+              fontFamily: 'var(--font-body)',
+              background: 'var(--color-surface)',
+              color: 'var(--color-text)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '12px',
+              padding: '12px 20px',
+              fontSize: '14px',
+            },
+            success: { iconTheme: { primary: 'var(--color-primary)', secondary: 'white' } },
+          }}
+        />
+        <Routes>
+          <Route path="/" element={<EventInvitationRoute defaultSlug="default" />} />
+          <Route path="/admin" element={<EventAdminRoute defaultSlug="default" />} />
+          <Route path="/e/:slug" element={<EventInvitationRoute />} />
+          <Route path="/e/:slug/admin" element={<EventAdminRoute />} />
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

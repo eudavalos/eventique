@@ -242,6 +242,27 @@ export interface EventConfig {
   music?: WeddingConfig['music'];
 }
 
+// ---- Multi-tenancy ----
+
+export interface EventInfo {
+  id: number;
+  slug: string;
+  name: string;
+  created_at: string;
+}
+
+export interface MediaFile {
+  id: number;
+  event_slug: string;
+  filename: string;
+  original_filename: string;
+  file_type: 'image' | 'audio';
+  mime_type: string;
+  size: number;
+  url: string;
+  uploaded_at: string;
+}
+
 // ---- RSVP Form ----
 
 export interface RSVPFormData {

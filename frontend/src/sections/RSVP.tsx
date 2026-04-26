@@ -6,6 +6,7 @@ import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { Heart, Check, X, ChevronRight, ChevronLeft, Music, MessageSquare, Users } from 'lucide-react';
 import { useConfig } from '../context/ConfigContext';
+import { useEventSlug } from '../context/EventSlugContext';
 import AnimatedSection from '../components/AnimatedSection';
 import { OrnamentDivider, OrnamentFloral } from '../components/Ornament';
 import { rsvpApi } from '../lib/api';
@@ -46,6 +47,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 
 export default function RSVP() {
   const config = useConfig();
+  const eventSlug = useEventSlug();
   const { rsvp } = config.sections;
   const [step, setStep] = useState(1);
   const [attending, setAttending] = useState<'yes' | 'no' | null>(null);
@@ -62,7 +64,7 @@ export default function RSVP() {
   const onSubmit = async (data: FormSchema) => {
     setLoading(true);
     try {
-      await rsvpApi.submit(data as RSVPFormData);
+      await rsvpApi.submit(eventSlug, data as RSVPFormData);
       setSubmitted(true);
     } catch {
       toast.error('Hubo un error. Por favor intenta de nuevo.');
