@@ -207,8 +207,11 @@ export const rsvpApi = {
       headers: { Authorization: `Bearer ${token}` },
     }),
 
-  getGuestWhatsApp: (eventSlug: string, token: string, id: number) =>
-    client.get<{ message: string; url: string }>(`/events/${eventSlug}/guests/${id}/whatsapp`, { headers: { Authorization: `Bearer ${token}` } }),
+  getGuestWhatsApp: (eventSlug: string, token: string, id: number, baseUrl?: string) =>
+    client.get<{ message: string; url: string }>(`/events/${eventSlug}/guests/${id}/whatsapp`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: baseUrl ? { base_url: baseUrl } : undefined,
+    }),
 
   getGuestAudit: (eventSlug: string, token: string, id: number) =>
     client.get<InvitationAuditEntry[]>(`/events/${eventSlug}/guests/${id}/audit`, { headers: { Authorization: `Bearer ${token}` } }),

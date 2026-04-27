@@ -1069,8 +1069,8 @@ async def get_guest_qr_data(
     await _verify_guest_admin(event_slug, authorization, db)
     inv = _get_invitation_or_404(event_slug, guest_id, db)
 
-    base_url = settings.public_base_url.rstrip("/")
-    invitation_url = f"{base_url}/e/{event_slug}/i/{inv.token_lookup}"
+    qr_base = settings.public_base_url.rstrip("/")
+    invitation_url = f"{qr_base}/e/{event_slug}/i/{inv.token_lookup}"
     return {
         "invitation_url": invitation_url,
         "token": inv.token_lookup,
@@ -1126,6 +1126,7 @@ async def get_guest_audit(
 async def get_guest_whatsapp(
     event_slug: str,
     guest_id: int,
+    base_url: Optional[str] = Query(None, max_length=300, description="Override public base URL for invitation link (use window.location.origin from frontend)"),
     authorization: str = Header(...),
     db: Session = Depends(get_db),
 ):
@@ -1141,8 +1142,8 @@ async def get_guest_whatsapp(
     rsvp_deadline = cfg.get("rsvp_deadline", None)
     template_str = cfg.get("whatsapp_template", _DEFAULT_WHATSAPP_TEMPLATE)
 
-    base_url = settings.public_base_url.rstrip("/")
-    invitation_url = f"{base_url}/e/{event_slug}/i/{inv.token_lookup}"
+    effective_base = (base_url.rstrip("/") if base_url else settings.public_base_url.rstrip("/"))
+    invitation_url = f"{effective_base}/e/{event_slug}/i/{inv.token_lookup}"
 
     rendered = template_str.format(
         display_name=inv.display_name,

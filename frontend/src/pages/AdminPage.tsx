@@ -1091,44 +1091,40 @@ export default function AdminPage() {
     } catch { toast.error('Error al archivar invitado'); }
   };
 
+  // Always build invitation URLs using the browser's own origin so they work
+  // in every environment (local dev, staging, production) without extra config.
+  const buildInvUrl = (tokenLookup: string) =>
+    `${window.location.origin}/e/${eventSlug}/i/${tokenLookup}`;
+
   const handleRegenerateToken = async (guest: GuestInvitation) => {
     if (!confirm(`¿Regenerar el link de "${guest.display_name}"? El link anterior dejará de funcionar.`)) return;
     try {
       const res = await rsvpApi.regenerateGuestToken(eventSlug, token, guest.id);
-      toast.success('Link regenerado exitosamente');
+      const data = res.data as { token_lookup: string };
+      toast.success('Link regenerado');
       loadGuests(guestPage);
-      const data = res.data as { invitation_url: string };
-      if (data?.invitation_url) {
-        navigator.clipboard.writeText(data.invitation_url).catch(() => {});
+      if (data?.token_lookup) {
+        const newUrl = buildInvUrl(data.token_lookup);
+        navigator.clipboard.writeText(newUrl).catch(() => {});
         toast.success('Nuevo link copiado al portapapeles');
       }
     } catch { toast.error('Error al regenerar link'); }
   };
 
-  const handleCopyLink = async (guest: GuestInvitation) => {
-    if (!guest.invitation_url) {
-      try {
-        const res = await rsvpApi.getGuestQRData(eventSlug, token, guest.id);
-        const url = (res.data as { invitation_url: string }).invitation_url;
-        await navigator.clipboard.writeText(url);
-      } catch { toast.error('No se pudo copiar el link'); return; }
-    } else {
-      await navigator.clipboard.writeText(guest.invitation_url).catch(() => {});
-    }
+  const handleCopyLink = (guest: GuestInvitation) => {
+    const url = buildInvUrl(guest.token_lookup);
+    navigator.clipboard.writeText(url).catch(() => {});
     toast.success('Link copiado al portapapeles');
   };
 
-  const handleShowQR = async (guest: GuestInvitation) => {
-    try {
-      const res = await rsvpApi.getGuestQRData(eventSlug, token, guest.id);
-      const url = (res.data as { invitation_url: string }).invitation_url;
-      setShowGuestQR({ guest, url });
-    } catch { toast.error('Error al obtener QR'); }
+  const handleShowQR = (guest: GuestInvitation) => {
+    setShowGuestQR({ guest, url: buildInvUrl(guest.token_lookup) });
   };
 
   const handleShowWhatsApp = async (guest: GuestInvitation) => {
     try {
-      const res = await rsvpApi.getGuestWhatsApp(eventSlug, token, guest.id);
+      const invUrl = buildInvUrl(guest.token_lookup);
+      const res = await rsvpApi.getGuestWhatsApp(eventSlug, token, guest.id, invUrl);
       setWhatsappMsg({ guest, ...(res.data as { message: string; url: string }) });
     } catch { toast.error('Error al generar mensaje'); }
   };

@@ -27,9 +27,12 @@ import {
   Share2,
 } from 'lucide-react';
 import { rsvpApi } from '../lib/api';
+import { applyTheme, applyFonts } from '../lib/theme';
+import { setFavicon } from '../lib/favicon';
+import { config as staticConfig } from '../config/wedding';
 import { OrnamentDivider, OrnamentFloral, OrnamentRings } from '../components/Ornament';
 import AnimatedSection from '../components/AnimatedSection';
-import type { PersonalizedInvitationData, WeddingConfig, EventConfig } from '../types';
+import type { PersonalizedInvitationData, WeddingConfig, EventConfig, PaletteKey, ThemeConfig } from '../types';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -439,6 +442,15 @@ export default function PersonalizedInvitationPage() {
       .then(({ data }) => {
         setInvData(data);
         setLoadState('ready');
+        // Apply event theme so CSS variables are set on direct-URL access
+        const raw = data.event_config as Record<string, unknown>;
+        const thm = raw?.theme as { palette?: PaletteKey; customColors?: ThemeConfig['customColors']; fonts?: ThemeConfig['fonts'] } | undefined;
+        if (thm?.palette) applyTheme(thm.palette, thm.customColors);
+        // Fonts are static per project (no font editor in admin); always apply defaults
+        const fonts = thm?.fonts ?? staticConfig.theme.fonts;
+        applyFonts(fonts.heading, fonts.subheading, fonts.body);
+        const eventType = raw?.event_type as string | undefined;
+        if (eventType) setFavicon(eventType);
       })
       .catch((err) => {
         const status = err?.response?.status;
