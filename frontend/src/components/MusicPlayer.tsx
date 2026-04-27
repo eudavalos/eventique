@@ -24,8 +24,11 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
   const [muted, setMuted] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [expanded, setExpanded] = useState(false);
-  // true when autoplay was requested but browser policy blocked it
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+
+  // Tracks whether YouTube actually confirmed playback via onStateChange(1).
+  // Used to detect autoplay block without relying solely on Promise rejection.
+  const ytConfirmedPlay = useRef(false);
   const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const current = tracks[currentIdx];
@@ -36,14 +39,15 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
       '*',
     );
 
-  // Track real YouTube player state via postMessage events
+  // Listen for real YouTube player state to correct optimistic state if needed
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       try {
         const data = JSON.parse(typeof event.data === 'string' ? event.data : '{}');
         if (data.event === 'onStateChange') {
           if (data.info === 1) {
-            // YT state: playing
+            // Confirmed playing — clear any pending block detection
+            ytConfirmedPlay.current = true;
             setPlaying(true);
             setAutoplayBlocked(false);
             if (fallbackRef.current) {
@@ -51,7 +55,6 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
               fallbackRef.current = null;
             }
           } else if (data.info === 2 || data.info === 0) {
-            // YT state: paused or ended
             setPlaying(false);
           }
         }
@@ -68,7 +71,9 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
       setAutoplayBlocked(false);
       if (!current) return;
       if (isYouTube(current.url)) {
+        ytConfirmedPlay.current = false;
         ytCmd('playVideo');
+        setPlaying(true);
       } else if (audioRef.current) {
         audioRef.current.play().then(() => setPlaying(true)).catch(() => {});
       }
@@ -85,19 +90,24 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
 
   useEffect(() => {
     if (!current) return;
+    ytConfirmedPlay.current = false;
+
     if (isYouTube(current.url)) {
       if (autoplay || playing) {
         const t = setTimeout(() => {
           ytCmd('playVideo');
-          // YouTube does not return a Promise — use a fallback timer to detect block.
-          // If onStateChange(1) fires within 3s, the fallback is cancelled above.
+          // Optimistically show playing — the icon flips to Pause immediately.
+          // If the browser actually blocked it, onStateChange(1) never fires and
+          // the fallback below corrects the state after 3s.
+          setPlaying(true);
           if (autoplay) {
             fallbackRef.current = setTimeout(() => {
-              setPlaying((prev) => {
-                if (!prev) setAutoplayBlocked(true);
-                return prev;
-              });
               fallbackRef.current = null;
+              if (!ytConfirmedPlay.current) {
+                // Browser blocked autoplay — correct the optimistic state
+                setPlaying(false);
+                setAutoplayBlocked(true);
+              }
             }, 3000);
           }
         }, 1200);
@@ -122,7 +132,6 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
           })
           .catch((e: Error) => {
             setPlaying(false);
-            // NotAllowedError = browser autoplay policy blocked playback
             if (e.name === 'NotAllowedError') setAutoplayBlocked(true);
           });
       }
@@ -135,6 +144,7 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
         ytCmd('pauseVideo');
         setPlaying(false);
       } else {
+        ytConfirmedPlay.current = false;
         ytCmd('playVideo');
         setPlaying(true);
       }
@@ -168,11 +178,8 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
 
   if (tracks.length === 0) return null;
 
-  const showPulse = playing || autoplayBlocked;
-
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      {/* Hidden audio element for non-YouTube tracks */}
       <audio
         ref={audioRef}
         onEnded={next}
@@ -180,7 +187,6 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
         onPause={() => setPlaying(false)}
       />
 
-      {/* Hidden YouTube iframe (rendered only for YouTube tracks) */}
       {isYouTube(current.url) && (
         <iframe
           ref={ytRef}
@@ -191,7 +197,7 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
         />
       )}
 
-      {/* Autoplay-blocked hint — floats above the button */}
+      {/* Autoplay-blocked hint */}
       <AnimatePresence>
         {autoplayBlocked && !expanded && (
           <motion.div
@@ -279,8 +285,7 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
           style={{ background: 'var(--color-primary)', color: 'white' }}
           aria-label="Música"
         >
-          {/* Pulse ring: shows when playing OR when autoplay is blocked (waiting for interaction) */}
-          {showPulse && (
+          {(playing || autoplayBlocked) && (
             <span
               className="absolute inset-0 rounded-full animate-ping"
               style={{
@@ -291,6 +296,8 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
           )}
           {expanded ? (
             <ChevronUp className="w-5 h-5" />
+          ) : playing ? (
+            <Pause className="w-5 h-5" />
           ) : autoplayBlocked ? (
             <Play className="w-5 h-5 ml-0.5" />
           ) : (
