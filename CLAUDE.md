@@ -88,7 +88,7 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 
 ---
 
-## Estado del proyecto (2026-04-26)
+## Estado del proyecto (2026-04-27)
 
 | Fase | Estado | Descripción |
 |------|--------|-------------|
@@ -103,10 +103,12 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 | Fase 9 — Full section editors | ✅ COMPLETO | Hero/Countdown/WeddingParty/Accommodation/Gallery/RSVP/Social editors en Secciones tab |
 | Fase 10 — Music enhancements | ✅ COMPLETO | YouTube track management desde admin, music.enabled/autoplay toggles |
 | Fase 11 — Event duplication | ✅ COMPLETO | POST /events/{slug}/duplicate, modal "Clonar" en tab Eventos |
+| Fase 12 — Invitaciones Personalizadas | ✅ COMPLETO | GuestInvitation model, 18 endpoints, Admin Invitados tab, /e/:slug/i/:token, CSV import/export, QR, WhatsApp, tracking privado |
 
-**Cliente actual**: Concepción & Eumelio · boda · 2026-12-05 · paleta `nature`  
-**Recintos**: placeholders — el cliente debe completar desde /admin  
-**Música**: YouTube track `zqlkbbJ003w` (track 1) + 2 MP3 placeholder
+**Cliente actual**: Concepción & Eumelio · boda · 2026-06-07 · paleta `ocean`  
+**Recintos**: Iglesia de San Pedro Claver + Club de Pesca, Carapeguá, Paraguay  
+**Música**: YouTube track `zqlkbbJ003w` (track 1) + 2 MP3 placeholder  
+**Rama activa**: `feature/guest-invitations-enterprise` — pendiente merge a main
 
 ---
 
@@ -208,11 +210,50 @@ En cada sesión significativa, actualizar estos cuatro artefactos:
 |---|---|---|---|
 | POST | /events/{slug}/duplicate | Superadmin | Duplicar evento (copia EventConfig JSON al nuevo slug) |
 
+### Guest Invitations (Fase 12)
+| Method | Path | Auth | Descripción |
+|---|---|---|---|
+| GET | /events/{slug}/invitations/{token} | — | Obtener datos de invitación personalizada |
+| POST | /events/{slug}/invitations/{token}/rsvp | — | Confirmar asistencia con token (quota enforced) |
+| POST | /events/{slug}/invitations/{token}/open | — | Registrar apertura (204, fire-and-forget) |
+| GET | /events/{slug}/guests | EventAdmin | Listar invitados paginados (items, total, page, pages) |
+| POST | /events/{slug}/guests | EventAdmin | Crear invitado manual |
+| GET | /events/{slug}/guests/stats | EventAdmin | Estadísticas de invitados |
+| GET | /events/{slug}/guests/export.csv | EventAdmin | Exportar todos los invitados en CSV |
+| GET | /events/{slug}/guests/template.csv | EventAdmin | Descargar plantilla CSV de importación |
+| POST | /events/{slug}/guests/import/preview | EventAdmin | Preview de CSV sin guardar (multipart) |
+| POST | /events/{slug}/guests/import/commit | EventAdmin | Importar filas validadas como JSON |
+| GET | /events/{slug}/guests/{id} | EventAdmin | Detalle de invitado |
+| PUT | /events/{slug}/guests/{id} | EventAdmin | Actualizar invitado |
+| PATCH | /events/{slug}/guests/{id}/status | EventAdmin | Cambiar estado (JSON body {status, blocked_reason}) |
+| DELETE | /events/{slug}/guests/{id} | EventAdmin | Soft-delete de invitado |
+| POST | /events/{slug}/guests/{id}/regenerate-token | EventAdmin | Regenerar token único |
+| GET | /events/{slug}/guests/{id}/qr-data | EventAdmin | Datos para generar QR |
+| GET | /events/{slug}/guests/{id}/audit | EventAdmin | Historial de auditoría |
+| GET | /events/{slug}/guests/{id}/whatsapp | EventAdmin | Generar mensaje + URL wa.me |
+
 ---
 
-## Admin Panel — Cobertura de secciones (post Fase 11)
+## Admin Panel — Cobertura de secciones (post Fase 12)
 
-**6 tabs**: `rsvps` · `config` · `tema` · `media` · `eventos` · `secciones`
+**7 tabs**: `rsvps` · `config` · `tema` · `media` · `eventos` · `secciones` · `invitados`
+
+### Tab Invitados — funcionalidades
+- Stats dashboard: total invitaciones, cupos totales, confirmados, pendientes + barra de estados
+- Tabla de invitados: búsqueda, filtro por estado, paginación (50/página)
+- Acciones por fila: ver detalle, QR, WhatsApp, editar, cambiar estado, eliminar (soft-delete)
+- Crear invitado manual (GuestForm con todos los campos)
+- Importar CSV: descarga template → upload → preview 2-fases → commit
+- Exportar CSV completo
+- Modal QR con `qrcode.react`
+- Modal WhatsApp: mensaje pre-generado con URL personalizada, botón abrir wa.me
+- Modal auditoría por invitado
+
+### Tab Config — Invitation Mode
+- Selector 3 modos: Genérico / Personalizado / Híbrido
+- 7 toggles configurables: public_rsvp, require_token, track_opens, self_edit, member_names, count_change, enforce_limit
+- Campo WhatsApp template con variables: {display_name}, {event_name}, {invitation_url}, {allowed_passes}
+- Toggle Gift Registry (ocultar sección si no aplica)
 
 ### Tab Secciones — editores disponibles
 
