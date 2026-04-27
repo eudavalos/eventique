@@ -149,6 +149,122 @@ def run_migrations():
 
         conn.commit()
 
+        # ── Personalized Invitations (enterprise guest module) ─────────────
+
+        # Migrate: add invitation_id and rsvp_source to rsvps
+        rsvp_cols = [col.name for col in inspector.get_columns("rsvps")]
+        if "invitation_id" not in rsvp_cols:
+            conn.execute(text("ALTER TABLE rsvps ADD COLUMN invitation_id INTEGER NULL"))
+            conn.commit()
+            print("✓ Added invitation_id to rsvps")
+        if "rsvp_source" not in rsvp_cols:
+            conn.execute(text("ALTER TABLE rsvps ADD COLUMN rsvp_source VARCHAR(50) NULL DEFAULT 'generic'"))
+            conn.commit()
+            print("✓ Added rsvp_source to rsvps")
+
+        # Create guest_invitations table
+        if "guest_invitations" not in inspector.get_table_names():
+            conn.execute(text("""
+                CREATE TABLE guest_invitations (
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    event_slug VARCHAR(100) NOT NULL,
+                    display_name VARCHAR(300) NOT NULL,
+                    contact_name VARCHAR(300),
+                    email VARCHAR(200),
+                    phone VARCHAR(50),
+                    group_name VARCHAR(200),
+                    guest_type VARCHAR(50) NOT NULL DEFAULT 'general',
+                    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+                    allowed_passes INTEGER NOT NULL DEFAULT 1,
+                    confirmed_passes INTEGER NOT NULL DEFAULT 0,
+                    declined_passes INTEGER NOT NULL DEFAULT 0,
+                    token_lookup VARCHAR(64) NOT NULL UNIQUE,
+                    notes TEXT,
+                    tags_json TEXT NOT NULL DEFAULT '[]',
+                    conditional_flags_json TEXT NOT NULL DEFAULT '[]',
+                    metadata_json TEXT NOT NULL DEFAULT '{}',
+                    first_opened_at DATETIME,
+                    last_opened_at DATETIME,
+                    open_count INTEGER NOT NULL DEFAULT 0,
+                    last_rsvp_at DATETIME,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    is_active BOOLEAN NOT NULL DEFAULT 1,
+                    blocked_reason VARCHAR(500)
+                )
+            """))
+            conn.commit()
+            conn.execute(text("CREATE INDEX ix_guest_invitations_event_slug ON guest_invitations (event_slug)"))
+            conn.execute(text("CREATE INDEX ix_guest_invitations_token_lookup ON guest_invitations (token_lookup)"))
+            conn.execute(text("CREATE INDEX ix_guest_invitations_email ON guest_invitations (email)"))
+            conn.commit()
+            print("✓ Created table: guest_invitations")
+
+        # Create guest_members table
+        if "guest_members" not in inspector.get_table_names():
+            conn.execute(text("""
+                CREATE TABLE guest_members (
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    event_slug VARCHAR(100) NOT NULL,
+                    invitation_id INTEGER NOT NULL,
+                    full_name VARCHAR(300) NOT NULL,
+                    member_type VARCHAR(50) NOT NULL DEFAULT 'adult',
+                    age_group VARCHAR(50),
+                    menu_preference VARCHAR(200),
+                    dietary_restrictions VARCHAR(500),
+                    attending BOOLEAN,
+                    notes VARCHAR(500),
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.commit()
+            conn.execute(text("CREATE INDEX ix_guest_members_invitation_id ON guest_members (invitation_id)"))
+            conn.execute(text("CREATE INDEX ix_guest_members_event_slug ON guest_members (event_slug)"))
+            conn.commit()
+            print("✓ Created table: guest_members")
+
+        # Create invitation_open_events table
+        if "invitation_open_events" not in inspector.get_table_names():
+            conn.execute(text("""
+                CREATE TABLE invitation_open_events (
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    event_slug VARCHAR(100) NOT NULL,
+                    invitation_id INTEGER NOT NULL,
+                    opened_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    ip_hash VARCHAR(64),
+                    user_agent_hash VARCHAR(64),
+                    source VARCHAR(100),
+                    metadata_json TEXT NOT NULL DEFAULT '{}'
+                )
+            """))
+            conn.commit()
+            conn.execute(text("CREATE INDEX ix_open_events_invitation_id ON invitation_open_events (invitation_id)"))
+            conn.commit()
+            print("✓ Created table: invitation_open_events")
+
+        # Create invitation_audit_log table
+        if "invitation_audit_log" not in inspector.get_table_names():
+            conn.execute(text("""
+                CREATE TABLE invitation_audit_log (
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    event_slug VARCHAR(100) NOT NULL,
+                    entity_type VARCHAR(50) NOT NULL,
+                    entity_id INTEGER NOT NULL,
+                    action VARCHAR(100) NOT NULL,
+                    before_json TEXT,
+                    after_json TEXT,
+                    performed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    performed_by_type VARCHAR(50) NOT NULL DEFAULT 'admin',
+                    performed_by_ref VARCHAR(200)
+                )
+            """))
+            conn.commit()
+            conn.execute(text("CREATE INDEX ix_audit_log_event_slug ON invitation_audit_log (event_slug)"))
+            conn.execute(text("CREATE INDEX ix_audit_log_entity ON invitation_audit_log (entity_type, entity_id)"))
+            conn.commit()
+            print("✓ Created table: invitation_audit_log")
+
     print("✓ Migration complete")
 
 

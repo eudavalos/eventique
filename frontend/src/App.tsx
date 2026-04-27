@@ -27,6 +27,7 @@ const EVENT_TYPE_SECTION_LABELS: Record<EventType, {
 import InvitationPage from './pages/InvitationPage';
 import AdminPage from './pages/AdminPage';
 import LandingPage from './pages/LandingPage';
+import PersonalizedInvitationPage from './pages/PersonalizedInvitationPage';
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state = { error: null };
@@ -161,6 +162,15 @@ function EventInvitationRoute({ defaultSlug = 'default' }: { defaultSlug?: strin
   );
 }
 
+function PersonalizedInvitationRoute() {
+  const { slug } = useParams<{ slug: string; token: string }>();
+  return (
+    <EventSlugContext.Provider value={slug ?? ''}>
+      <PersonalizedInvitationPage />
+    </EventSlugContext.Provider>
+  );
+}
+
 function EventAdminRoute({ defaultSlug = 'default' }: { defaultSlug?: string }) {
   const { slug: paramSlug } = useParams<{ slug: string }>();
   const eventSlug = paramSlug ?? defaultSlug;
@@ -195,6 +205,7 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/admin" element={<EventAdminRoute defaultSlug="default" />} />
           <Route path="/e/:slug" element={<EventInvitationRoute />} />
+          <Route path="/e/:slug/i/:token" element={<PersonalizedInvitationRoute />} />
           <Route path="/e/:slug/admin" element={<EventAdminRoute />} />
         </Routes>
       </BrowserRouter>
