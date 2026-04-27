@@ -220,31 +220,42 @@ function GuestForm({ initial, onSave, onCancel }: GuestFormProps) {
     { value: 'staff', label: 'Staff', desc: 'Personal del evento' },
   ];
 
+  const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+    <div className="flex items-center gap-3 pt-2 pb-1">
+      <span className="text-xs font-medium uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>{children}</span>
+      <div className="flex-1 h-px" style={{ background: 'var(--color-border)' }} />
+    </div>
+  );
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3">
+      {/* ── Datos principales ─────────────────────────────────── */}
+      <SectionLabel>Datos principales</SectionLabel>
       <div>
         <label className="input-label">Nombre visible en la invitación *</label>
         <input value={displayName} onChange={e => setDisplayName(e.target.value)} className="input-field" placeholder="Ej: Familia García, Juan y María, Dr. López..." required />
-        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Este nombre aparece en el saludo de su invitación personalizada.</p>
+        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Este nombre aparece en el saludo: <em>"¡Hola, Familia García!"</em> — sé descriptivo.</p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="input-label">Nombre de contacto</label>
-          <input value={contactName} onChange={e => setContactName(e.target.value)} className="input-field" placeholder="Nombre de la persona de contacto" />
+          <input value={contactName} onChange={e => setContactName(e.target.value)} className="input-field" placeholder="Nombre de quien coordinas" />
         </div>
         <div>
-          <label className="input-label">Grupo o familia</label>
+          <label className="input-label">Mesa o grupo</label>
           <input value={groupName} onChange={e => setGroupName(e.target.value)} className="input-field" placeholder="Ej: Mesa 5, Familia García..." />
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="input-label">Email</label>
-          <input value={email} onChange={e => setEmail(e.target.value)} type="email" className="input-field" placeholder="contacto@ejemplo.com" />
-        </div>
-        <div>
-          <label className="input-label">Teléfono</label>
-          <input value={phone} onChange={e => setPhone(e.target.value)} className="input-field" placeholder="+595 981 234 567" />
+
+      {/* ── Cupos y tipo ──────────────────────────────────────── */}
+      <SectionLabel>Cupos y acceso</SectionLabel>
+      <div>
+        <label className="input-label">Cantidad de pases reservados *</label>
+        <div className="flex items-center gap-3 mt-1">
+          <button type="button" onClick={() => setAllowedPasses(Math.max(1, allowedPasses - 1))} className="btn-outline w-9 h-9 p-0 flex items-center justify-center text-lg font-bold">−</button>
+          <span className="text-3xl font-bold font-heading w-12 text-center" style={{ color: 'var(--color-primary)' }}>{allowedPasses}</span>
+          <button type="button" onClick={() => setAllowedPasses(Math.min(50, allowedPasses + 1))} className="btn-outline w-9 h-9 p-0 flex items-center justify-center text-lg font-bold">+</button>
+          <p className="text-xs font-body" style={{ color: 'var(--color-text-muted)' }}>El RSVP no podrá<br/>confirmar más de este número.</p>
         </div>
       </div>
       <div>
@@ -260,34 +271,43 @@ function GuestForm({ initial, onSave, onCancel }: GuestFormProps) {
           ))}
         </div>
       </div>
-      <div>
-        <label className="input-label">Cantidad de pases reservados *</label>
-        <div className="flex items-center gap-3 mt-1">
-          <button type="button" onClick={() => setAllowedPasses(Math.max(1, allowedPasses - 1))} className="btn-outline w-9 h-9 p-0 flex items-center justify-center text-lg">−</button>
-          <span className="text-2xl font-bold font-heading w-10 text-center" style={{ color: 'var(--color-primary)' }}>{allowedPasses}</span>
-          <button type="button" onClick={() => setAllowedPasses(Math.min(50, allowedPasses + 1))} className="btn-outline w-9 h-9 p-0 flex items-center justify-center text-lg">+</button>
-          <span className="text-xs font-body" style={{ color: 'var(--color-text-muted)' }}>lugar(es) reservados para este invitado</span>
+
+      {/* ── Contacto ──────────────────────────────────────────── */}
+      <SectionLabel>Contacto</SectionLabel>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="input-label">Email</label>
+          <input value={email} onChange={e => setEmail(e.target.value)} type="email" className="input-field" placeholder="contacto@ejemplo.com" />
+        </div>
+        <div>
+          <label className="input-label">Teléfono / WhatsApp</label>
+          <input value={phone} onChange={e => setPhone(e.target.value)} className="input-field" placeholder="+595 981 234 567" />
         </div>
       </div>
+
+      {/* ── Opciones avanzadas ────────────────────────────────── */}
+      <SectionLabel>Opciones avanzadas</SectionLabel>
       <div>
-        <label className="input-label">Etiquetas (separadas por coma)</label>
-        <input value={tags} onChange={e => setTags(e.target.value)} className="input-field" placeholder="Ej: mesa-1, vegetariano, vip..." />
-        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Usadas para filtrar y agrupar invitados en el listado.</p>
+        <label className="input-label">Etiquetas <span className="font-normal">(separadas por coma)</span></label>
+        <input value={tags} onChange={e => setTags(e.target.value)} className="input-field" placeholder="Ej: mesa-1, vegetariano, viaja..." />
+        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Para filtrar y agrupar en el listado. No son visibles para el invitado.</p>
       </div>
       <div>
-        <label className="input-label">Flags condicionales (separados por coma)</label>
+        <label className="input-label">Acceso especial <span className="font-normal">(secciones exclusivas)</span></label>
         <input value={conditionalFlags} onChange={e => setConditionalFlags(e.target.value)} className="input-field" placeholder="Ej: after_party, transporte, cena_ensayo..." />
-        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Determinan qué información adicional ve este invitado en su invitación.</p>
+        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Este invitado verá tarjetas extra en su invitación para cada flag que agregues aquí.</p>
       </div>
       <div>
         <label className="input-label">Notas internas</label>
-        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="input-field resize-none" placeholder="Información interna (no visible para el invitado)..." />
+        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="input-field resize-none" placeholder="Solo visible para ti (ej: alergia a mariscos, confirmó por teléfono)..." />
       </div>
-      <div className="flex gap-3 pt-2">
-        <button type="button" onClick={onCancel} className="btn-outline flex-1 py-2.5 text-sm">Cancelar</button>
+
+      {/* ── Acciones ──────────────────────────────────────────── */}
+      <div className="flex gap-3 pt-3">
+        <button type="button" onClick={onCancel} className="btn-outline py-2.5 text-sm px-5">Cancelar</button>
         <button type="submit" disabled={!displayName.trim() || saving} className="btn-primary flex-1 py-2.5 text-sm gap-2 disabled:opacity-50">
           {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-          {initial ? 'Guardar cambios' : 'Crear invitado'}
+          {initial ? 'Guardar cambios' : 'Guardar y copiar link'}
         </button>
       </div>
     </form>
@@ -2628,6 +2648,9 @@ export default function AdminPage() {
                                 <button title="Regenerar link" onClick={() => handleRegenerateToken(g)} className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors" style={{ color: '#f59e0b' }}>
                                   <RotateCcw className="w-3.5 h-3.5" />
                                 </button>
+                                <a title="Abrir invitación" href={buildInvUrl(g.token_lookup)} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors inline-flex items-center" style={{ color: 'var(--color-primary)' }}>
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
                                 <button title="Archivar" onClick={() => handleGuestDelete(g.id)} className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors" style={{ color: '#ef4444' }}>
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -2677,8 +2700,11 @@ export default function AdminPage() {
                           await rsvpApi.updateGuest(eventSlug, token, editingGuest.id, data);
                           toast.success('Invitado actualizado');
                         } else {
-                          await rsvpApi.createGuest(eventSlug, token, data);
-                          toast.success('Invitado creado');
+                          const res = await rsvpApi.createGuest(eventSlug, token, data);
+                          const newGuest = res.data as GuestInvitation;
+                          const invUrl = buildInvUrl(newGuest.token_lookup);
+                          navigator.clipboard.writeText(invUrl).catch(() => {});
+                          toast.success(`"${newGuest.display_name}" creado · link copiado al portapapeles`);
                         }
                         setShowCreateGuest(false); setEditingGuest(null);
                         loadGuests(guestPage); loadGuestStats();
@@ -2710,6 +2736,9 @@ export default function AdminPage() {
                     <button onClick={() => { navigator.clipboard.writeText(showGuestQR.url); toast.success('Link copiado'); }} className="btn-outline text-xs gap-1.5 px-4 py-2">
                       <Copy className="w-3.5 h-3.5" /> Copiar link
                     </button>
+                    <a href={showGuestQR.url} target="_blank" rel="noopener noreferrer" className="btn-outline text-xs gap-1.5 px-4 py-2 inline-flex items-center">
+                      <ExternalLink className="w-3.5 h-3.5" /> Abrir
+                    </a>
                   </div>
                 </div>
               </div>
