@@ -6,7 +6,7 @@ import {
   Copy, Music2, Calendar, Pencil, QrCode, X, FileText,
   Image as ImageIcon, LogOut, Key, RefreshCw,
   UserPlus, UserCheck, Send, Link2, Filter, ChevronLeft, ChevronRight,
-  Eye, RotateCcw, MessageSquare,
+  Eye, RotateCcw, MessageSquare, GripVertical, ChevronUp as ChevronUpIcon, ChevronDown,
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import toast from 'react-hot-toast';
@@ -490,6 +490,8 @@ export default function AdminPage() {
   const [newYoutubeUrl, setNewYoutubeUrl] = useState('');
   const [newYoutubeTitle, setNewYoutubeTitle] = useState('');
   const [newYoutubeArtist, setNewYoutubeArtist] = useState('');
+  const trackDragSrc = useRef<number | null>(null);
+  const [trackDragOver, setTrackDragOver] = useState<number | null>(null);
 
   // Duplicate event modal
   const [duplicatingSlug, setDuplicatingSlug] = useState<string | null>(null);
@@ -1033,6 +1035,16 @@ export default function AdminPage() {
       await saveMusicConfig(musicTracks.filter((t) => t.url !== url));
       toast.success('Pista eliminada del reproductor');
     } catch { toast.error('Error al eliminar pista del reproductor'); }
+  };
+
+  const moveTrack = async (from: number, to: number) => {
+    if (to < 0 || to >= musicTracks.length) return;
+    const next = [...musicTracks];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    try {
+      await saveMusicConfig(next);
+    } catch { toast.error('Error al reordenar pistas'); }
   };
 
   const saveSections = async () => {
@@ -3554,19 +3566,85 @@ export default function AdminPage() {
                 </label>
               </div>
               {musicTracks.length > 0 ? (
-                <div className="space-y-2 mb-4">
-                  {musicTracks.map((track, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
-                      <Music2 className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-primary)' }} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-body font-medium truncate" style={{ color: 'var(--color-text)' }}>{track.title}</p>
-                        {track.artist && <p className="text-xs text-muted">{track.artist}</p>}
+                <div className="mb-4">
+                  <p className="text-xs font-body mb-2 flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
+                    <GripVertical className="w-3 h-3" />
+                    Arrastra para reordenar
+                  </p>
+                  <div className="space-y-1.5">
+                    {musicTracks.map((track, i) => (
+                      <div
+                        key={track.url + i}
+                        draggable
+                        onDragStart={(e) => {
+                          trackDragSrc.current = i;
+                          e.dataTransfer.effectAllowed = 'move';
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = 'move';
+                          setTrackDragOver(i);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          if (trackDragSrc.current !== null && trackDragSrc.current !== i) {
+                            moveTrack(trackDragSrc.current, i);
+                          }
+                          trackDragSrc.current = null;
+                          setTrackDragOver(null);
+                        }}
+                        onDragEnd={() => {
+                          trackDragSrc.current = null;
+                          setTrackDragOver(null);
+                        }}
+                        className="flex items-center gap-3 p-3 rounded-xl transition-all select-none"
+                        style={{
+                          background: 'var(--color-secondary)',
+                          opacity: trackDragSrc.current === i ? 0.4 : 1,
+                          borderLeft: trackDragOver === i && trackDragSrc.current !== i
+                            ? '3px solid var(--color-primary)'
+                            : '3px solid transparent',
+                          cursor: 'grab',
+                        }}
+                      >
+                        {/* Drag handle */}
+                        <GripVertical className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-text-muted)', cursor: 'grab' }} />
+                        {/* Track number */}
+                        <span className="text-xs font-body font-medium w-4 text-center flex-shrink-0" style={{ color: 'var(--color-text-muted)' }}>
+                          {i + 1}
+                        </span>
+                        <Music2 className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-primary)' }} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-body font-medium truncate" style={{ color: 'var(--color-text)' }}>{track.title}</p>
+                          {track.artist && <p className="text-xs text-muted truncate">{track.artist}</p>}
+                        </div>
+                        {/* Up/Down for mobile */}
+                        <div className="flex flex-col gap-0.5 flex-shrink-0">
+                          <button
+                            type="button"
+                            disabled={i === 0}
+                            onClick={() => moveTrack(i, i - 1)}
+                            className="p-0.5 rounded hover:bg-primary/10 disabled:opacity-20 transition-colors"
+                            title="Subir"
+                          >
+                            <ChevronUpIcon className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={i === musicTracks.length - 1}
+                            onClick={() => moveTrack(i, i + 1)}
+                            className="p-0.5 rounded hover:bg-primary/10 disabled:opacity-20 transition-colors"
+                            title="Bajar"
+                          >
+                            <ChevronDown className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
+                          </button>
+                        </div>
+                        <button type="button" onClick={() => removeTrackFromPlayer(track.url)} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        </button>
                       </div>
-                      <button type="button" onClick={() => removeTrackFromPlayer(track.url)} className="p-1 rounded hover:bg-red-50 transition-colors">
-                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                      </button>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <p className="text-sm text-muted mb-4">No hay pistas en el reproductor.</p>
