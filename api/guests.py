@@ -312,6 +312,7 @@ async def get_invitation_by_token(
         allowed_passes=inv.allowed_passes,
         confirmed_passes=inv.confirmed_passes,
         status=inv.status,
+        guest_type=inv.guest_type or "general",
         conditional_flags=_parse_json_field(inv.conditional_flags_json, []),
         event_slug=inv.event_slug,
     )

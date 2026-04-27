@@ -179,6 +179,7 @@ class GuestInvitationPublic(BaseModel):
     allowed_passes: int
     confirmed_passes: int
     status: str
+    guest_type: str = "general"
     conditional_flags: list[str] = []
     event_slug: str
 

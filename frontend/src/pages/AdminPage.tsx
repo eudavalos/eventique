@@ -90,6 +90,17 @@ interface ConfigFormData {
   rsvp_enforce_pass_limit: boolean;
   show_reserved_passes_message: boolean;
   whatsapp_template: string;
+  // ── Personalized full-view ─────────────────────────────────────────────────
+  personalized_full_view: boolean;
+  personalized_hero_badge_enabled: boolean;
+  personalized_hero_badge_label: string;
+  personalized_greeting_enabled: boolean;
+  personalized_greeting_position: string;
+  personalized_greeting_title: string;
+  personalized_greeting_body: string;
+  personalized_show_passes: boolean;
+  personalized_passes_label: string;
+  personalized_show_type_badge: boolean;
 }
 
 // ── Palette data ───────────────────────────────────────────────────────────
@@ -782,6 +793,16 @@ export default function AdminPage() {
         rsvp_enforce_pass_limit: formData.rsvp_enforce_pass_limit,
         show_reserved_passes_message: formData.show_reserved_passes_message,
         whatsapp_template: formData.whatsapp_template || undefined,
+        personalized_full_view:          formData.personalized_full_view,
+        personalized_hero_badge_enabled: formData.personalized_hero_badge_enabled,
+        personalized_hero_badge_label:   formData.personalized_hero_badge_label || undefined,
+        personalized_greeting_enabled:   formData.personalized_greeting_enabled,
+        personalized_greeting_position:  formData.personalized_greeting_position || 'after_hero',
+        personalized_greeting_title:     formData.personalized_greeting_title || undefined,
+        personalized_greeting_body:      formData.personalized_greeting_body || undefined,
+        personalized_show_passes:        formData.personalized_show_passes,
+        personalized_passes_label:       formData.personalized_passes_label || undefined,
+        personalized_show_type_badge:    formData.personalized_show_type_badge,
       } as never);
 
       toast.success('Configuración guardada correctamente');
@@ -1891,6 +1912,137 @@ export default function AdminPage() {
                   />
                   <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
                     Variables disponibles: {'{display_name}'}, {'{event_name}'}, {'{event_date}'}, {'{allowed_passes}'}, {'{invitation_url}'}, {'{rsvp_deadline}'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Personalized Full View */}
+            <div className="card p-6 sm:p-8">
+              <div className="flex items-start justify-between gap-4 mb-1">
+                <div>
+                  <h2 className="font-sub text-lg font-medium leading-tight" style={{ color: 'var(--color-text)' }}>Invitación Personalizada — Vista Completa</h2>
+                  <p className="text-xs mt-1 mb-5" style={{ color: 'var(--color-text-muted)' }}>
+                    Cuando un invitado abre su link <code className="font-mono px-1 py-0.5 rounded" style={{ background: 'var(--color-secondary)' }}>/i/:token</code>, en lugar de mostrar solo sus datos, verá la invitación completa con su información integrada de forma elegante.
+                  </p>
+                </div>
+              </div>
+
+              {/* Main toggle */}
+              <div className="flex items-start justify-between gap-4 p-4 rounded-xl mb-4" style={{ background: 'var(--color-secondary)' }}>
+                <div>
+                  <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>Activar vista completa para invitados personalizados</p>
+                  <p className="text-xs mt-0.5 font-body" style={{ color: 'var(--color-text-muted)' }}>El invitado verá la invitación principal completa (Hero, historia, programa, RSVP, etc.) con su nombre y datos integrados.</p>
+                </div>
+                <Controller name="personalized_full_view" control={control} render={({ field }) => (
+                  <button type="button" onClick={() => field.onChange(!field.value)}
+                    className="flex-shrink-0 w-11 h-6 rounded-full transition-colors relative"
+                    style={{ background: field.value ? 'var(--color-primary)' : 'var(--color-border)' }}>
+                    <span className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-200"
+                      style={{ left: field.value ? '22px' : '2px' }} />
+                  </button>
+                )} />
+              </div>
+
+              {/* Section: Hero badge */}
+              <p className="text-xs font-medium uppercase tracking-widest mb-3 mt-5 font-body" style={{ color: 'var(--color-text-muted)' }}>
+                Insignia en la portada (Hero)
+              </p>
+              <div className="space-y-3 mb-5">
+                {([
+                  { name: 'personalized_hero_badge_enabled', label: 'Mostrar insignia con el nombre del invitado en el Hero', desc: 'Aparece una pastilla elegante sobre la imagen de portada con el nombre del invitado.' },
+                ] as { name: string; label: string; desc: string }[]).map(({ name, label, desc }) => (
+                  <Controller key={name} name={name as keyof ConfigFormData} control={control} render={({ field }) => (
+                    <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl hover:bg-[var(--color-secondary)] transition-colors">
+                      <div className="relative mt-0.5 flex-shrink-0">
+                        <input type="checkbox" className="sr-only" checked={!!field.value} onChange={() => field.onChange(!field.value)} />
+                        <div className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
+                          style={{ borderColor: field.value ? 'var(--color-primary)' : 'var(--color-border)', background: field.value ? 'var(--color-primary)' : 'transparent' }}>
+                          {field.value && <svg viewBox="0 0 12 12" className="w-3 h-3"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" /></svg>}
+                        </div>
+                      </div>
+                      <div><p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{label}</p>
+                        <p className="text-xs mt-0.5 font-body" style={{ color: 'var(--color-text-muted)' }}>{desc}</p></div>
+                    </label>
+                  )} />
+                ))}
+                <div>
+                  <label className="input-label">Texto de la insignia en el Hero</label>
+                  <input {...register('personalized_hero_badge_label')} className="input-field"
+                    placeholder="Invitación especial para" />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                    Se mostrará: "[Tu texto] · [Nombre del invitado]" — ej: <em>"Invitación especial para · Familia García"</em>
+                  </p>
+                </div>
+              </div>
+
+              {/* Section: Personalized greeting */}
+              <p className="text-xs font-medium uppercase tracking-widest mb-3 mt-5 font-body" style={{ color: 'var(--color-text-muted)' }}>
+                Sección de bienvenida personalizada
+              </p>
+              <div className="space-y-3 mb-4">
+                {([
+                  { name: 'personalized_greeting_enabled', label: 'Mostrar sección de bienvenida personalizada', desc: 'Inserta una sección exclusiva con el nombre, tipo de invitado, cupos y texto de bienvenida.' },
+                  { name: 'personalized_show_passes', label: 'Mostrar cantidad de pases reservados', desc: 'El invitado verá cuántos lugares tiene reservados para este evento.' },
+                  { name: 'personalized_show_type_badge', label: 'Mostrar tipo de invitado (VIP, Familia, etc.)', desc: 'Muestra una etiqueta de categoría junto al nombre del invitado.' },
+                ] as { name: string; label: string; desc: string }[]).map(({ name, label, desc }) => (
+                  <Controller key={name} name={name as keyof ConfigFormData} control={control} render={({ field }) => (
+                    <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl hover:bg-[var(--color-secondary)] transition-colors">
+                      <div className="relative mt-0.5 flex-shrink-0">
+                        <input type="checkbox" className="sr-only" checked={!!field.value} onChange={() => field.onChange(!field.value)} />
+                        <div className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
+                          style={{ borderColor: field.value ? 'var(--color-primary)' : 'var(--color-border)', background: field.value ? 'var(--color-primary)' : 'transparent' }}>
+                          {field.value && <svg viewBox="0 0 12 12" className="w-3 h-3"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" /></svg>}
+                        </div>
+                      </div>
+                      <div><p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{label}</p>
+                        <p className="text-xs mt-0.5 font-body" style={{ color: 'var(--color-text-muted)' }}>{desc}</p></div>
+                    </label>
+                  )} />
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="input-label">Posición de la sección de bienvenida</label>
+                  <Controller name="personalized_greeting_position" control={control} render={({ field }) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
+                      {([
+                        { value: 'top',            label: 'Al inicio',          desc: 'Antes del Hero' },
+                        { value: 'after_hero',     label: 'Tras el Hero',       desc: 'Después de portada' },
+                        { value: 'after_countdown',label: 'Tras cuenta regresiva', desc: '' },
+                        { value: 'after_story',    label: 'Tras historia',      desc: '' },
+                      ] as { value: string; label: string; desc: string }[]).map((opt) => (
+                        <button key={opt.value} type="button" onClick={() => field.onChange(opt.value)}
+                          className="p-2.5 rounded-xl border-2 text-left transition-all"
+                          style={{ borderColor: field.value === opt.value ? 'var(--color-primary)' : 'var(--color-border)', background: field.value === opt.value ? 'var(--color-secondary)' : 'var(--color-surface)' }}>
+                          <p className="text-xs font-medium font-body" style={{ color: 'var(--color-text)' }}>{opt.label}</p>
+                          {opt.desc && <p className="text-xs font-body mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{opt.desc}</p>}
+                        </button>
+                      ))}
+                    </div>
+                  )} />
+                </div>
+
+                <div>
+                  <label className="input-label">Título de la sección de bienvenida</label>
+                  <input {...register('personalized_greeting_title')} className="input-field"
+                    placeholder="Tu invitación personal" />
+                </div>
+
+                <div>
+                  <label className="input-label">Texto de bienvenida</label>
+                  <textarea {...register('personalized_greeting_body')} rows={3}
+                    className="input-field resize-none"
+                    placeholder="Con mucho cariño te invitamos a compartir este día especial con nosotros. Nos emociona tenerte presente." />
+                </div>
+
+                <div>
+                  <label className="input-label">Mensaje de pases reservados</label>
+                  <input {...register('personalized_passes_label')} className="input-field"
+                    placeholder="Hemos reservado {passes} lugar(es) para ti en este evento." />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                    Usa <code className="font-mono px-1 py-0.5 rounded" style={{ background: 'var(--color-secondary)' }}>{'{passes}'}</code> para insertar el número de pases reservados.
                   </p>
                 </div>
               </div>
@@ -3733,5 +3885,16 @@ function buildDefaultValues(cfg: Record<string, unknown>): ConfigFormData {
     rsvp_enforce_pass_limit:       (cfg.rsvp_enforce_pass_limit as boolean)       ?? true,
     show_reserved_passes_message:  (cfg.show_reserved_passes_message as boolean)  ?? true,
     whatsapp_template:             (cfg.whatsapp_template as string)              ?? '',
+    // Personalized full-view defaults
+    personalized_full_view:           (cfg.personalized_full_view as boolean)          ?? true,
+    personalized_hero_badge_enabled:  (cfg.personalized_hero_badge_enabled as boolean) ?? true,
+    personalized_hero_badge_label:    (cfg.personalized_hero_badge_label as string)    ?? 'Invitación especial para',
+    personalized_greeting_enabled:    (cfg.personalized_greeting_enabled as boolean)   ?? true,
+    personalized_greeting_position:   (cfg.personalized_greeting_position as string)   ?? 'after_hero',
+    personalized_greeting_title:      (cfg.personalized_greeting_title as string)      ?? 'Tu invitación personal',
+    personalized_greeting_body:       (cfg.personalized_greeting_body as string)       ?? 'Con mucho cariño te invitamos a compartir este día especial con nosotros. Nos emociona tenerte presente.',
+    personalized_show_passes:         (cfg.personalized_show_passes as boolean)        ?? true,
+    personalized_passes_label:        (cfg.personalized_passes_label as string)        ?? 'Hemos reservado {passes} lugar(es) para ti en este evento.',
+    personalized_show_type_badge:     (cfg.personalized_show_type_badge as boolean)    ?? true,
   };
 }

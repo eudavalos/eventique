@@ -238,6 +238,17 @@ export interface WeddingConfig {
   rsvp_enforce_pass_limit?: boolean;
   show_reserved_passes_message?: boolean;
   whatsapp_template?: string;
+  // ── Personalized full-view integration ────────────────────────────────────
+  personalized_full_view?: boolean;
+  personalized_hero_badge_enabled?: boolean;
+  personalized_hero_badge_label?: string;
+  personalized_greeting_enabled?: boolean;
+  personalized_greeting_position?: 'top' | 'after_hero' | 'after_countdown' | 'after_story';
+  personalized_greeting_title?: string;
+  personalized_greeting_body?: string;
+  personalized_show_passes?: boolean;
+  personalized_passes_label?: string;
+  personalized_show_type_badge?: boolean;
 }
 
 // ---- Event Config (dynamic, stored in DB) ----
@@ -367,6 +378,7 @@ export interface PersonalizedInvitationData {
     allowed_passes: number;
     confirmed_passes: number;
     status: InvitationStatus;
+    guest_type: GuestType;
     conditional_flags: string[];
     event_slug: string;
   };

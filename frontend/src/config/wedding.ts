@@ -304,4 +304,20 @@ export const config: WeddingConfig = {
   social: {
     hashtag: '#ConcepciónYEumelio2026',
   },
+
+  // ──────────────────────────────────────────────────────────
+  //  8. INVITACIÓN PERSONALIZADA — VISTA COMPLETA
+  //  Controla cómo se integran los datos del invitado con la
+  //  invitación principal cuando se accede via /i/:token
+  // ──────────────────────────────────────────────────────────
+  personalized_full_view: true,
+  personalized_hero_badge_enabled: true,
+  personalized_hero_badge_label: 'Invitación especial para',
+  personalized_greeting_enabled: true,
+  personalized_greeting_position: 'after_hero' as const,
+  personalized_greeting_title: 'Tu invitación personal',
+  personalized_greeting_body: 'Con mucho cariño te invitamos a compartir este día especial con nosotros. Nos emociona tenerte presente.',
+  personalized_show_passes: true,
+  personalized_passes_label: 'Hemos reservado {passes} lugar(es) para ti en este evento.',
+  personalized_show_type_badge: true,
 };
