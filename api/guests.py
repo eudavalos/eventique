@@ -11,12 +11,14 @@ import csv
 import hashlib
 import io
 import json
+import math
 import secrets
+import urllib.parse
 from datetime import datetime
 from typing import Optional, Any
 
 import bleach
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -489,7 +491,6 @@ async def register_invitation_open(
 
 @router.get(
     "/events/{event_slug}/guests",
-    response_model=list[schemas.GuestInvitationResponse],
     summary="Listar invitados del evento (admin)",
 )
 async def list_guests(
@@ -523,11 +524,18 @@ async def list_guests(
             | (models.GuestInvitation.email.ilike(like))
         )
 
+    total = q.count()
+    pages = max(1, math.ceil(total / limit))
     offset = (page - 1) * limit
     invitations = q.order_by(models.GuestInvitation.created_at.desc()).offset(offset).limit(limit).all()
 
     base_url = settings.public_base_url
-    return [_invitation_to_response(inv, base_url) for inv in invitations]
+    return {
+        "items": [_invitation_to_response(inv, base_url) for inv in invitations],
+        "total": total,
+        "page": page,
+        "pages": pages,
+    }
 
 
 @router.post(
@@ -762,19 +770,19 @@ async def download_csv_template(
 )
 async def import_guests_preview(
     event_slug: str,
-    request: Request,
+    file: UploadFile = File(...),
     authorization: str = Header(...),
     db: Session = Depends(get_db),
 ):
     """
-    Parse the uploaded CSV body and return a preview with validated rows and errors.
+    Parse the uploaded CSV file and return a preview with validated rows and errors.
     Does NOT save anything to the database.
     """
     await _verify_guest_admin(event_slug, authorization, db)
 
-    body = await request.body()
+    raw = await file.read()
     try:
-        text_content = body.decode("utf-8-sig")  # strip BOM if present
+        text_content = raw.decode("utf-8-sig")  # strip BOM if present
     except UnicodeDecodeError:
         raise HTTPException(status_code=400, detail="El archivo CSV debe estar en codificación UTF-8")
 
@@ -788,13 +796,14 @@ async def import_guests_preview(
 )
 async def import_guests_commit(
     event_slug: str,
-    request: Request,
+    payload: dict,
     authorization: str = Header(...),
     db: Session = Depends(get_db),
 ):
     """
-    Parse CSV and save all valid rows as new GuestInvitation records.
-    Returns count of imported rows and any row-level errors.
+    Receive pre-validated CSV rows as JSON and save them as GuestInvitation records.
+    Frontend sends { rows: [...valid_rows from preview...] }.
+    Returns count of imported rows.
     """
     await _verify_guest_admin(event_slug, authorization, db)
 
@@ -802,16 +811,12 @@ async def import_guests_commit(
     if not event:
         raise HTTPException(status_code=404, detail=f"Evento '{event_slug}' no encontrado")
 
-    body = await request.body()
-    try:
-        text_content = body.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        raise HTTPException(status_code=400, detail="El archivo CSV debe estar en codificación UTF-8")
-
-    preview = _parse_csv_import(text_content, max_rows=_CSV_IMPORT_MAX_ROWS)
+    rows: list[dict] = payload.get("rows", [])
+    if not rows:
+        raise HTTPException(status_code=400, detail="No hay filas válidas para importar.")
 
     created = 0
-    for row in preview.valid_rows:
+    for row in rows:
         token = generate_invitation_token()
         tags_list: list[str] = []
         if row.get("tags"):
@@ -844,11 +849,7 @@ async def import_guests_commit(
 
     db.commit()
 
-    return {
-        "imported": created,
-        "errors": preview.error_count,
-        "error_rows": preview.error_rows,
-    }
+    return {"imported": created, "errors": 0}
 
 
 @router.get(
@@ -940,13 +941,15 @@ async def update_guest(
 async def patch_guest_status(
     event_slug: str,
     guest_id: int,
-    new_status: str = Query(..., description="Nuevo estado: draft|pending|sent|opened|confirmed|declined|partial|blocked|expired"),
-    blocked_reason: Optional[str] = Query(None, max_length=500),
+    payload: dict,
     authorization: str = Header(...),
     db: Session = Depends(get_db),
 ):
     await _verify_guest_admin(event_slug, authorization, db)
     inv = _get_invitation_or_404(event_slug, guest_id, db)
+
+    new_status = payload.get("status", "")
+    blocked_reason = payload.get("blocked_reason")
 
     valid_statuses = {s.value for s in schemas.InvitationStatus}
     if new_status not in valid_statuses:
@@ -1118,7 +1121,6 @@ async def get_guest_audit(
 
 @router.get(
     "/events/{event_slug}/guests/{guest_id}/whatsapp",
-    response_model=schemas.WhatsAppTemplateVars,
     summary="Generar mensaje WhatsApp para invitado (admin)",
 )
 async def get_guest_whatsapp(
@@ -1151,15 +1153,16 @@ async def get_guest_whatsapp(
         rsvp_deadline=rsvp_deadline or "",
     )
 
-    return schemas.WhatsAppTemplateVars(
-        template=rendered,
-        display_name=inv.display_name,
-        event_name=event_name,
-        event_date=str(event_date),
-        allowed_passes=inv.allowed_passes,
-        invitation_url=invitation_url,
-        rsvp_deadline=rsvp_deadline,
-    )
+    wa_url = f"https://wa.me/?text={urllib.parse.quote(rendered)}"
+
+    return {
+        "message": rendered,
+        "url": wa_url,
+        "display_name": inv.display_name,
+        "event_name": event_name,
+        "allowed_passes": inv.allowed_passes,
+        "invitation_url": invitation_url,
+    }
 
 
 # ── Internal helpers ───────────────────────────────────────────────────────────
