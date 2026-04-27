@@ -846,6 +846,8 @@ export default function AdminPage() {
       const cfgRes = await rsvpApi.getEventConfig(eventSlug);
       const updatedCfg = cfgRes.data as unknown as Record<string, unknown>;
       setEventCfg(updatedCfg);
+      // Sync react-hook-form so that a subsequent saveConfig doesn't overwrite with stale palette
+      setValue('palette', selectedPalette);
     } catch {
       toast.error('Error al guardar el tema');
     } finally {
@@ -2201,7 +2203,7 @@ export default function AdminPage() {
                         background: watchedPalette === key ? 'var(--color-secondary)' : 'var(--color-surface)',
                       }}
                     >
-                      <input type="radio" value={key} {...register('palette')} className="sr-only" />
+                      <input type="radio" value={key} {...register('palette', { onChange: (e) => { setSelectedPalette(e.target.value as PaletteKey); applyTheme(e.target.value as PaletteKey); } })} className="sr-only" />
                       <div className="flex gap-1">{colors.map((c) => (<div key={c} className="w-5 h-5 rounded-full border border-black/10" style={{ background: c }} />))}</div>
                       <span className="text-xs font-body font-medium" style={{ color: 'var(--color-text)' }}>{label}</span>
                     </label>
@@ -2243,7 +2245,7 @@ export default function AdminPage() {
                               <button
                                 key={key}
                                 type="button"
-                                onClick={() => { setSelectedPalette(key); applyTheme(key); }}
+                                onClick={() => { setSelectedPalette(key); applyTheme(key); setValue('palette', key); }}
                                 className="flex flex-col gap-3 p-5 rounded-2xl border-2 text-left transition-all duration-200 relative"
                                 style={{
                                   borderColor: selectedPalette === key ? 'var(--color-primary)' : 'var(--color-border)',
