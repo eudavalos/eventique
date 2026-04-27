@@ -2683,38 +2683,46 @@ export default function AdminPage() {
 
             {/* Create/Edit guest modal */}
             {showCreateGuest && (
-              <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 px-4 pb-8 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.5)' }}>
-                <div className="card w-full max-w-lg p-6 sm:p-8 relative">
-                  <button onClick={() => { setShowCreateGuest(false); setEditingGuest(null); }} className="absolute top-4 right-4" style={{ color: 'var(--color-text-muted)' }}>
-                    <X className="w-5 h-5" />
-                  </button>
-                  <h2 className="font-sub text-lg font-medium mb-5" style={{ color: 'var(--color-text)' }}>
-                    {editingGuest ? 'Editar invitado' : 'Agregar invitado'}
-                  </h2>
-                  <GuestForm
-                    key={editingGuest?.id ?? 'new'}
-                    initial={editingGuest}
-                    onSave={async (data) => {
-                      try {
-                        if (editingGuest) {
-                          await rsvpApi.updateGuest(eventSlug, token, editingGuest.id, data);
-                          toast.success('Invitado actualizado');
-                        } else {
-                          const res = await rsvpApi.createGuest(eventSlug, token, data);
-                          const newGuest = res.data as GuestInvitation;
-                          const invUrl = buildInvUrl(newGuest.token_lookup);
-                          navigator.clipboard.writeText(invUrl).catch(() => {});
-                          toast.success(`"${newGuest.display_name}" creado · link copiado al portapapeles`);
-                        }
-                        setShowCreateGuest(false); setEditingGuest(null);
-                        loadGuests(guestPage); loadGuestStats();
-                      } catch (e: unknown) {
-                        const msg = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? 'Error al guardar';
-                        toast.error(msg);
-                      }
-                    }}
-                    onCancel={() => { setShowCreateGuest(false); setEditingGuest(null); }}
-                  />
+              <div className="fixed inset-0 z-50 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                <div className="flex min-h-full items-start justify-center px-4 pt-8 pb-10">
+                  <div className="card w-full max-w-lg relative flex flex-col" style={{ maxHeight: 'calc(100vh - 5rem)' }}>
+                    {/* sticky header */}
+                    <div className="flex items-center justify-between px-6 pt-6 pb-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                      <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>
+                        {editingGuest ? 'Editar invitado' : 'Agregar invitado'}
+                      </h2>
+                      <button onClick={() => { setShowCreateGuest(false); setEditingGuest(null); }} style={{ color: 'var(--color-text-muted)' }}>
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    {/* scrollable body */}
+                    <div className="overflow-y-auto flex-1 px-6 py-4">
+                      <GuestForm
+                        key={editingGuest?.id ?? 'new'}
+                        initial={editingGuest}
+                        onSave={async (data) => {
+                          try {
+                            if (editingGuest) {
+                              await rsvpApi.updateGuest(eventSlug, token, editingGuest.id, data);
+                              toast.success('Invitado actualizado');
+                            } else {
+                              const res = await rsvpApi.createGuest(eventSlug, token, data);
+                              const newGuest = res.data as GuestInvitation;
+                              const invUrl = buildInvUrl(newGuest.token_lookup);
+                              navigator.clipboard.writeText(invUrl).catch(() => {});
+                              toast.success(`"${newGuest.display_name}" creado · link copiado al portapapeles`);
+                            }
+                            setShowCreateGuest(false); setEditingGuest(null);
+                            loadGuests(guestPage); loadGuestStats();
+                          } catch (e: unknown) {
+                            const msg = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? 'Error al guardar';
+                            toast.error(msg);
+                          }
+                        }}
+                        onCancel={() => { setShowCreateGuest(false); setEditingGuest(null); }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
