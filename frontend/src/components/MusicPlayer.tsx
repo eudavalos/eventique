@@ -24,6 +24,9 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
   const [muted, setMuted] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [expanded, setExpanded] = useState(false);
+  // true when autoplay was requested but browser policy blocked it
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const current = tracks[currentIdx];
 
@@ -33,24 +36,95 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
       '*',
     );
 
+  // Track real YouTube player state via postMessage events
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(typeof event.data === 'string' ? event.data : '{}');
+        if (data.event === 'onStateChange') {
+          if (data.info === 1) {
+            // YT state: playing
+            setPlaying(true);
+            setAutoplayBlocked(false);
+            if (fallbackRef.current) {
+              clearTimeout(fallbackRef.current);
+              fallbackRef.current = null;
+            }
+          } else if (data.info === 2 || data.info === 0) {
+            // YT state: paused or ended
+            setPlaying(false);
+          }
+        }
+      } catch {/* ignore non-JSON messages */}
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  // Retry playback on first user interaction when autoplay was blocked
+  useEffect(() => {
+    if (!autoplayBlocked) return;
+    const retry = () => {
+      setAutoplayBlocked(false);
+      if (!current) return;
+      if (isYouTube(current.url)) {
+        ytCmd('playVideo');
+      } else if (audioRef.current) {
+        audioRef.current.play().then(() => setPlaying(true)).catch(() => {});
+      }
+    };
+    document.addEventListener('click', retry, { once: true });
+    document.addEventListener('touchstart', retry, { once: true });
+    document.addEventListener('keydown', retry, { once: true });
+    return () => {
+      document.removeEventListener('click', retry);
+      document.removeEventListener('touchstart', retry);
+      document.removeEventListener('keydown', retry);
+    };
+  }, [autoplayBlocked, currentIdx]); // eslint-disable-line
+
   useEffect(() => {
     if (!current) return;
     if (isYouTube(current.url)) {
-      // YouTube track: don't touch audioRef, iframe src is set declaratively
       if (autoplay || playing) {
-        // Give the iframe a moment to load before commanding
         const t = setTimeout(() => {
           ytCmd('playVideo');
-          setPlaying(true);
+          // YouTube does not return a Promise — use a fallback timer to detect block.
+          // If onStateChange(1) fires within 3s, the fallback is cancelled above.
+          if (autoplay) {
+            fallbackRef.current = setTimeout(() => {
+              setPlaying((prev) => {
+                if (!prev) setAutoplayBlocked(true);
+                return prev;
+              });
+              fallbackRef.current = null;
+            }, 3000);
+          }
         }, 1200);
-        return () => clearTimeout(t);
+        return () => {
+          clearTimeout(t);
+          if (fallbackRef.current) {
+            clearTimeout(fallbackRef.current);
+            fallbackRef.current = null;
+          }
+        };
       }
     } else {
       if (!audioRef.current) return;
       audioRef.current.src = current.url;
       audioRef.current.load();
       if (autoplay || playing) {
-        audioRef.current.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+        audioRef.current
+          .play()
+          .then(() => {
+            setPlaying(true);
+            setAutoplayBlocked(false);
+          })
+          .catch((e: Error) => {
+            setPlaying(false);
+            // NotAllowedError = browser autoplay policy blocked playback
+            if (e.name === 'NotAllowedError') setAutoplayBlocked(true);
+          });
       }
     }
   }, [currentIdx]); // eslint-disable-line
@@ -76,7 +150,6 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
   };
 
   const next = () => {
-    // Stop current before switching
     if (isYouTube(current.url)) {
       ytCmd('stopVideo');
     } else {
@@ -94,6 +167,8 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
   };
 
   if (tracks.length === 0) return null;
+
+  const showPulse = playing || autoplayBlocked;
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -115,6 +190,31 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
           title="yt-player"
         />
       )}
+
+      {/* Autoplay-blocked hint — floats above the button */}
+      <AnimatePresence>
+        {autoplayBlocked && !expanded && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.9 }}
+            transition={{ duration: 0.25 }}
+            className="mb-2 flex justify-end pointer-events-none"
+          >
+            <span
+              className="text-xs font-body px-3 py-1.5 rounded-full shadow-md"
+              style={{
+                background: 'var(--color-primary)',
+                color: 'white',
+                opacity: 0.92,
+                letterSpacing: '0.04em',
+              }}
+            >
+              ▶ Toca para reproducir
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {expanded && (
@@ -139,6 +239,11 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
                 <p className="text-xs truncate" style={{ color: 'var(--color-text-muted)' }}>
                   {current.artist}
                 </p>
+                {autoplayBlocked && (
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--color-primary)', opacity: 0.8 }}>
+                    Toca ▶ para iniciar
+                  </p>
+                )}
               </div>
             </div>
 
@@ -174,11 +279,20 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
           style={{ background: 'var(--color-primary)', color: 'white' }}
           aria-label="Música"
         >
-          {playing && (
-            <span className="absolute inset-0 rounded-full animate-ping opacity-25" style={{ background: 'var(--color-primary)' }} />
+          {/* Pulse ring: shows when playing OR when autoplay is blocked (waiting for interaction) */}
+          {showPulse && (
+            <span
+              className="absolute inset-0 rounded-full animate-ping"
+              style={{
+                background: 'var(--color-primary)',
+                opacity: autoplayBlocked ? 0.45 : 0.25,
+              }}
+            />
           )}
           {expanded ? (
             <ChevronUp className="w-5 h-5" />
+          ) : autoplayBlocked ? (
+            <Play className="w-5 h-5 ml-0.5" />
           ) : (
             <Music className="w-5 h-5" />
           )}
