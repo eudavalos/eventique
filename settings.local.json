@@ -1,7 +1,7 @@
 ﻿{
   "session_protocol": {
     "last_session_date": "2026-05-08",
-    "last_session_topic": "paper-access-skin-implementation",
+    "last_session_topic": "qa50-event-scenario-generator",
     "last_commit": "5f63c18",
     "test_count_baseline": 56,
     "test_suite_file": "docs/test_suite.py",
@@ -9,8 +9,8 @@
     "test_suite_categories": ["Conectividad", "Seguridad", "Eventos", "Config", "RSVP", "Invitados", "Seguridad Avanzada", "CSV", "Cleanup"],
     "test_suite_result_last_run": "56/56 — 100% en Pi",
     "pending_issue": null,
-    "last_session_memory_file": "memory/session_2026_05_08_paper_access_skin.md",
-    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_08_paper_access_skin.md",
+    "last_session_memory_file": "memory/session_2026_05_08_qa50_event_scenarios.md",
+    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_08_qa50_event_scenarios.md",
     "git_workflow": {
       "initialized": true,
       "remote": "https://github.com/eudavalos/eventique",
@@ -164,7 +164,31 @@
     }
   },
 
-  "event_types": ["boda", "cumpleanos", "bautismo", "quinceanera", "graduacion", "corporativo"],
+  "event_types": ["boda", "cumpleanos", "bautismo", "quinceanera", "graduacion", "corporativo", "primera-comunion", "aniversario", "baby-shower"],
+
+  "qa_event_scenarios": {
+    "enabled": true,
+    "catalog_version": "2026.05.08",
+    "default_count": 50,
+    "default_prefix": "qa50",
+    "catalog_script": "scripts/event_scenario_catalog.py",
+    "api_runner": "scripts/seed_event_scenarios.py",
+    "db_runner": "scripts/create_test_events.py",
+    "docs": "docs/QA_50_EVENT_SCENARIOS.md",
+    "coverage_dimensions": {
+      "event_types": ["boda", "cumpleanos", "bautismo", "quinceanera", "graduacion", "corporativo", "primera-comunion", "aniversario", "baby-shower"],
+      "skins": ["classic", "envelope", "paper-access"],
+      "invitation_modes": ["generic", "personalized", "hybrid"],
+      "music_profiles": ["youtube-single", "youtube-playlist", "disabled"],
+      "gift_profiles": ["registry", "bank", "both", "none"],
+      "venue_profiles": ["single", "ceremony-reception"],
+      "rsvp_profiles": ["open", "deadline", "limited", "song-request"],
+      "guest_profiles": ["general", "family", "vip", "staff"]
+    },
+    "pi_command": "python3 scripts/seed_event_scenarios.py --base-url http://localhost:5176/api --frontend-url http://localhost:5176 --public-base-url https://eventique.tecnopowerpy.top --token <ADMIN_TOKEN> --count 50 --prefix qa50 --action seed-validate --include-guests --include-rsvps",
+    "last_pi_seed_validate_result": "50/50 escenarios API+frontend OK; 50 guests creados; 33 RSVPs publicos/hibridos creados",
+    "last_pi_full_suite_result": "56/56 — 100% en Pi despues de crear qa50"
+  },
 
   "music": {
     "youtube_embed_params": "enablejsapi=1&autoplay=0&controls=0&rel=0&modestbranding=1&playsinline=1",

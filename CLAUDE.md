@@ -110,12 +110,13 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 | Fase 16 — Documentación + Ayuda Admin | ✅ COMPLETO | GUIA_USUARIO_EVENTIQUE.md ~800 líneas + Tab "Ayuda" integrada en AdminPage |
 | Fase 17 — WhatsApp Preview + Short Links | ✅ COMPLETO | `/s/{short_code}` con Open Graph para WhatsApp, redirección a invitación real, link corto en WhatsApp/QR/copiar link |
 | Fase 18 — Paper Access Skin | ✅ COMPLETO | Nueva skin `paper-access`, paleta `paper-olive`, config full desde Admin, RSVP/música/invitados/venues/regalos integrados |
+| Fase 19 — QA 50 Event Scenarios | ✅ COMPLETO | Catalogo parametrizado de 50 eventos QA, runner API para Pi, guests/RSVP opcionales, validacion de rutas publicas |
 
 **Cliente actual**: Concepción & Eumelio · boda · 2026-06-07 · paleta `nature`  
 **Recintos**: Iglesia de San Pedro Claver + Club de Pesca, Carapeguá, Paraguay  
 **Música**: YouTube track `zqlkbbJ003w` (track 1) + 2 MP3 placeholder  
 **Rama activa**: `main` — todas las features mergeadas y deployed a Pi  
-**Último commit**: `ec68c63` — feat(share): add WhatsApp preview short links
+**Último commit**: pendiente de commit en sesion actual — QA 50 Event Scenarios
 
 ### Decisiones persistentes nuevas (2026-05-08)
 - WhatsApp debe compartir links cortos internos `https://eventique.tecnopowerpy.top/s/{short_code}` para invitaciones personalizadas.
@@ -140,6 +141,15 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 - Todo texto visible del formato Paper Access vive en config dinamica con prefijo `paper_*`; no debe depender de valores sueltos fuera de `WeddingConfig`/SQLite.
 - El formato reutiliza `GuestContext`, `MusicPlayer`, `GiftRegistry`, `RSVP`, venues, countdown y footer existentes para no duplicar contratos de negocio.
 - Validacion en Pi: deploy frontend OK y `docs/test_suite.py` completo paso 56/56 contra `http://localhost:5176/api`.
+
+### Decisiones persistentes QA 50 Event Scenarios (2026-05-08)
+
+- Los 50 eventos QA se generan desde `scripts/event_scenario_catalog.py`; no usar fixtures SQL manuales para el flujo enterprise.
+- El runner productivo es `scripts/seed_event_scenarios.py` y opera por API contra `http://localhost:5176/api` en Pi.
+- Prefijo oficial: `qa50`; esto permite validar, listar y limpiar escenarios sin tocar eventos reales.
+- Cobertura obligatoria: 9 tipos de evento, 3 skins, 3 modos de invitacion, perfiles de musica, regalos, recintos, RSVP e invitados.
+- Los escenarios QA no crean tokens admin especificos por defecto; se administran con `ADMIN_TOKEN` global para evitar credenciales por evento.
+- Documentacion operativa: `docs/QA_50_EVENT_SCENARIOS.md` y `docs/TEST_EVENTS_GUIDE.md`.
 
 ---
 
