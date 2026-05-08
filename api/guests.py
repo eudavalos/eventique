@@ -1144,14 +1144,17 @@ async def get_guest_whatsapp(
     template_str = cfg.get("whatsapp_template", _DEFAULT_WHATSAPP_TEMPLATE)
 
     effective_base = (base_url.rstrip("/") if base_url else settings.public_base_url.rstrip("/"))
-    invitation_url = f"{effective_base}/e/{event_slug}/i/{inv.token_lookup}"
+    full_invitation_url = f"{effective_base}/e/{event_slug}/i/{inv.token_lookup}"
+    short_url = f"{effective_base}/s/{inv.token_lookup[:16]}"
 
     rendered = template_str.format(
         display_name=inv.display_name,
         event_name=event_name,
         event_date=event_date,
         allowed_passes=inv.allowed_passes,
-        invitation_url=invitation_url,
+        invitation_url=short_url,
+        short_url=short_url,
+        full_invitation_url=full_invitation_url,
         rsvp_deadline=rsvp_deadline or "",
     )
 
@@ -1163,7 +1166,9 @@ async def get_guest_whatsapp(
         "display_name": inv.display_name,
         "event_name": event_name,
         "allowed_passes": inv.allowed_passes,
-        "invitation_url": invitation_url,
+        "invitation_url": short_url,
+        "short_url": short_url,
+        "full_invitation_url": full_invitation_url,
     }
 
 

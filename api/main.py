@@ -5,6 +5,8 @@ import shutil
 import smtplib
 import threading
 import uuid
+import html
+import re
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -14,7 +16,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Depends, status, Query, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text
@@ -396,6 +398,91 @@ def _delete_rsvp_by_id(event_slug: str, rsvp_id: int, db: Session):
     db.commit()
 
 
+def _request_public_base_url(request: Request) -> str:
+    configured_base = (settings.public_base_url or "").rstrip("/")
+    if configured_base and "localhost" not in configured_base and "127.0.0.1" not in configured_base:
+        return configured_base
+    proto = request.headers.get("x-forwarded-proto") or request.url.scheme
+    host = request.headers.get("host") or request.url.netloc
+    return f"{proto}://{host}".rstrip("/")
+
+
+def _is_social_preview_request(request: Request) -> bool:
+    ua = (request.headers.get("user-agent") or "").lower()
+    return any(
+        marker in ua
+        for marker in (
+            "whatsapp",
+            "facebookexternalhit",
+            "facebot",
+            "twitterbot",
+            "telegrambot",
+            "linkedinbot",
+            "slackbot",
+        )
+    )
+
+
+def _short_code_for_token(token: str) -> str:
+    return token[:16]
+
+
+def _event_share_title(event: models.Event, cfg: dict) -> str:
+    couple = cfg.get("couple") if isinstance(cfg.get("couple"), dict) else {}
+    display_names = couple.get("displayNames") if isinstance(couple, dict) else None
+    return str(display_names or event.name or "Eventique")
+
+
+def _event_share_description(inv: models.GuestInvitation, cfg: dict) -> str:
+    dates = cfg.get("dates") if isinstance(cfg.get("dates"), dict) else {}
+    display_date = dates.get("displayDate") if isinstance(dates, dict) else None
+    if display_date:
+        return f"Invitación personalizada para {inv.display_name}. Te esperamos el {display_date}."
+    return f"Invitación personalizada para {inv.display_name}. Confirmá tu asistencia."
+
+
+def _share_preview_html(
+    *,
+    title: str,
+    description: str,
+    short_url: str,
+    target_url: str,
+    image_url: str,
+) -> str:
+    title_esc = html.escape(title, quote=True)
+    desc_esc = html.escape(description, quote=True)
+    short_esc = html.escape(short_url, quote=True)
+    target_esc = html.escape(target_url, quote=True)
+    image_esc = html.escape(image_url, quote=True)
+    return f"""<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title_esc}</title>
+    <meta name="description" content="{desc_esc}" />
+    <link rel="canonical" href="{short_esc}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Eventique" />
+    <meta property="og:title" content="{title_esc}" />
+    <meta property="og:description" content="{desc_esc}" />
+    <meta property="og:url" content="{short_esc}" />
+    <meta property="og:image" content="{image_esc}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{title_esc}" />
+    <meta name="twitter:description" content="{desc_esc}" />
+    <meta name="twitter:image" content="{image_esc}" />
+    <meta http-equiv="refresh" content="0;url={target_esc}" />
+  </head>
+  <body>
+    <p><a href="{target_esc}">Abrir invitación</a></p>
+  </body>
+</html>"""
+
+
 # ── Health ────────────────────────────────────────────────────────────────────
 
 
@@ -420,6 +507,54 @@ async def health(db: Session = Depends(get_db)):
         health_data["database"] = "error"
 
     return health_data
+
+
+@app.get("/s/{short_code}", include_in_schema=False)
+async def short_invitation_link(
+    short_code: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Short public link for WhatsApp previews and masked invitation URLs."""
+    if not re.fullmatch(r"[a-zA-Z0-9_-]{8,64}", short_code):
+        raise HTTPException(status_code=404, detail="Link no encontrado")
+
+    matches = (
+        db.query(models.GuestInvitation)
+        .filter(
+            models.GuestInvitation.token_lookup.like(f"{short_code}%"),
+            models.GuestInvitation.is_active == True,  # noqa: E712
+        )
+        .limit(2)
+        .all()
+    )
+    if len(matches) != 1:
+        raise HTTPException(status_code=404, detail="Link no encontrado")
+
+    inv = matches[0]
+    event = db.query(models.Event).filter(models.Event.slug == inv.event_slug).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Evento no encontrado")
+
+    base_url = _request_public_base_url(request)
+    target_url = f"{base_url}/e/{inv.event_slug}/i/{inv.token_lookup}"
+    short_url = f"{base_url}/s/{_short_code_for_token(inv.token_lookup)}"
+
+    if not _is_social_preview_request(request):
+        return RedirectResponse(target_url, status_code=302)
+
+    cfg_row = db.query(models.EventConfig).filter(models.EventConfig.event_slug == inv.event_slug).first()
+    cfg = json.loads(cfg_row.config_json) if cfg_row else {}
+    image_url = f"{base_url}/og-eventique.jpg"
+    return HTMLResponse(
+        _share_preview_html(
+            title=_event_share_title(event, cfg),
+            description=_event_share_description(inv, cfg),
+            short_url=short_url,
+            target_url=target_url,
+            image_url=image_url,
+        )
+    )
 
 
 # ── Backward-compat endpoints (alias → default event) ────────────────────────

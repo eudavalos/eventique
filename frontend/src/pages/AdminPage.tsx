@@ -540,7 +540,13 @@ export default function AdminPage() {
   const [showCSVImport, setShowCSVImport] = useState(false);
   const [csvPreview, setCsvPreview] = useState<CSVImportPreview | null>(null);
   const [csvImporting, setCsvImporting] = useState(false);
-  const [whatsappMsg, setWhatsappMsg] = useState<{ guest: GuestInvitation; message: string; url: string } | null>(null);
+  const [whatsappMsg, setWhatsappMsg] = useState<{
+    guest: GuestInvitation;
+    message: string;
+    url: string;
+    short_url?: string;
+    full_invitation_url?: string;
+  } | null>(null);
   const [guestAudit, setGuestAudit] = useState<InvitationAuditEntry[]>([]);
   const [showAuditModal, setShowAuditModal] = useState(false);
 
@@ -1213,6 +1219,9 @@ export default function AdminPage() {
   const buildInvUrl = (tokenLookup: string) =>
     `${window.location.origin}/e/${eventSlug}/i/${tokenLookup}`;
 
+  const buildShortInvUrl = (tokenLookup: string) =>
+    `${window.location.origin}/s/${tokenLookup.slice(0, 16)}`;
+
   const handleRegenerateToken = async (guest: GuestInvitation) => {
     if (!confirm(`¿Regenerar el link de "${guest.display_name}"? El link anterior dejará de funcionar.`)) return;
     try {
@@ -1221,28 +1230,35 @@ export default function AdminPage() {
       toast.success('Link regenerado');
       loadGuests(guestPage);
       if (data?.token_lookup) {
-        const newUrl = buildInvUrl(data.token_lookup);
+        const newUrl = buildShortInvUrl(data.token_lookup);
         navigator.clipboard.writeText(newUrl).catch(() => {});
-        toast.success('Nuevo link copiado al portapapeles');
+        toast.success('Nuevo link corto copiado al portapapeles');
       }
     } catch { toast.error('Error al regenerar link'); }
   };
 
   const handleCopyLink = (guest: GuestInvitation) => {
-    const url = buildInvUrl(guest.token_lookup);
+    const url = buildShortInvUrl(guest.token_lookup);
     navigator.clipboard.writeText(url).catch(() => {});
-    toast.success('Link copiado al portapapeles');
+    toast.success('Link corto copiado al portapapeles');
   };
 
   const handleShowQR = (guest: GuestInvitation) => {
-    setShowGuestQR({ guest, url: buildInvUrl(guest.token_lookup) });
+    setShowGuestQR({ guest, url: buildShortInvUrl(guest.token_lookup) });
   };
 
   const handleShowWhatsApp = async (guest: GuestInvitation) => {
     try {
-      const invUrl = buildInvUrl(guest.token_lookup);
-      const res = await rsvpApi.getGuestWhatsApp(eventSlug, token, guest.id, invUrl);
-      setWhatsappMsg({ guest, ...(res.data as { message: string; url: string }) });
+      const res = await rsvpApi.getGuestWhatsApp(eventSlug, token, guest.id, window.location.origin);
+      setWhatsappMsg({
+        guest,
+        ...(res.data as {
+          message: string;
+          url: string;
+          short_url?: string;
+          full_invitation_url?: string;
+        }),
+      });
     } catch { toast.error('Error al generar mensaje'); }
   };
 
@@ -1988,7 +2004,7 @@ export default function AdminPage() {
                     placeholder={"¡Hola {display_name}! 🎉\n\nTe invitamos a {event_name}.\n📅 {event_date} · {allowed_passes} lugar(es) reservados.\n\n👉 Tu invitación: {invitation_url}\n\n¡Te esperamos!"}
                   />
                   <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                    Variables disponibles: {'{display_name}'}, {'{event_name}'}, {'{event_date}'}, {'{allowed_passes}'}, {'{invitation_url}'}, {'{rsvp_deadline}'}
+                    Variables disponibles: {'{display_name}'}, {'{event_name}'}, {'{event_date}'}, {'{allowed_passes}'}, {'{invitation_url}'}, {'{short_url}'}, {'{full_invitation_url}'}, {'{rsvp_deadline}'}
                   </p>
                 </div>
               </div>
@@ -2979,7 +2995,7 @@ export default function AdminPage() {
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-1">
-                                <button title="Copiar link" onClick={() => handleCopyLink(g)} className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors" style={{ color: 'var(--color-text-muted)' }}>
+                                <button title="Copiar link corto" onClick={() => handleCopyLink(g)} className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors" style={{ color: 'var(--color-text-muted)' }}>
                                   <Link2 className="w-3.5 h-3.5" />
                                 </button>
                                 <button title="Ver QR" onClick={() => handleShowQR(g)} className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors" style={{ color: 'var(--color-text-muted)' }}>
@@ -3057,9 +3073,9 @@ export default function AdminPage() {
                             } else {
                               const res = await rsvpApi.createGuest(eventSlug, token, data);
                               const newGuest = res.data as GuestInvitation;
-                              const invUrl = buildInvUrl(newGuest.token_lookup);
+                              const invUrl = buildShortInvUrl(newGuest.token_lookup);
                               navigator.clipboard.writeText(invUrl).catch(() => {});
-                              toast.success(`"${newGuest.display_name}" creado · link copiado al portapapeles`);
+                              toast.success(`"${newGuest.display_name}" creado · link corto copiado al portapapeles`);
                             }
                             setShowCreateGuest(false); setEditingGuest(null);
                             loadGuests(guestPage); loadGuestStats();
@@ -3110,6 +3126,19 @@ export default function AdminPage() {
                   </button>
                   <h3 className="font-sub text-base font-medium mb-1" style={{ color: 'var(--color-text)' }}>Mensaje WhatsApp</h3>
                   <p className="text-xs mb-4" style={{ color: 'var(--color-text-muted)' }}>Para: {whatsappMsg.guest.display_name}</p>
+                  {whatsappMsg.short_url && (
+                    <div className="rounded-lg px-3 py-2 mb-3 text-xs font-mono flex items-center justify-between gap-2" style={{ background: 'var(--color-secondary)', color: 'var(--color-text-muted)' }}>
+                      <span className="truncate">{whatsappMsg.short_url}</span>
+                      <button
+                        type="button"
+                        onClick={() => { navigator.clipboard.writeText(whatsappMsg.short_url!); toast.success('Link corto copiado'); }}
+                        className="p-1 rounded hover:bg-white/60"
+                        title="Copiar link corto"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                   <div className="rounded-xl p-4 mb-4 text-sm font-body whitespace-pre-wrap" style={{ background: 'var(--color-secondary)', color: 'var(--color-text)' }}>
                     {whatsappMsg.message}
                   </div>
@@ -4085,7 +4114,7 @@ export default function AdminPage() {
                 <div>
                   <p className="font-semibold mb-1">Enviar por WhatsApp</p>
                   <p style={{ color: 'var(--color-text-muted)' }}>
-                    Clic en el ícono de WhatsApp en la fila del invitado → revisá el mensaje → clic en "Abrir WhatsApp". El enlace que aparece en el mensaje es el enlace único e intransferible de ese invitado.
+                    Clic en el ícono de WhatsApp en la fila del invitado → revisá el mensaje → clic en "Abrir WhatsApp". El enlace que aparece en el mensaje es corto y enmascara el token largo del invitado.
                   </p>
                 </div>
               </div>

@@ -208,7 +208,13 @@ export const rsvpApi = {
     }),
 
   getGuestWhatsApp: (eventSlug: string, token: string, id: number, baseUrl?: string) =>
-    client.get<{ message: string; url: string }>(`/events/${eventSlug}/guests/${id}/whatsapp`, {
+    client.get<{
+      message: string;
+      url: string;
+      invitation_url: string;
+      short_url: string;
+      full_invitation_url: string;
+    }>(`/events/${eventSlug}/guests/${id}/whatsapp`, {
       headers: { Authorization: `Bearer ${token}` },
       params: baseUrl ? { base_url: baseUrl } : undefined,
     }),
