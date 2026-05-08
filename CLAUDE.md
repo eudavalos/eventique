@@ -88,7 +88,7 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 
 ---
 
-## Estado del proyecto (2026-04-27)
+## Estado del proyecto (2026-05-07)
 
 | Fase | Estado | Descripción |
 |------|--------|-------------|
@@ -104,11 +104,12 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 | Fase 10 — Music enhancements | ✅ COMPLETO | YouTube track management desde admin, music.enabled/autoplay toggles |
 | Fase 11 — Event duplication | ✅ COMPLETO | POST /events/{slug}/duplicate, modal "Clonar" en tab Eventos |
 | Fase 12 — Invitaciones Personalizadas | ✅ COMPLETO | GuestInvitation model, 18 endpoints, Admin Invitados tab, /e/:slug/i/:token, CSV import/export, QR, WhatsApp, tracking privado |
+| Fase 13 — UX Invitación Personalizada | ✅ COMPLETO | PersonalizedGreeting enterprise redesign, YouTube fix, parametrización total, sección Obsequio bancaria |
 
-**Cliente actual**: Concepción & Eumelio · boda · 2026-06-07 · paleta `ocean`  
+**Cliente actual**: Concepción & Eumelio · boda · 2026-06-07 · paleta `nature`  
 **Recintos**: Iglesia de San Pedro Claver + Club de Pesca, Carapeguá, Paraguay  
 **Música**: YouTube track `zqlkbbJ003w` (track 1) + 2 MP3 placeholder  
-**Rama activa**: `feature/guest-invitations-enterprise` — pendiente merge a main
+**Rama activa**: `main` — todas las features mergeadas y deployed a Pi
 
 ---
 
@@ -149,6 +150,12 @@ Valores en `settings.local.json`:
 | Cloudflared en `docker-compose.yml` | Tunnel es compartido del host Pi, conflicto | Mantener en `/etc/cloudflared/config.yml` del host |
 | `import.meta.env` sin `vite-env.d.ts` | TypeScript error en build | Requiere `frontend/src/vite-env.d.ts` |
 | `COPY ../nginx/` en Dockerfile con build context = `frontend/` | Docker no puede salir del build context | Build context = raíz del proyecto |
+| `postMessage(msg, '*')` para YouTube | Browsers estrictos/móvil ignoran wildcard origin | Usar `YT_ORIGIN = 'https://www.youtube.com'` como target |
+| YouTube embed sin `&origin=` | YouTube API requiere origin con enablejsapi=1 | `buildYouTubeSrc()` agrega `&origin=${encodeURIComponent(window.location.origin)}` |
+| Enviar comando YT antes de `onReady` | Comandos enviados antes de que YouTube inicialice son silenciosamente ignorados | Usar `pendingPlayRef` queue, ejecutar en handler `onReady` |
+| Hardcodear texto en componentes de invitación personalizada | No configurable desde admin; viola principio de parametrización total | Todo texto via `useConfig()` con fallback a defaults en `wedding.ts` |
+| Campos nuevos en WeddingConfig sin agregar a `mergeConfig` | La propagación DB→config NO es automática — `mergeConfig` usa spread solo para campos conocidos | Agregar línea explícita en `mergeConfig()` en `App.tsx` para cada campo nuevo |
+| Arrays CRUD (tracks, accounts) como campos de `useForm`/`register` | Arrays dinámicos con CRUD no encajan en react-hook-form sin `useFieldArray` | Usar local `useState` array (patrón `musicTracks`, `giftBankAccounts`) |
 
 ---
 
@@ -254,6 +261,7 @@ En cada sesión significativa, actualizar estos cuatro artefactos:
 - 7 toggles configurables: public_rsvp, require_token, track_opens, self_edit, member_names, count_change, enforce_limit
 - Campo WhatsApp template con variables: {display_name}, {event_name}, {invitation_url}, {allowed_passes}
 - Toggle Gift Registry (ocultar sección si no aplica)
+- Card "Datos Bancarios (Obsequio)": toggle + título + cuerpo + CRUD de cuentas bancarias (label/valor)
 
 ### Tab Secciones — editores disponibles
 

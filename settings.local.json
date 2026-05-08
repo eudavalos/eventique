@@ -1,7 +1,7 @@
 {
   "session_protocol": {
-    "last_session_date": "2026-04-26",
-    "last_session_topic": "fases-8-11-content-management-section-editors-music-duplication",
+    "last_session_date": "2026-05-07",
+    "last_session_topic": "personalized-ux-youtube-fix-gift-bank-section-merge-deploy",
     "test_count_baseline": 0,
     "note_on_tests": "No automated test suite yet — validation is manual via browser + curl",
     "git_workflow": {
@@ -77,8 +77,16 @@
 
   "music": {
     "youtube_embed_params": "enablejsapi=1&autoplay=0&controls=0&rel=0&modestbranding=1&playsinline=1",
-    "youtube_postmessage_origin": "*",
+    "youtube_embed_requires_origin_param": true,
+    "youtube_postmessage_origin": "https://www.youtube.com",
+    "youtube_postmessage_origin_note": "NUNCA usar '*' — browsers móvil/estrictos ignoran mensajes wildcard",
+    "youtube_onready_required": true,
+    "youtube_onready_note": "Comandos enviados antes de onReady son silenciosamente ignorados; usar pendingPlayRef queue",
+    "youtube_iframe_min_size_px": 1,
+    "youtube_iframe_min_size_note": "0×0 puede causar que el player no inicialice en algunos browsers",
     "youtube_detection_regex": "[?&]v=([a-zA-Z0-9_-]{11})|youtu\\.be\\/([a-zA-Z0-9_-]{11})",
+    "youtube_block_detection_timeout_ms": 3000,
+    "youtube_onready_safety_timeout_ms": 6000,
     "local_mp3_path": "/public/music/",
     "photos_path": "/public/photos/",
     "admin_youtube_form_fields": ["url", "title", "artist"],
@@ -108,16 +116,20 @@
   },
 
   "current_client": {
+    "event_slug": "boda-conce-eume",
     "event_type": "boda",
     "person1_name": "Concepción Davila",
     "person2_name": "Eumelio Dávalos",
     "display_names": "Concepción & Eumelio",
-    "ceremony_date": "2026-12-05T16:00:00",
-    "timezone": "America/Bogota",
+    "ceremony_date": "2026-06-07T16:00:00",
+    "timezone": "America/Asuncion",
     "palette": "nature",
     "hashtag": "#ConcepcionYEumelio2026",
     "music_youtube_id": "zqlkbbJ003w",
-    "venues_status": "placeholders — client must update via /admin"
+    "ceremony_venue": "Iglesia San Pedro Claver, Carapeguá, Paraguay",
+    "reception_venue": "Club de Pesca, Carapeguá, Paraguay",
+    "personalized_invitation_sample_token": "aaaa6f456c6a051f24c5bc298fbb0bbbb327d701c548ff9f020e634946bf633e",
+    "personalized_invitation_sample_guest": "Ilde Davalos y familia (3 passes, status: opened)"
   },
 
   "sections_available": [
@@ -127,8 +139,39 @@
 
   "sections_top_level_keys": ["music", "social"],
 
+  "personalized_invitation": {
+    "route": "/e/:slug/i/:token",
+    "config_fields_weddingconfig": [
+      "personalized_full_view", "personalized_hero_badge_enabled", "personalized_hero_badge_label",
+      "personalized_greeting_enabled", "personalized_greeting_position",
+      "personalized_greeting_title", "personalized_greeting_body",
+      "personalized_show_passes", "personalized_passes_label",
+      "personalized_show_type_badge", "personalized_show_countdown", "personalized_countdown_label",
+      "conditional_flag_meta",
+      "personalized_rsvp_step1_title", "personalized_rsvp_step2_attending_title",
+      "personalized_rsvp_step2_declined_title", "personalized_rsvp_step2_declined_body",
+      "personalized_rsvp_step3_title", "personalized_rsvp_confirmed_title",
+      "personalized_rsvp_confirmed_body_attending", "personalized_rsvp_confirmed_body_declined"
+    ],
+    "template_variables": {
+      "passes_label": "{passes}",
+      "countdown_label": "{days}"
+    },
+    "flag_icon_map_note": "FLAG_ICON_MAP en PersonalizedGreeting.tsx y PersonalizedInvitationPage.tsx — solo UI, sin texto",
+    "already_responded_links": ["google_calendar", "google_maps", "native_share_api"],
+    "google_calendar_url_built_from": ["config.dates.ceremony", "config.couple.displayNames", "config.venues.ceremony"]
+  },
+
+  "gift_bank": {
+    "config_fields": ["gift_bank_enabled", "gift_bank_title", "gift_bank_body", "gift_bank_accounts"],
+    "accounts_schema": "Array<{ label: string; value: string }>",
+    "admin_state_pattern": "local useState (giftBankAccounts) — igual que musicTracks, NO react-hook-form field",
+    "design": "fondo solid var(--color-primary), gift icon flotante, filas glassmorphism con copy-to-clipboard",
+    "coexistence_with_registry": "ambas secciones independientes; GiftRegistry renderiza 0/1/2 según flags"
+  },
+
   "admin_panel": {
-    "tabs": ["rsvps", "config", "tema", "media", "eventos", "secciones"],
+    "tabs": ["rsvps", "config", "tema", "media", "eventos", "secciones", "invitados"],
     "config_storage": "sqlite:event_config table (single row, JSON blob)",
     "config_endpoint_get": "GET /api/event-config",
     "config_endpoint_put": "PUT /api/event-config",
@@ -138,7 +181,8 @@
       "weddingParty", "accommodation", "gallery", "rsvp", "footer",
       "social", "music"
     ],
-    "save_sections_handler": "saveSections — persists all 10 sections + music + social in single PUT call"
+    "save_sections_handler": "saveSections — persists all 10 sections + music + social in single PUT call",
+    "config_tab_gift_bank_card": "Datos Bancarios (Obsequio) — toggle + título + cuerpo + CRUD accounts"
   },
 
   "event_duplication": {
