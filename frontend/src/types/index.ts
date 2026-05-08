@@ -227,6 +227,41 @@ export interface WeddingConfig {
   gift_registry_label?: string;
   gift_registry_title?: string;
   gift_registry_description?: string;
+  // Invitation mode settings (stored in config_json)
+  invitation_mode?: InvitationMode;
+  allow_public_rsvp?: boolean;
+  require_invitation_token_for_rsvp?: boolean;
+  track_invitation_opens?: boolean;
+  allow_guest_self_edit?: boolean;
+  allow_guest_member_names?: boolean;
+  allow_guest_count_change?: boolean;
+  rsvp_enforce_pass_limit?: boolean;
+  show_reserved_passes_message?: boolean;
+  whatsapp_template?: string;
+  // ── Personalized full-view integration ────────────────────────────────────
+  personalized_full_view?: boolean;
+  personalized_hero_badge_enabled?: boolean;
+  personalized_hero_badge_label?: string;
+  personalized_greeting_enabled?: boolean;
+  personalized_greeting_position?: 'top' | 'after_hero' | 'after_countdown' | 'after_story';
+  personalized_greeting_title?: string;
+  personalized_greeting_body?: string;
+  personalized_show_passes?: boolean;
+  personalized_passes_label?: string;
+  personalized_show_type_badge?: boolean;
+  personalized_show_countdown?: boolean;
+  personalized_countdown_label?: string;
+  // ── Conditional flag metadata (fully parametrized) ────────────────────────
+  conditional_flag_meta?: Record<string, { title: string; body: string; icon?: string }>;
+  // ── RSVP personalized step labels ────────────────────────────────────────
+  personalized_rsvp_step1_title?: string;
+  personalized_rsvp_step2_attending_title?: string;
+  personalized_rsvp_step2_declined_title?: string;
+  personalized_rsvp_step2_declined_body?: string;
+  personalized_rsvp_step3_title?: string;
+  personalized_rsvp_confirmed_title?: string;
+  personalized_rsvp_confirmed_body_attending?: string;
+  personalized_rsvp_confirmed_body_declined?: string;
 }
 
 // ---- Event Config (dynamic, stored in DB) ----
@@ -275,6 +310,123 @@ export interface MediaFile {
   size: number;
   url: string;
   uploaded_at: string;
+}
+
+// ---- Guest / Personalized Invitations ----
+
+export type GuestType = 'general' | 'family' | 'vip' | 'staff';
+export type InvitationStatus = 'draft' | 'pending' | 'sent' | 'opened' | 'confirmed' | 'declined' | 'partial' | 'blocked' | 'expired';
+export type InvitationMode = 'generic' | 'personalized' | 'hybrid';
+
+export interface GuestMember {
+  id?: number;
+  invitation_id?: number;
+  full_name: string;
+  member_type: 'adult' | 'child' | 'infant';
+  age_group?: string;
+  menu_preference?: string;
+  dietary_restrictions?: string;
+  attending?: boolean | null;
+  notes?: string;
+}
+
+export interface GuestInvitation {
+  id: number;
+  event_slug: string;
+  display_name: string;
+  contact_name?: string;
+  email?: string;
+  phone?: string;
+  group_name?: string;
+  guest_type: GuestType;
+  status: InvitationStatus;
+  allowed_passes: number;
+  confirmed_passes: number;
+  declined_passes: number;
+  token_lookup: string;
+  invitation_url?: string;
+  notes?: string;
+  tags: string[];
+  conditional_flags: string[];
+  first_opened_at?: string;
+  last_opened_at?: string;
+  open_count: number;
+  last_rsvp_at?: string;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  blocked_reason?: string;
+}
+
+export interface GuestInvitationCreate {
+  display_name: string;
+  contact_name?: string;
+  email?: string;
+  phone?: string;
+  group_name?: string;
+  guest_type?: GuestType;
+  allowed_passes: number;
+  notes?: string;
+  tags?: string[];
+  conditional_flags?: string[];
+}
+
+export interface GuestStats {
+  total_invitations: number;
+  total_passes: number;
+  confirmed_passes: number;
+  declined_passes: number;
+  pending_passes: number;
+  opened: number;
+  not_opened: number;
+  status_counts: Record<InvitationStatus, number>;
+  open_rate: number;
+  confirmation_rate: number;
+}
+
+export interface PersonalizedInvitationData {
+  event_config: Record<string, unknown>;
+  invitation: {
+    display_name: string;
+    allowed_passes: number;
+    confirmed_passes: number;
+    status: InvitationStatus;
+    guest_type: GuestType;
+    conditional_flags: string[];
+    event_slug: string;
+  };
+  members: GuestMember[];
+  rsvp_status: string | null;
+  already_responded: boolean;
+}
+
+export interface PersonalizedRSVPPayload {
+  attending: boolean;
+  guest_count: number;
+  members?: Array<{ full_name: string; dietary_restrictions?: string; menu_preference?: string }>;
+  dietary_restrictions?: string;
+  song_request?: string;
+  message?: string;
+  source: 'personalized';
+}
+
+export interface CSVImportPreview {
+  valid_rows: Array<Record<string, string>>;
+  error_rows: Array<{ row: number; data: Record<string, string>; errors: string[] }>;
+  total: number;
+  valid_count: number;
+  error_count: number;
+}
+
+export interface InvitationAuditEntry {
+  id: number;
+  action: string;
+  entity_type: string;
+  before_json?: string;
+  after_json?: string;
+  performed_at: string;
+  performed_by_type: string;
+  performed_by_ref?: string;
 }
 
 // ---- RSVP Form ----

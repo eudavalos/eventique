@@ -25,6 +25,7 @@ from . import models, schemas
 from .database import engine, get_db, SessionLocal
 from .settings import get_settings
 from .ratelimit import check_rate_limit, get_client_ip
+from .guests import router as guests_router
 
 # ── Config (from api/settings.py — all env vars centralized) ────────────────
 
@@ -115,6 +116,16 @@ def run_migrations():
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_rsvps_id ON rsvps (id)"))
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_rsvps_email ON rsvps (email)"))
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_rsvps_event_slug ON rsvps (event_slug)"))
+            conn.commit()
+
+    # Migrate: add invitation_id and rsvp_source to rsvps (backward compat)
+    with engine.connect() as conn:
+        rsvp_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(rsvps)")).fetchall()]
+        if rsvp_cols and "invitation_id" not in rsvp_cols:
+            conn.execute(text("ALTER TABLE rsvps ADD COLUMN invitation_id INTEGER NULL"))
+            conn.commit()
+        if rsvp_cols and "rsvp_source" not in rsvp_cols:
+            conn.execute(text("ALTER TABLE rsvps ADD COLUMN rsvp_source VARCHAR(50) NULL DEFAULT 'generic'"))
             conn.commit()
 
     # Create default event — INSERT OR IGNORE avoids race condition on multi-worker restart
@@ -262,9 +273,12 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["Content-Type", "Authorization"],
 )
+
+# ── Routers ───────────────────────────────────────────────────────────────────
+app.include_router(guests_router)
 
 # ── Security middleware (custom) ───────────────────────────────────────────────
 

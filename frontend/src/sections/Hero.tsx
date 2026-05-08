@@ -1,10 +1,12 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Sparkles } from 'lucide-react';
 import { useConfig } from '../context/ConfigContext';
+import { useGuest } from '../context/GuestContext';
 import { OrnamentRings } from '../components/Ornament';
 
 export default function Hero() {
   const config = useConfig();
+  const guest = useGuest();
   const { couple, dates, sections } = config;
   const { hero } = sections;
   const names = couple.displayNames ?? `${couple.person1.firstName} & ${couple.person2.firstName}`;
@@ -139,6 +141,29 @@ export default function Hero() {
           </button>
         </motion.div>
       </motion.div>
+
+      {/* Personalized guest badge */}
+      {guest && (config as typeof config & Record<string, unknown>).personalized_hero_badge_enabled !== false && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.5, duration: 0.6 }}
+          className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-5 py-2.5 rounded-full"
+          style={{
+            background: 'rgba(255,255,255,0.12)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255,255,255,0.25)',
+          }}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-white/80 flex-shrink-0" />
+          <span className="text-xs font-body text-white/75 tracking-[0.12em]">
+            {((config as typeof config & Record<string, unknown>).personalized_hero_badge_label as string | undefined) ?? 'Invitación especial para'}
+          </span>
+          <span className="text-xs font-sub font-medium text-white tracking-wide">
+            {guest.data.invitation.display_name}
+          </span>
+        </motion.div>
+      )}
 
       {/* Scroll indicator */}
       {hero.showScrollIndicator && (

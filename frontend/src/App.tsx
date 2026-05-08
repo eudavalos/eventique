@@ -1,4 +1,4 @@
-import { useEffect, useState, Component } from 'react';
+import { useEffect, useState, useCallback, Component } from 'react';
 import type { ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -7,8 +7,9 @@ import { applyTheme, applyFonts } from './lib/theme';
 import { setFavicon } from './lib/favicon';
 import { ConfigContext } from './context/ConfigContext';
 import { EventSlugContext } from './context/EventSlugContext';
+import { GuestContext } from './context/GuestContext';
 import { rsvpApi } from './lib/api';
-import type { WeddingConfig, EventConfig, EventType } from './types';
+import type { WeddingConfig, EventConfig, EventType, PersonalizedInvitationData } from './types';
 
 const EVENT_TYPE_SECTION_LABELS: Record<EventType, {
   storyTitle: string; scheduleTitle: string; faqTitle: string;
@@ -27,6 +28,7 @@ const EVENT_TYPE_SECTION_LABELS: Record<EventType, {
 import InvitationPage from './pages/InvitationPage';
 import AdminPage from './pages/AdminPage';
 import LandingPage from './pages/LandingPage';
+import PersonalizedInvitationPage from './pages/PersonalizedInvitationPage';
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state = { error: null };
@@ -117,6 +119,28 @@ function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): Weddin
     gift_registry_label: (dyn.gift_registry_label as string | undefined) ?? base.gift_registry_label,
     gift_registry_title: (dyn.gift_registry_title as string | undefined) ?? base.gift_registry_title,
     gift_registry_description: (dyn.gift_registry_description as string | undefined) ?? base.gift_registry_description,
+    // ── Personalized full-view fields ──────────────────────────────────────
+    personalized_full_view:           (dyn.personalized_full_view as boolean | undefined)          ?? base.personalized_full_view,
+    personalized_hero_badge_enabled:  (dyn.personalized_hero_badge_enabled as boolean | undefined) ?? base.personalized_hero_badge_enabled,
+    personalized_hero_badge_label:    (dyn.personalized_hero_badge_label as string | undefined)    ?? base.personalized_hero_badge_label,
+    personalized_greeting_enabled:    (dyn.personalized_greeting_enabled as boolean | undefined)   ?? base.personalized_greeting_enabled,
+    personalized_greeting_position:   (dyn.personalized_greeting_position as WeddingConfig['personalized_greeting_position']) ?? base.personalized_greeting_position,
+    personalized_greeting_title:      (dyn.personalized_greeting_title as string | undefined)      ?? base.personalized_greeting_title,
+    personalized_greeting_body:       (dyn.personalized_greeting_body as string | undefined)       ?? base.personalized_greeting_body,
+    personalized_show_passes:         (dyn.personalized_show_passes as boolean | undefined)        ?? base.personalized_show_passes,
+    personalized_passes_label:        (dyn.personalized_passes_label as string | undefined)        ?? base.personalized_passes_label,
+    personalized_show_type_badge:     (dyn.personalized_show_type_badge as boolean | undefined)    ?? base.personalized_show_type_badge,
+    personalized_show_countdown:      (dyn.personalized_show_countdown as boolean | undefined)     ?? base.personalized_show_countdown,
+    personalized_countdown_label:     (dyn.personalized_countdown_label as string | undefined)     ?? base.personalized_countdown_label,
+    conditional_flag_meta:            (dyn.conditional_flag_meta as WeddingConfig['conditional_flag_meta']) ?? base.conditional_flag_meta,
+    personalized_rsvp_step1_title:            (dyn.personalized_rsvp_step1_title as string | undefined)            ?? base.personalized_rsvp_step1_title,
+    personalized_rsvp_step2_attending_title:  (dyn.personalized_rsvp_step2_attending_title as string | undefined)  ?? base.personalized_rsvp_step2_attending_title,
+    personalized_rsvp_step2_declined_title:   (dyn.personalized_rsvp_step2_declined_title as string | undefined)   ?? base.personalized_rsvp_step2_declined_title,
+    personalized_rsvp_step2_declined_body:    (dyn.personalized_rsvp_step2_declined_body as string | undefined)    ?? base.personalized_rsvp_step2_declined_body,
+    personalized_rsvp_step3_title:            (dyn.personalized_rsvp_step3_title as string | undefined)            ?? base.personalized_rsvp_step3_title,
+    personalized_rsvp_confirmed_title:        (dyn.personalized_rsvp_confirmed_title as string | undefined)        ?? base.personalized_rsvp_confirmed_title,
+    personalized_rsvp_confirmed_body_attending: (dyn.personalized_rsvp_confirmed_body_attending as string | undefined) ?? base.personalized_rsvp_confirmed_body_attending,
+    personalized_rsvp_confirmed_body_declined:  (dyn.personalized_rsvp_confirmed_body_declined as string | undefined)  ?? base.personalized_rsvp_confirmed_body_declined,
   };
 }
 
@@ -161,6 +185,130 @@ function EventInvitationRoute({ defaultSlug = 'default' }: { defaultSlug?: strin
   );
 }
 
+// ── Loading / error screens for personalized route ────────────────────────────
+
+function GuestLoadingScreen() {
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)' }}>
+      <div style={{ textAlign: 'center' }}>
+        <svg className="animate-spin" width="40" height="40" viewBox="0 0 24 24" fill="none" style={{ margin: '0 auto 16px', display: 'block' }}>
+          <circle cx="12" cy="12" r="10" stroke="var(--color-border)" strokeWidth="3" />
+          <path d="M4 12a8 8 0 018-8" stroke="var(--color-primary)" strokeWidth="3" strokeLinecap="round" />
+        </svg>
+        <p style={{ fontFamily: 'var(--font-body)', color: 'var(--color-text-muted)', fontSize: '0.85rem', letterSpacing: '0.15em' }}>
+          Cargando tu invitación…
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function GuestErrorScreen({ type }: { type: 'not_found' | 'blocked' | 'error' }) {
+  const msgs = {
+    not_found: { title: 'Invitación no encontrada', body: 'El enlace de esta invitación no existe o ha expirado.' },
+    blocked:   { title: 'Acceso no disponible',    body: 'Esta invitación ha sido desactivada por el organizador.' },
+    error:     { title: 'Error al cargar',          body: 'No se pudo cargar tu invitación. Intenta de nuevo más tarde.' },
+  };
+  const { title, body } = msgs[type];
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)', padding: '24px' }}>
+      <div style={{ textAlign: 'center', maxWidth: 400 }}>
+        <p style={{ fontSize: '3rem', marginBottom: '16px' }}>{type === 'blocked' ? '🔒' : '🔍'}</p>
+        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', fontWeight: 300, color: 'var(--color-text)', marginBottom: '12px' }}>{title}</h1>
+        <p style={{ fontFamily: 'var(--font-body)', color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>{body}</p>
+      </div>
+    </div>
+  );
+}
+
+// ── PersonalizedInvitationRoute ────────────────────────────────────────────────
+
+function PersonalizedInvitationRoute() {
+  const { slug, token } = useParams<{ slug: string; token: string }>();
+  const [eventConfig, setEventConfig] = useState<WeddingConfig>(staticConfig);
+  const [guestData, setGuestData] = useState<PersonalizedInvitationData | null>(null);
+  const [guestError, setGuestError] = useState<'not_found' | 'blocked' | 'error' | null>(null);
+  const [configLoaded, setConfigLoaded] = useState(false);
+  const [guestLoaded, setGuestLoaded] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+
+  useEffect(() => {
+    if (!slug) return;
+    // Apply static defaults immediately so loading screen is themed
+    applyTheme(staticConfig.theme.palette, staticConfig.theme.customColors);
+
+    rsvpApi.getEventConfig(slug)
+      .then(({ data }) => {
+        const merged = mergeConfig(staticConfig, data as Partial<EventConfig>);
+        setEventConfig(merged);
+        applyTheme(merged.theme.palette, merged.theme.customColors);
+        if (merged.theme.fonts) applyFonts(merged.theme.fonts.heading, merged.theme.fonts.subheading, merged.theme.fonts.body);
+        if ((data as Partial<EventConfig>).event_type) setFavicon((data as Partial<EventConfig>).event_type!);
+        const { couple, dates } = merged;
+        document.title = `${couple.displayNames ?? couple.person1.firstName} — ${dates.displayDate ?? dates.ceremony.slice(0, 10)}`;
+      })
+      .catch(() => {})
+      .finally(() => setConfigLoaded(true));
+  }, [slug]);
+
+  useEffect(() => {
+    if (!slug || !token) return;
+    setGuestLoaded(false);
+    setGuestError(null);
+
+    rsvpApi.getPersonalizedInvitation(slug, token)
+      .then(({ data }) => {
+        setGuestData(data);
+        rsvpApi.trackInvitationOpen(slug, token, 'direct').catch(() => {});
+      })
+      .catch((err) => {
+        const status = (err as { response?: { status?: number; data?: { detail?: string } } })?.response?.status;
+        const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? '';
+        if (status === 404 || detail.toLowerCase().includes('not found')) setGuestError('not_found');
+        else if (detail === 'blocked') setGuestError('blocked');
+        else setGuestError('error');
+      })
+      .finally(() => setGuestLoaded(true));
+  }, [slug, token, refreshKey]);
+
+  if (!configLoaded || !guestLoaded) return <GuestLoadingScreen />;
+  if (guestError === 'not_found') return <GuestErrorScreen type="not_found" />;
+  if (guestError === 'blocked') return <GuestErrorScreen type="blocked" />;
+
+  // On network error: fall back to standalone PersonalizedInvitationPage
+  if (guestError === 'error' || !guestData) {
+    return (
+      <EventSlugContext.Provider value={slug ?? ''}>
+        <PersonalizedInvitationPage />
+      </EventSlugContext.Provider>
+    );
+  }
+
+  const cfgDyn = eventConfig as WeddingConfig & Record<string, unknown>;
+  const fullView = (cfgDyn.personalized_full_view as boolean | undefined) ?? true;
+
+  if (!fullView) {
+    // Legacy standalone view
+    return (
+      <EventSlugContext.Provider value={slug ?? ''}>
+        <PersonalizedInvitationPage />
+      </EventSlugContext.Provider>
+    );
+  }
+
+  return (
+    <EventSlugContext.Provider value={slug ?? ''}>
+      <ConfigContext.Provider value={eventConfig}>
+        <GuestContext.Provider value={{ data: guestData, tokenLookup: token!, refresh }}>
+          <InvitationPage />
+        </GuestContext.Provider>
+      </ConfigContext.Provider>
+    </EventSlugContext.Provider>
+  );
+}
+
 function EventAdminRoute({ defaultSlug = 'default' }: { defaultSlug?: string }) {
   const { slug: paramSlug } = useParams<{ slug: string }>();
   const eventSlug = paramSlug ?? defaultSlug;
@@ -195,6 +343,7 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/admin" element={<EventAdminRoute defaultSlug="default" />} />
           <Route path="/e/:slug" element={<EventInvitationRoute />} />
+          <Route path="/e/:slug/i/:token" element={<PersonalizedInvitationRoute />} />
           <Route path="/e/:slug/admin" element={<EventAdminRoute />} />
         </Routes>
       </BrowserRouter>

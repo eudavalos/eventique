@@ -5,6 +5,8 @@ import {
   Settings, Palette, Upload, Trash2, Plus, ExternalLink,
   Copy, Music2, Calendar, Pencil, QrCode, X, FileText,
   Image as ImageIcon, LogOut, Key, RefreshCw,
+  UserPlus, UserCheck, Send, Link2, Filter, ChevronLeft, ChevronRight,
+  Eye, RotateCcw, MessageSquare, GripVertical, ChevronUp as ChevronUpIcon, ChevronDown,
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import toast from 'react-hot-toast';
@@ -15,7 +17,7 @@ import { config as staticConfig } from '../config/wedding';
 import { applyTheme } from '../lib/theme';
 import { setFavicon } from '../lib/favicon';
 import { getRecommendedPalettes } from '../lib/palettesByEventType';
-import type { PaletteKey, EventType, EventInfo, MediaFile, StoryEvent, ScheduleItem, FAQItem, GalleryPhoto, MusicTrack, WeddingPartyMember, Hotel, PartySide } from '../types';
+import type { PaletteKey, EventType, EventInfo, MediaFile, StoryEvent, ScheduleItem, FAQItem, GalleryPhoto, MusicTrack, WeddingPartyMember, Hotel, PartySide, GuestInvitation, GuestInvitationCreate, GuestStats, CSVImportPreview, InvitationAuditEntry, InvitationStatus, GuestType } from '../types';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -79,6 +81,26 @@ interface ConfigFormData {
   max_guests: number;
   notification_email: string;
   palette: PaletteKey;
+  invitation_mode: string;
+  allow_public_rsvp: boolean;
+  track_invitation_opens: boolean;
+  allow_guest_self_edit: boolean;
+  allow_guest_member_names: boolean;
+  allow_guest_count_change: boolean;
+  rsvp_enforce_pass_limit: boolean;
+  show_reserved_passes_message: boolean;
+  whatsapp_template: string;
+  // ── Personalized full-view ─────────────────────────────────────────────────
+  personalized_full_view: boolean;
+  personalized_hero_badge_enabled: boolean;
+  personalized_hero_badge_label: string;
+  personalized_greeting_enabled: boolean;
+  personalized_greeting_position: string;
+  personalized_greeting_title: string;
+  personalized_greeting_body: string;
+  personalized_show_passes: boolean;
+  personalized_passes_label: string;
+  personalized_show_type_badge: boolean;
 }
 
 // ── Palette data ───────────────────────────────────────────────────────────
@@ -138,7 +160,7 @@ const EVENT_LABELS: Record<EventType, {
   'baby-shower':     { person1: 'Nombre del Bebé',    person2: 'Mamá',         displayNames: 'Ej: Baby Shower de Valentina',  dateLabel: 'Fecha del evento',        venueLabel: 'Lugar',         singleVenue: true,  parents1Label: 'Abuelos del bebé (opcional)',       parents2Label: '',                               parents1Placeholder: 'Ej: Familia González & Familia Morales', parents2Placeholder: ''                       },
 };
 
-type Tab = 'dashboard' | 'rsvps' | 'config' | 'tema' | 'media' | 'eventos' | 'secciones';
+type Tab = 'dashboard' | 'rsvps' | 'invitados' | 'config' | 'tema' | 'media' | 'eventos' | 'secciones';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -159,6 +181,148 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// ── Guest Form Component ───────────────────────────────────────────────────
+
+interface GuestFormProps {
+  initial: GuestInvitation | null;
+  onSave: (data: GuestInvitationCreate) => Promise<void>;
+  onCancel: () => void;
+}
+
+function GuestForm({ initial, onSave, onCancel }: GuestFormProps) {
+  const [saving, setSaving] = useState(false);
+  const [displayName, setDisplayName] = useState(initial?.display_name ?? '');
+  const [contactName, setContactName] = useState(initial?.contact_name ?? '');
+  const [email, setEmail] = useState(initial?.email ?? '');
+  const [phone, setPhone] = useState(initial?.phone ?? '');
+  const [groupName, setGroupName] = useState(initial?.group_name ?? '');
+  const [guestType, setGuestType] = useState<GuestType>(initial?.guest_type ?? 'general');
+  const [allowedPasses, setAllowedPasses] = useState(initial?.allowed_passes ?? 1);
+  const [notes, setNotes] = useState(initial?.notes ?? '');
+  const [tags, setTags] = useState(initial?.tags?.join(', ') ?? '');
+  const [conditionalFlags, setConditionalFlags] = useState(initial?.conditional_flags?.join(', ') ?? '');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!displayName.trim()) return;
+    setSaving(true);
+    try {
+      await onSave({
+        display_name: displayName.trim(),
+        contact_name: contactName.trim() || undefined,
+        email: email.trim() || undefined,
+        phone: phone.trim() || undefined,
+        group_name: groupName.trim() || undefined,
+        guest_type: guestType,
+        allowed_passes: allowedPasses,
+        notes: notes.trim() || undefined,
+        tags: tags.split(',').map(s => s.trim()).filter(Boolean),
+        conditional_flags: conditionalFlags.split(',').map(s => s.trim()).filter(Boolean),
+      });
+    } finally { setSaving(false); }
+  };
+
+  const guestTypeOptions: { value: GuestType; label: string; desc: string }[] = [
+    { value: 'general', label: 'General', desc: 'Invitado estándar' },
+    { value: 'family', label: 'Familia', desc: 'Familiar directo' },
+    { value: 'vip', label: 'VIP', desc: 'Invitado especial' },
+    { value: 'staff', label: 'Staff', desc: 'Personal del evento' },
+  ];
+
+  const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+    <div className="flex items-center gap-3 pt-2 pb-1">
+      <span className="text-xs font-medium uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>{children}</span>
+      <div className="flex-1 h-px" style={{ background: 'var(--color-border)' }} />
+    </div>
+  );
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      {/* ── Datos principales ─────────────────────────────────── */}
+      <SectionLabel>Datos principales</SectionLabel>
+      <div>
+        <label className="input-label">Nombre visible en la invitación *</label>
+        <input value={displayName} onChange={e => setDisplayName(e.target.value)} className="input-field" placeholder="Ej: Familia García, Juan y María, Dr. López..." required />
+        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Este nombre aparece en el saludo: <em>"¡Hola, Familia García!"</em> — sé descriptivo.</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="input-label">Nombre de contacto</label>
+          <input value={contactName} onChange={e => setContactName(e.target.value)} className="input-field" placeholder="Nombre de quien coordinas" />
+        </div>
+        <div>
+          <label className="input-label">Mesa o grupo</label>
+          <input value={groupName} onChange={e => setGroupName(e.target.value)} className="input-field" placeholder="Ej: Mesa 5, Familia García..." />
+        </div>
+      </div>
+
+      {/* ── Cupos y tipo ──────────────────────────────────────── */}
+      <SectionLabel>Cupos y acceso</SectionLabel>
+      <div>
+        <label className="input-label">Cantidad de pases reservados *</label>
+        <div className="flex items-center gap-3 mt-1">
+          <button type="button" onClick={() => setAllowedPasses(Math.max(1, allowedPasses - 1))} className="btn-outline w-9 h-9 p-0 flex items-center justify-center text-lg font-bold">−</button>
+          <span className="text-3xl font-bold font-heading w-12 text-center" style={{ color: 'var(--color-primary)' }}>{allowedPasses}</span>
+          <button type="button" onClick={() => setAllowedPasses(Math.min(50, allowedPasses + 1))} className="btn-outline w-9 h-9 p-0 flex items-center justify-center text-lg font-bold">+</button>
+          <p className="text-xs font-body" style={{ color: 'var(--color-text-muted)' }}>El RSVP no podrá<br/>confirmar más de este número.</p>
+        </div>
+      </div>
+      <div>
+        <label className="input-label">Tipo de invitado</label>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
+          {guestTypeOptions.map(opt => (
+            <button key={opt.value} type="button" onClick={() => setGuestType(opt.value)}
+              className="p-2.5 rounded-xl border-2 text-left transition-all"
+              style={{ borderColor: guestType === opt.value ? 'var(--color-primary)' : 'var(--color-border)', background: guestType === opt.value ? 'var(--color-secondary)' : 'var(--color-surface)' }}>
+              <p className="text-xs font-medium font-body" style={{ color: 'var(--color-text)' }}>{opt.label}</p>
+              <p className="text-xs font-body mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{opt.desc}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Contacto ──────────────────────────────────────────── */}
+      <SectionLabel>Contacto</SectionLabel>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="input-label">Email</label>
+          <input value={email} onChange={e => setEmail(e.target.value)} type="email" className="input-field" placeholder="contacto@ejemplo.com" />
+        </div>
+        <div>
+          <label className="input-label">Teléfono / WhatsApp</label>
+          <input value={phone} onChange={e => setPhone(e.target.value)} className="input-field" placeholder="+595 981 234 567" />
+        </div>
+      </div>
+
+      {/* ── Opciones avanzadas ────────────────────────────────── */}
+      <SectionLabel>Opciones avanzadas</SectionLabel>
+      <div>
+        <label className="input-label">Etiquetas <span className="font-normal">(separadas por coma)</span></label>
+        <input value={tags} onChange={e => setTags(e.target.value)} className="input-field" placeholder="Ej: mesa-1, vegetariano, viaja..." />
+        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Para filtrar y agrupar en el listado. No son visibles para el invitado.</p>
+      </div>
+      <div>
+        <label className="input-label">Acceso especial <span className="font-normal">(secciones exclusivas)</span></label>
+        <input value={conditionalFlags} onChange={e => setConditionalFlags(e.target.value)} className="input-field" placeholder="Ej: after_party, transporte, cena_ensayo..." />
+        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Este invitado verá tarjetas extra en su invitación para cada flag que agregues aquí.</p>
+      </div>
+      <div>
+        <label className="input-label">Notas internas</label>
+        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="input-field resize-none" placeholder="Solo visible para ti (ej: alergia a mariscos, confirmó por teléfono)..." />
+      </div>
+
+      {/* ── Acciones ──────────────────────────────────────────── */}
+      <div className="flex gap-3 pt-3">
+        <button type="button" onClick={onCancel} className="btn-outline py-2.5 text-sm px-5">Cancelar</button>
+        <button type="submit" disabled={!displayName.trim() || saving} className="btn-primary flex-1 py-2.5 text-sm gap-2 disabled:opacity-50">
+          {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+          {initial ? 'Guardar cambios' : 'Guardar y copiar link'}
+        </button>
+      </div>
+    </form>
+  );
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────
@@ -326,6 +490,8 @@ export default function AdminPage() {
   const [newYoutubeUrl, setNewYoutubeUrl] = useState('');
   const [newYoutubeTitle, setNewYoutubeTitle] = useState('');
   const [newYoutubeArtist, setNewYoutubeArtist] = useState('');
+  const trackDragSrc = useRef<number | null>(null);
+  const [trackDragOver, setTrackDragOver] = useState<number | null>(null);
 
   // Duplicate event modal
   const [duplicatingSlug, setDuplicatingSlug] = useState<string | null>(null);
@@ -333,6 +499,25 @@ export default function AdminPage() {
   const [dupSlug, setDupSlug] = useState('');
   const [dupToken, setDupToken] = useState('');
   const [savingDup, setSavingDup] = useState(false);
+
+  // ── Invitados tab state ────────────────────────────────────────────────────
+  const [guests, setGuests] = useState<GuestInvitation[]>([]);
+  const [guestStats, setGuestStats] = useState<GuestStats | null>(null);
+  const [guestLoading, setGuestLoading] = useState(false);
+  const [guestSearch, setGuestSearch] = useState('');
+  const [guestStatusFilter, setGuestStatusFilter] = useState('');
+  const [guestPage, setGuestPage] = useState(1);
+  const [guestTotal, setGuestTotal] = useState(0);
+  const [guestPages, setGuestPages] = useState(1);
+  const [showCreateGuest, setShowCreateGuest] = useState(false);
+  const [editingGuest, setEditingGuest] = useState<GuestInvitation | null>(null);
+  const [showGuestQR, setShowGuestQR] = useState<{ guest: GuestInvitation; url: string } | null>(null);
+  const [showCSVImport, setShowCSVImport] = useState(false);
+  const [csvPreview, setCsvPreview] = useState<CSVImportPreview | null>(null);
+  const [csvImporting, setCsvImporting] = useState(false);
+  const [whatsappMsg, setWhatsappMsg] = useState<{ guest: GuestInvitation; message: string; url: string } | null>(null);
+  const [guestAudit, setGuestAudit] = useState<InvitationAuditEntry[]>([]);
+  const [showAuditModal, setShowAuditModal] = useState(false);
 
   const { register, handleSubmit, reset, watch, control, setValue } = useForm<ConfigFormData>({
     defaultValues: buildDefaultValues({}),
@@ -352,6 +537,16 @@ export default function AdminPage() {
       }
     }
   }, [watchedEventType, setValue, watchedPalette]);
+
+  // ── Guests tab loader ─────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (activeTab === 'invitados' && authed) {
+      loadGuests(1, '', '');
+      loadGuestStats();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, authed]);
 
   // ── Auth ──────────────────────────────────────────────────────────────────
 
@@ -591,6 +786,25 @@ export default function AdminPage() {
         gift_registry_label: formData.gift_registry_label || undefined,
         gift_registry_title: formData.gift_registry_title || undefined,
         gift_registry_description: formData.gift_registry_description || undefined,
+        invitation_mode: formData.invitation_mode || 'generic',
+        allow_public_rsvp: formData.allow_public_rsvp,
+        track_invitation_opens: formData.track_invitation_opens,
+        allow_guest_self_edit: formData.allow_guest_self_edit,
+        allow_guest_member_names: formData.allow_guest_member_names,
+        allow_guest_count_change: formData.allow_guest_count_change,
+        rsvp_enforce_pass_limit: formData.rsvp_enforce_pass_limit,
+        show_reserved_passes_message: formData.show_reserved_passes_message,
+        whatsapp_template: formData.whatsapp_template || undefined,
+        personalized_full_view:          formData.personalized_full_view,
+        personalized_hero_badge_enabled: formData.personalized_hero_badge_enabled,
+        personalized_hero_badge_label:   formData.personalized_hero_badge_label || undefined,
+        personalized_greeting_enabled:   formData.personalized_greeting_enabled,
+        personalized_greeting_position:  formData.personalized_greeting_position || 'after_hero',
+        personalized_greeting_title:     formData.personalized_greeting_title || undefined,
+        personalized_greeting_body:      formData.personalized_greeting_body || undefined,
+        personalized_show_passes:        formData.personalized_show_passes,
+        personalized_passes_label:       formData.personalized_passes_label || undefined,
+        personalized_show_type_badge:    formData.personalized_show_type_badge,
       } as never);
 
       toast.success('Configuración guardada correctamente');
@@ -632,6 +846,8 @@ export default function AdminPage() {
       const cfgRes = await rsvpApi.getEventConfig(eventSlug);
       const updatedCfg = cfgRes.data as unknown as Record<string, unknown>;
       setEventCfg(updatedCfg);
+      // Sync react-hook-form so that a subsequent saveConfig doesn't overwrite with stale palette
+      setValue('palette', selectedPalette);
     } catch {
       toast.error('Error al guardar el tema');
     } finally {
@@ -823,6 +1039,16 @@ export default function AdminPage() {
     } catch { toast.error('Error al eliminar pista del reproductor'); }
   };
 
+  const moveTrack = async (from: number, to: number) => {
+    if (to < 0 || to >= musicTracks.length) return;
+    const next = [...musicTracks];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    try {
+      await saveMusicConfig(next);
+    } catch { toast.error('Error al reordenar pistas'); }
+  };
+
   const saveSections = async () => {
     setSavingSections(true);
     try {
@@ -882,6 +1108,128 @@ export default function AdminPage() {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
       toast.error(msg ?? 'Error al duplicar el evento');
     } finally { setSavingDup(false); }
+  };
+
+  // ── Guest management helpers ────────────────────────────────────────────────
+  const loadGuests = async (page = 1, search = guestSearch, statusFilter = guestStatusFilter) => {
+    if (!token) return;
+    setGuestLoading(true);
+    try {
+      const res = await rsvpApi.listGuests(eventSlug, token, {
+        page, limit: 20,
+        ...(search ? { search } : {}),
+        ...(statusFilter ? { status: statusFilter } : {}),
+      });
+      const data = res.data as { items: GuestInvitation[]; total: number; page: number; pages: number };
+      setGuests(data.items ?? []);
+      setGuestTotal(data.total ?? 0);
+      setGuestPage(data.page ?? 1);
+      setGuestPages(data.pages ?? 1);
+    } catch { /* silent */ } finally { setGuestLoading(false); }
+  };
+
+  const loadGuestStats = async () => {
+    if (!token) return;
+    try {
+      const res = await rsvpApi.getGuestStats(eventSlug, token);
+      setGuestStats(res.data as GuestStats);
+    } catch { /* silent */ }
+  };
+
+  const handleGuestDelete = async (id: number) => {
+    if (!confirm('¿Archivar este invitado? No se eliminará permanentemente.')) return;
+    try {
+      await rsvpApi.deleteGuest(eventSlug, token, id);
+      toast.success('Invitado archivado');
+      loadGuests(guestPage);
+      loadGuestStats();
+    } catch { toast.error('Error al archivar invitado'); }
+  };
+
+  // Always build invitation URLs using the browser's own origin so they work
+  // in every environment (local dev, staging, production) without extra config.
+  const buildInvUrl = (tokenLookup: string) =>
+    `${window.location.origin}/e/${eventSlug}/i/${tokenLookup}`;
+
+  const handleRegenerateToken = async (guest: GuestInvitation) => {
+    if (!confirm(`¿Regenerar el link de "${guest.display_name}"? El link anterior dejará de funcionar.`)) return;
+    try {
+      const res = await rsvpApi.regenerateGuestToken(eventSlug, token, guest.id);
+      const data = res.data as { token_lookup: string };
+      toast.success('Link regenerado');
+      loadGuests(guestPage);
+      if (data?.token_lookup) {
+        const newUrl = buildInvUrl(data.token_lookup);
+        navigator.clipboard.writeText(newUrl).catch(() => {});
+        toast.success('Nuevo link copiado al portapapeles');
+      }
+    } catch { toast.error('Error al regenerar link'); }
+  };
+
+  const handleCopyLink = (guest: GuestInvitation) => {
+    const url = buildInvUrl(guest.token_lookup);
+    navigator.clipboard.writeText(url).catch(() => {});
+    toast.success('Link copiado al portapapeles');
+  };
+
+  const handleShowQR = (guest: GuestInvitation) => {
+    setShowGuestQR({ guest, url: buildInvUrl(guest.token_lookup) });
+  };
+
+  const handleShowWhatsApp = async (guest: GuestInvitation) => {
+    try {
+      const invUrl = buildInvUrl(guest.token_lookup);
+      const res = await rsvpApi.getGuestWhatsApp(eventSlug, token, guest.id, invUrl);
+      setWhatsappMsg({ guest, ...(res.data as { message: string; url: string }) });
+    } catch { toast.error('Error al generar mensaje'); }
+  };
+
+  const handleShowAudit = async (guest: GuestInvitation) => {
+    try {
+      const res = await rsvpApi.getGuestAudit(eventSlug, token, guest.id);
+      setGuestAudit(res.data as InvitationAuditEntry[]);
+      setShowAuditModal(true);
+    } catch { toast.error('Error al cargar historial'); }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const res = await rsvpApi.exportGuestsCSV(eventSlug, token);
+      const url = URL.createObjectURL(res.data as Blob);
+      const a = document.createElement('a'); a.href = url;
+      a.download = `invitados-${eventSlug}-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click(); URL.revokeObjectURL(url);
+    } catch { toast.error('Error al exportar'); }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const res = await rsvpApi.downloadGuestTemplate(eventSlug, token);
+      const url = URL.createObjectURL(res.data as Blob);
+      const a = document.createElement('a'); a.href = url;
+      a.download = `plantilla-invitados.csv`; a.click(); URL.revokeObjectURL(url);
+    } catch { toast.error('Error al descargar plantilla'); }
+  };
+
+  const handleCSVPreview = async (file: File) => {
+    setCsvImporting(true);
+    try {
+      const res = await rsvpApi.importGuestsPreview(eventSlug, token, file);
+      setCsvPreview(res.data as CSVImportPreview);
+    } catch { toast.error('Error al procesar el archivo CSV'); } finally { setCsvImporting(false); }
+  };
+
+  const handleCSVCommit = async () => {
+    if (!csvPreview?.valid_rows?.length) return;
+    setCsvImporting(true);
+    try {
+      const res = await rsvpApi.importGuestsCommit(eventSlug, token, csvPreview.valid_rows);
+      const result = res.data as { imported: number; errors: number };
+      toast.success(`${result.imported} invitados importados correctamente`);
+      if (result.errors > 0) toast.error(`${result.errors} filas con errores no importadas`);
+      setCsvPreview(null); setShowCSVImport(false);
+      loadGuests(1); loadGuestStats();
+    } catch { toast.error('Error al importar invitados'); } finally { setCsvImporting(false); }
   };
 
   // ── Derived ───────────────────────────────────────────────────────────────
@@ -1003,8 +1351,9 @@ export default function AdminPage() {
         {/* Tab bar */}
         <div className="flex gap-1 mb-8 p-1 rounded-xl overflow-x-auto" style={{ background: 'var(--color-secondary)' }}>
           {([
-            { key: 'dashboard', label: 'Inicio',          icon: BarChart3  },
+            { key: 'dashboard', label: 'Inicio',         icon: BarChart3  },
             { key: 'rsvps',     label: 'RSVPs',          icon: Users      },
+            { key: 'invitados', label: 'Invitados',      icon: UserCheck  },
             { key: 'config',    label: 'Configuración',  icon: Settings   },
             { key: 'tema',      label: 'Tema',           icon: Palette    },
             { key: 'media',     label: 'Media',          icon: Upload     },
@@ -1505,6 +1854,214 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Invitation Mode */}
+            <div className="card p-6 sm:p-8">
+              <h2 className="font-sub text-lg font-medium mb-1" style={{ color: 'var(--color-text)' }}>Modo de Invitación</h2>
+              <p className="text-xs mb-5" style={{ color: 'var(--color-text-muted)' }}>
+                Controla cómo los invitados pueden acceder y confirmar asistencia a tu evento.
+              </p>
+              <div className="space-y-5">
+                <div>
+                  <label className="input-label">Tipo de acceso</label>
+                  <Controller
+                    name="invitation_mode"
+                    control={control}
+                    defaultValue="generic"
+                    render={({ field }) => (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-1">
+                        {([
+                          { value: 'generic', label: 'Genérica', desc: 'Cualquier persona con el link puede ver y confirmar asistencia.' },
+                          { value: 'personalized', label: 'Personalizada', desc: 'Solo invitados con link único pueden confirmar. Se requiere módulo Invitados.' },
+                          { value: 'hybrid', label: 'Híbrida', desc: 'Permite tanto acceso público como links personalizados. Mayor control.' },
+                        ] as { value: string; label: string; desc: string }[]).map(opt => (
+                          <button
+                            key={opt.value} type="button" onClick={() => field.onChange(opt.value)}
+                            className="p-4 rounded-xl border-2 text-left transition-all"
+                            style={{ borderColor: field.value === opt.value ? 'var(--color-primary)' : 'var(--color-border)', background: field.value === opt.value ? 'var(--color-secondary)' : 'var(--color-surface)' }}
+                          >
+                            <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{opt.label}</p>
+                            <p className="text-xs mt-1 font-body leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>{opt.desc}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {([
+                    { name: 'allow_public_rsvp', label: 'Permitir RSVP público', desc: 'Cualquier visitante puede confirmar sin link personalizado.' },
+                    { name: 'track_invitation_opens', label: 'Registrar aperturas', desc: 'Guarda cuándo y cuántas veces se abrió cada invitación personalizada.' },
+                    { name: 'allow_guest_self_edit', label: 'Invitado puede editar su RSVP', desc: 'El invitado puede cambiar su confirmación antes del cierre.' },
+                    { name: 'allow_guest_member_names', label: 'Registrar nombres de acompañantes', desc: 'El invitado puede ingresar el nombre de cada persona en su grupo.' },
+                    { name: 'allow_guest_count_change', label: 'Invitado puede cambiar cantidad', desc: 'Puede elegir cuántos de sus pases usará (hasta el máximo asignado).' },
+                    { name: 'rsvp_enforce_pass_limit', label: 'Forzar límite de pases', desc: 'El sistema rechaza confirmaciones que superen los pases asignados.' },
+                    { name: 'show_reserved_passes_message', label: 'Mostrar mensaje de pases reservados', desc: 'El invitado verá "Hemos reservado N lugar(es) para ti."' },
+                  ] as { name: string; label: string; desc: string }[]).map(({ name, label, desc }) => (
+                    <Controller
+                      key={name}
+                      name={name as keyof ConfigFormData}
+                      control={control}
+                      render={({ field }) => (
+                        <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border transition-colors" style={{ borderColor: field.value ? 'var(--color-primary)' : 'var(--color-border)', background: field.value ? 'var(--color-secondary)' : 'transparent' }}>
+                          <div className="flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors" style={{ borderColor: field.value ? 'var(--color-primary)' : 'var(--color-border)', background: field.value ? 'var(--color-primary)' : 'transparent' }}
+                            onClick={() => (field.onChange as (v: boolean) => void)(!field.value as boolean)}>
+                            {field.value && <svg viewBox="0 0 10 10" className="w-3 h-3"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{label}</p>
+                            <p className="text-xs mt-0.5 font-body" style={{ color: 'var(--color-text-muted)' }}>{desc}</p>
+                          </div>
+                        </label>
+                      )}
+                    />
+                  ))}
+                </div>
+                <div>
+                  <label className="input-label">Plantilla de mensaje WhatsApp</label>
+                  <textarea
+                    {...register('whatsapp_template')}
+                    rows={4}
+                    className="input-field resize-none font-mono text-xs"
+                    placeholder={"¡Hola {display_name}! 🎉\n\nTe invitamos a {event_name}.\n📅 {event_date} · {allowed_passes} lugar(es) reservados.\n\n👉 Tu invitación: {invitation_url}\n\n¡Te esperamos!"}
+                  />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                    Variables disponibles: {'{display_name}'}, {'{event_name}'}, {'{event_date}'}, {'{allowed_passes}'}, {'{invitation_url}'}, {'{rsvp_deadline}'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Personalized Full View */}
+            <div className="card p-6 sm:p-8">
+              <div className="flex items-start justify-between gap-4 mb-1">
+                <div>
+                  <h2 className="font-sub text-lg font-medium leading-tight" style={{ color: 'var(--color-text)' }}>Invitación Personalizada — Vista Completa</h2>
+                  <p className="text-xs mt-1 mb-5" style={{ color: 'var(--color-text-muted)' }}>
+                    Cuando un invitado abre su link <code className="font-mono px-1 py-0.5 rounded" style={{ background: 'var(--color-secondary)' }}>/i/:token</code>, en lugar de mostrar solo sus datos, verá la invitación completa con su información integrada de forma elegante.
+                  </p>
+                </div>
+              </div>
+
+              {/* Main toggle */}
+              <div className="flex items-start justify-between gap-4 p-4 rounded-xl mb-4" style={{ background: 'var(--color-secondary)' }}>
+                <div>
+                  <p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>Activar vista completa para invitados personalizados</p>
+                  <p className="text-xs mt-0.5 font-body" style={{ color: 'var(--color-text-muted)' }}>El invitado verá la invitación principal completa (Hero, historia, programa, RSVP, etc.) con su nombre y datos integrados.</p>
+                </div>
+                <Controller name="personalized_full_view" control={control} render={({ field }) => (
+                  <button type="button" onClick={() => field.onChange(!field.value)}
+                    className="flex-shrink-0 w-11 h-6 rounded-full transition-colors relative"
+                    style={{ background: field.value ? 'var(--color-primary)' : 'var(--color-border)' }}>
+                    <span className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-200"
+                      style={{ left: field.value ? '22px' : '2px' }} />
+                  </button>
+                )} />
+              </div>
+
+              {/* Section: Hero badge */}
+              <p className="text-xs font-medium uppercase tracking-widest mb-3 mt-5 font-body" style={{ color: 'var(--color-text-muted)' }}>
+                Insignia en la portada (Hero)
+              </p>
+              <div className="space-y-3 mb-5">
+                {([
+                  { name: 'personalized_hero_badge_enabled', label: 'Mostrar insignia con el nombre del invitado en el Hero', desc: 'Aparece una pastilla elegante sobre la imagen de portada con el nombre del invitado.' },
+                ] as { name: string; label: string; desc: string }[]).map(({ name, label, desc }) => (
+                  <Controller key={name} name={name as keyof ConfigFormData} control={control} render={({ field }) => (
+                    <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl hover:bg-[var(--color-secondary)] transition-colors">
+                      <div className="relative mt-0.5 flex-shrink-0">
+                        <input type="checkbox" className="sr-only" checked={!!field.value} onChange={() => field.onChange(!field.value)} />
+                        <div className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
+                          style={{ borderColor: field.value ? 'var(--color-primary)' : 'var(--color-border)', background: field.value ? 'var(--color-primary)' : 'transparent' }}>
+                          {field.value && <svg viewBox="0 0 12 12" className="w-3 h-3"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" /></svg>}
+                        </div>
+                      </div>
+                      <div><p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{label}</p>
+                        <p className="text-xs mt-0.5 font-body" style={{ color: 'var(--color-text-muted)' }}>{desc}</p></div>
+                    </label>
+                  )} />
+                ))}
+                <div>
+                  <label className="input-label">Texto de la insignia en el Hero</label>
+                  <input {...register('personalized_hero_badge_label')} className="input-field"
+                    placeholder="Invitación especial para" />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                    Se mostrará: "[Tu texto] · [Nombre del invitado]" — ej: <em>"Invitación especial para · Familia García"</em>
+                  </p>
+                </div>
+              </div>
+
+              {/* Section: Personalized greeting */}
+              <p className="text-xs font-medium uppercase tracking-widest mb-3 mt-5 font-body" style={{ color: 'var(--color-text-muted)' }}>
+                Sección de bienvenida personalizada
+              </p>
+              <div className="space-y-3 mb-4">
+                {([
+                  { name: 'personalized_greeting_enabled', label: 'Mostrar sección de bienvenida personalizada', desc: 'Inserta una sección exclusiva con el nombre, tipo de invitado, cupos y texto de bienvenida.' },
+                  { name: 'personalized_show_passes', label: 'Mostrar cantidad de pases reservados', desc: 'El invitado verá cuántos lugares tiene reservados para este evento.' },
+                  { name: 'personalized_show_type_badge', label: 'Mostrar tipo de invitado (VIP, Familia, etc.)', desc: 'Muestra una etiqueta de categoría junto al nombre del invitado.' },
+                ] as { name: string; label: string; desc: string }[]).map(({ name, label, desc }) => (
+                  <Controller key={name} name={name as keyof ConfigFormData} control={control} render={({ field }) => (
+                    <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl hover:bg-[var(--color-secondary)] transition-colors">
+                      <div className="relative mt-0.5 flex-shrink-0">
+                        <input type="checkbox" className="sr-only" checked={!!field.value} onChange={() => field.onChange(!field.value)} />
+                        <div className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
+                          style={{ borderColor: field.value ? 'var(--color-primary)' : 'var(--color-border)', background: field.value ? 'var(--color-primary)' : 'transparent' }}>
+                          {field.value && <svg viewBox="0 0 12 12" className="w-3 h-3"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" /></svg>}
+                        </div>
+                      </div>
+                      <div><p className="text-sm font-medium font-body" style={{ color: 'var(--color-text)' }}>{label}</p>
+                        <p className="text-xs mt-0.5 font-body" style={{ color: 'var(--color-text-muted)' }}>{desc}</p></div>
+                    </label>
+                  )} />
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="input-label">Posición de la sección de bienvenida</label>
+                  <Controller name="personalized_greeting_position" control={control} render={({ field }) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
+                      {([
+                        { value: 'top',            label: 'Al inicio',          desc: 'Antes del Hero' },
+                        { value: 'after_hero',     label: 'Tras el Hero',       desc: 'Después de portada' },
+                        { value: 'after_countdown',label: 'Tras cuenta regresiva', desc: '' },
+                        { value: 'after_story',    label: 'Tras historia',      desc: '' },
+                      ] as { value: string; label: string; desc: string }[]).map((opt) => (
+                        <button key={opt.value} type="button" onClick={() => field.onChange(opt.value)}
+                          className="p-2.5 rounded-xl border-2 text-left transition-all"
+                          style={{ borderColor: field.value === opt.value ? 'var(--color-primary)' : 'var(--color-border)', background: field.value === opt.value ? 'var(--color-secondary)' : 'var(--color-surface)' }}>
+                          <p className="text-xs font-medium font-body" style={{ color: 'var(--color-text)' }}>{opt.label}</p>
+                          {opt.desc && <p className="text-xs font-body mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{opt.desc}</p>}
+                        </button>
+                      ))}
+                    </div>
+                  )} />
+                </div>
+
+                <div>
+                  <label className="input-label">Título de la sección de bienvenida</label>
+                  <input {...register('personalized_greeting_title')} className="input-field"
+                    placeholder="Tu invitación personal" />
+                </div>
+
+                <div>
+                  <label className="input-label">Texto de bienvenida</label>
+                  <textarea {...register('personalized_greeting_body')} rows={3}
+                    className="input-field resize-none"
+                    placeholder="Con mucho cariño te invitamos a compartir este día especial con nosotros. Nos emociona tenerte presente." />
+                </div>
+
+                <div>
+                  <label className="input-label">Mensaje de pases reservados</label>
+                  <input {...register('personalized_passes_label')} className="input-field"
+                    placeholder="Hemos reservado {passes} lugar(es) para ti en este evento." />
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                    Usa <code className="font-mono px-1 py-0.5 rounded" style={{ background: 'var(--color-secondary)' }}>{'{passes}'}</code> para insertar el número de pases reservados.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Gift Registry */}
             <div className="card p-6 sm:p-8">
               {/* Header row with enable/disable toggle */}
@@ -1646,7 +2203,7 @@ export default function AdminPage() {
                         background: watchedPalette === key ? 'var(--color-secondary)' : 'var(--color-surface)',
                       }}
                     >
-                      <input type="radio" value={key} {...register('palette')} className="sr-only" />
+                      <input type="radio" value={key} {...register('palette', { onChange: (e) => { setSelectedPalette(e.target.value as PaletteKey); applyTheme(e.target.value as PaletteKey); } })} className="sr-only" />
                       <div className="flex gap-1">{colors.map((c) => (<div key={c} className="w-5 h-5 rounded-full border border-black/10" style={{ background: c }} />))}</div>
                       <span className="text-xs font-body font-medium" style={{ color: 'var(--color-text)' }}>{label}</span>
                     </label>
@@ -1688,7 +2245,7 @@ export default function AdminPage() {
                               <button
                                 key={key}
                                 type="button"
-                                onClick={() => { setSelectedPalette(key); applyTheme(key); }}
+                                onClick={() => { setSelectedPalette(key); applyTheme(key); setValue('palette', key); }}
                                 className="flex flex-col gap-3 p-5 rounded-2xl border-2 text-left transition-all duration-200 relative"
                                 style={{
                                   borderColor: selectedPalette === key ? 'var(--color-primary)' : 'var(--color-border)',
@@ -2067,6 +2624,425 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* ── TAB: Invitados ── */}
+        {activeTab === 'invitados' && (
+          <div className="space-y-6">
+            {/* Stats dashboard */}
+            {guestStats && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {[
+                  { label: 'Total invitaciones', value: guestStats.total_invitations, color: 'var(--color-primary)' },
+                  { label: 'Cupos confirmados', value: `${guestStats.confirmed_passes}/${guestStats.total_passes}`, color: '#22c55e' },
+                  { label: 'Aperturas', value: `${guestStats.opened}/${guestStats.total_invitations}`, color: '#3b82f6' },
+                  { label: 'Tasa confirmación', value: `${Math.round(guestStats.confirmation_rate * 100)}%`, color: '#f59e0b' },
+                ].map(({ label, value, color }) => (
+                  <div key={label} className="card p-4 text-center">
+                    <p className="text-2xl font-bold font-heading" style={{ color }}>{value}</p>
+                    <p className="text-xs mt-1 font-body" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Status breakdown bar */}
+            {guestStats && guestStats.total_invitations > 0 && (
+              <div className="card p-5">
+                <h3 className="font-sub text-sm font-medium mb-3" style={{ color: 'var(--color-text)' }}>Estado de invitaciones</h3>
+                <div className="flex rounded-full overflow-hidden h-3 gap-px">
+                  {Object.entries(guestStats.status_counts).filter(([, v]) => (v as number) > 0).map(([status, count]) => {
+                    const colors: Record<string, string> = { confirmed: '#22c55e', declined: '#ef4444', pending: '#94a3b8', opened: '#3b82f6', sent: '#8b5cf6', partial: '#f59e0b', blocked: '#6b7280', draft: '#d1d5db', expired: '#9ca3af' };
+                    const pct = ((count as number) / guestStats.total_invitations) * 100;
+                    return <div key={status} style={{ width: `${pct}%`, background: colors[status] ?? '#94a3b8' }} title={`${status}: ${count}`} />;
+                  })}
+                </div>
+                <div className="flex flex-wrap gap-3 mt-3">
+                  {Object.entries(guestStats.status_counts).filter(([, v]) => (v as number) > 0).map(([status, count]) => {
+                    const colors: Record<string, string> = { confirmed: '#22c55e', declined: '#ef4444', pending: '#94a3b8', opened: '#3b82f6', sent: '#8b5cf6', partial: '#f59e0b', blocked: '#6b7280', draft: '#d1d5db', expired: '#9ca3af' };
+                    const labels: Record<string, string> = { confirmed: 'Confirmados', declined: 'Rechazados', pending: 'Pendientes', opened: 'Abiertos', sent: 'Enviados', partial: 'Parciales', blocked: 'Bloqueados', draft: 'Borrador', expired: 'Vencidos' };
+                    return (
+                      <span key={status} className="flex items-center gap-1.5 text-xs font-body" style={{ color: 'var(--color-text-muted)' }}>
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: colors[status] ?? '#94a3b8' }} />
+                        {labels[status] ?? status}: <strong style={{ color: 'var(--color-text)' }}>{String(count)}</strong>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+              <div className="flex gap-2 flex-1 w-full sm:w-auto">
+                <div className="relative flex-1">
+                  <input
+                    value={guestSearch}
+                    onChange={(e) => { setGuestSearch(e.target.value); }}
+                    onKeyDown={(e) => e.key === 'Enter' && loadGuests(1, guestSearch, guestStatusFilter)}
+                    placeholder="Buscar por nombre, email, teléfono..."
+                    className="input-field pl-8 w-full"
+                  />
+                  <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: 'var(--color-text-muted)' }} />
+                </div>
+                <select
+                  value={guestStatusFilter}
+                  onChange={(e) => { setGuestStatusFilter(e.target.value); loadGuests(1, guestSearch, e.target.value); }}
+                  className="input-field w-auto"
+                >
+                  <option value="">Todos los estados</option>
+                  {(['draft','pending','sent','opened','confirmed','declined','partial','blocked','expired'] as InvitationStatus[]).map(s => (
+                    <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>
+                  ))}
+                </select>
+                <button onClick={() => loadGuests(1, guestSearch, guestStatusFilter)} className="btn-outline px-3 py-2 text-sm">
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={handleDownloadTemplate} className="btn-outline text-xs gap-1.5 px-3 py-2">
+                  <Download className="w-3.5 h-3.5" /> Plantilla
+                </button>
+                <button onClick={() => setShowCSVImport(true)} className="btn-outline text-xs gap-1.5 px-3 py-2">
+                  <Upload className="w-3.5 h-3.5" /> Importar CSV
+                </button>
+                <button onClick={handleExportCSV} className="btn-outline text-xs gap-1.5 px-3 py-2">
+                  <Download className="w-3.5 h-3.5" /> Exportar
+                </button>
+                <button onClick={() => { setEditingGuest(null); setShowCreateGuest(true); }} className="btn-primary text-xs gap-1.5 px-4 py-2">
+                  <UserPlus className="w-3.5 h-3.5" /> Agregar invitado
+                </button>
+              </div>
+            </div>
+
+            {/* Guest table */}
+            <div className="card overflow-hidden">
+              {guestLoading ? (
+                <div className="flex items-center justify-center py-16 gap-3" style={{ color: 'var(--color-text-muted)' }}>
+                  <RefreshCw className="w-5 h-5 animate-spin" />
+                  <span className="font-body text-sm">Cargando invitados...</span>
+                </div>
+              ) : guests.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-4 text-center px-6">
+                  <Users className="w-12 h-12 opacity-20" style={{ color: 'var(--color-primary)' }} />
+                  <div>
+                    <p className="font-sub text-base font-medium" style={{ color: 'var(--color-text)' }}>
+                      {guestSearch || guestStatusFilter ? 'Sin resultados para este filtro' : 'Sin invitados aún'}
+                    </p>
+                    <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                      {guestSearch || guestStatusFilter ? 'Prueba con otros términos de búsqueda.' : 'Comienza agregando invitados manualmente o importando un CSV.'}
+                    </p>
+                  </div>
+                  {!guestSearch && !guestStatusFilter && (
+                    <button onClick={() => setShowCreateGuest(true)} className="btn-primary text-sm gap-2">
+                      <UserPlus className="w-4 h-4" /> Agregar primer invitado
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm font-body">
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-secondary)' }}>
+                        {['Invitado', 'Contacto', 'Pases', 'Estado', 'Aperturas', 'Último RSVP', 'Acciones'].map(h => (
+                          <th key={h} className="px-4 py-3 text-left text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--color-text-muted)' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {guests.map((g) => {
+                        const statusColors: Record<string, string> = { confirmed: '#22c55e', declined: '#ef4444', pending: '#f59e0b', opened: '#3b82f6', sent: '#8b5cf6', partial: '#f97316', blocked: '#6b7280', draft: '#94a3b8', expired: '#9ca3af' };
+                        const statusLabels: Record<string, string> = { confirmed: 'Confirmado', declined: 'Rechazado', pending: 'Pendiente', opened: 'Abierto', sent: 'Enviado', partial: 'Parcial', blocked: 'Bloqueado', draft: 'Borrador', expired: 'Vencido' };
+                        return (
+                          <tr key={g.id} style={{ borderBottom: '1px solid var(--color-border)' }} className="hover:bg-[var(--color-secondary)] transition-colors">
+                            <td className="px-4 py-3">
+                              <div>
+                                <p className="font-medium" style={{ color: 'var(--color-text)' }}>{g.display_name}</p>
+                                {g.group_name && <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{g.group_name}</p>}
+                                {g.tags?.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {g.tags.map(tag => (
+                                      <span key={tag} className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: 'var(--color-secondary)', color: 'var(--color-primary)', border: '1px solid var(--color-border)' }}>{tag}</span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <p style={{ color: 'var(--color-text-muted)' }}>{g.contact_name ?? g.display_name}</p>
+                              {g.email && <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{g.email}</p>}
+                              {g.phone && <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{g.phone}</p>}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="font-medium" style={{ color: 'var(--color-text)' }}>{g.confirmed_passes}/{g.allowed_passes}</span>
+                              {g.declined_passes > 0 && <p className="text-xs" style={{ color: '#ef4444' }}>-{g.declined_passes} rechazado</p>}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: `${statusColors[g.status] ?? '#94a3b8'}18`, color: statusColors[g.status] ?? '#94a3b8' }}>
+                                <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: statusColors[g.status] ?? '#94a3b8' }} />
+                                {statusLabels[g.status] ?? g.status}
+                              </span>
+                              {!g.is_active && <p className="text-xs mt-0.5" style={{ color: '#6b7280' }}>Archivado</p>}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span style={{ color: g.open_count > 0 ? '#3b82f6' : 'var(--color-text-muted)' }}>{g.open_count}x</span>
+                              {g.last_opened_at && <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{new Date(g.last_opened_at).toLocaleDateString()}</p>}
+                            </td>
+                            <td className="px-4 py-3">
+                              {g.last_rsvp_at ? (
+                                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{new Date(g.last_rsvp_at).toLocaleDateString()}</span>
+                              ) : <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>Sin RSVP</span>}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1">
+                                <button title="Copiar link" onClick={() => handleCopyLink(g)} className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors" style={{ color: 'var(--color-text-muted)' }}>
+                                  <Link2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button title="Ver QR" onClick={() => handleShowQR(g)} className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors" style={{ color: 'var(--color-text-muted)' }}>
+                                  <QrCode className="w-3.5 h-3.5" />
+                                </button>
+                                <button title="WhatsApp" onClick={() => handleShowWhatsApp(g)} className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors" style={{ color: '#22c55e' }}>
+                                  <MessageSquare className="w-3.5 h-3.5" />
+                                </button>
+                                <button title="Editar" onClick={() => { setEditingGuest(g); setShowCreateGuest(true); }} className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors" style={{ color: 'var(--color-text-muted)' }}>
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button title="Historial" onClick={() => handleShowAudit(g)} className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors" style={{ color: 'var(--color-text-muted)' }}>
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+                                <button title="Regenerar link" onClick={() => handleRegenerateToken(g)} className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors" style={{ color: '#f59e0b' }}>
+                                  <RotateCcw className="w-3.5 h-3.5" />
+                                </button>
+                                <a title="Abrir invitación" href={buildInvUrl(g.token_lookup)} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors inline-flex items-center" style={{ color: 'var(--color-primary)' }}>
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                                <button title="Archivar" onClick={() => handleGuestDelete(g.id)} className="p-1.5 rounded-lg hover:bg-[var(--color-secondary)] transition-colors" style={{ color: '#ef4444' }}>
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {/* Pagination */}
+              {guestPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
+                  <span className="text-xs font-body" style={{ color: 'var(--color-text-muted)' }}>
+                    {guestTotal} invitados · Página {guestPage} de {guestPages}
+                  </span>
+                  <div className="flex gap-1">
+                    <button disabled={guestPage <= 1} onClick={() => { const p = guestPage - 1; loadGuests(p); }} className="btn-outline px-2 py-1 text-xs disabled:opacity-40">
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <button disabled={guestPage >= guestPages} onClick={() => { const p = guestPage + 1; loadGuests(p); }} className="btn-outline px-2 py-1 text-xs disabled:opacity-40">
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Create/Edit guest modal */}
+            {showCreateGuest && (
+              <div className="fixed inset-0 z-50 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                <div className="flex min-h-full items-start justify-center px-4 pt-8 pb-10">
+                  <div className="card w-full max-w-lg relative flex flex-col" style={{ maxHeight: 'calc(100vh - 5rem)' }}>
+                    {/* sticky header */}
+                    <div className="flex items-center justify-between px-6 pt-6 pb-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                      <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>
+                        {editingGuest ? 'Editar invitado' : 'Agregar invitado'}
+                      </h2>
+                      <button onClick={() => { setShowCreateGuest(false); setEditingGuest(null); }} style={{ color: 'var(--color-text-muted)' }}>
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    {/* scrollable body */}
+                    <div className="overflow-y-auto flex-1 px-6 py-4">
+                      <GuestForm
+                        key={editingGuest?.id ?? 'new'}
+                        initial={editingGuest}
+                        onSave={async (data) => {
+                          try {
+                            if (editingGuest) {
+                              await rsvpApi.updateGuest(eventSlug, token, editingGuest.id, data);
+                              toast.success('Invitado actualizado');
+                            } else {
+                              const res = await rsvpApi.createGuest(eventSlug, token, data);
+                              const newGuest = res.data as GuestInvitation;
+                              const invUrl = buildInvUrl(newGuest.token_lookup);
+                              navigator.clipboard.writeText(invUrl).catch(() => {});
+                              toast.success(`"${newGuest.display_name}" creado · link copiado al portapapeles`);
+                            }
+                            setShowCreateGuest(false); setEditingGuest(null);
+                            loadGuests(guestPage); loadGuestStats();
+                          } catch (e: unknown) {
+                            const msg = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? 'Error al guardar';
+                            toast.error(msg);
+                          }
+                        }}
+                        onCancel={() => { setShowCreateGuest(false); setEditingGuest(null); }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* QR Modal */}
+            {showGuestQR && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                <div className="card p-8 max-w-sm w-full text-center relative">
+                  <button onClick={() => setShowGuestQR(null)} className="absolute top-4 right-4" style={{ color: 'var(--color-text-muted)' }}>
+                    <X className="w-5 h-5" />
+                  </button>
+                  <h3 className="font-sub text-base font-medium mb-1" style={{ color: 'var(--color-text)' }}>{showGuestQR.guest.display_name}</h3>
+                  <p className="text-xs mb-5" style={{ color: 'var(--color-text-muted)' }}>Invitación personalizada — QR único</p>
+                  <div className="flex justify-center mb-5">
+                    <QRCodeCanvas value={showGuestQR.url} size={200} level="H" includeMargin />
+                  </div>
+                  <p className="text-xs break-all mb-4 font-mono px-2 py-2 rounded-lg" style={{ background: 'var(--color-secondary)', color: 'var(--color-primary)' }}>{showGuestQR.url}</p>
+                  <div className="flex gap-2 justify-center">
+                    <button onClick={() => { navigator.clipboard.writeText(showGuestQR.url); toast.success('Link copiado'); }} className="btn-outline text-xs gap-1.5 px-4 py-2">
+                      <Copy className="w-3.5 h-3.5" /> Copiar link
+                    </button>
+                    <a href={showGuestQR.url} target="_blank" rel="noopener noreferrer" className="btn-outline text-xs gap-1.5 px-4 py-2 inline-flex items-center">
+                      <ExternalLink className="w-3.5 h-3.5" /> Abrir
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* WhatsApp modal */}
+            {whatsappMsg && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                <div className="card p-6 max-w-md w-full relative">
+                  <button onClick={() => setWhatsappMsg(null)} className="absolute top-4 right-4" style={{ color: 'var(--color-text-muted)' }}>
+                    <X className="w-5 h-5" />
+                  </button>
+                  <h3 className="font-sub text-base font-medium mb-1" style={{ color: 'var(--color-text)' }}>Mensaje WhatsApp</h3>
+                  <p className="text-xs mb-4" style={{ color: 'var(--color-text-muted)' }}>Para: {whatsappMsg.guest.display_name}</p>
+                  <div className="rounded-xl p-4 mb-4 text-sm font-body whitespace-pre-wrap" style={{ background: 'var(--color-secondary)', color: 'var(--color-text)' }}>
+                    {whatsappMsg.message}
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => { navigator.clipboard.writeText(whatsappMsg.message); toast.success('Mensaje copiado'); }} className="btn-outline text-xs gap-1.5 flex-1 py-2.5">
+                      <Copy className="w-3.5 h-3.5" /> Copiar mensaje
+                    </button>
+                    <a href={whatsappMsg.url} target="_blank" rel="noopener noreferrer" className="btn-primary text-xs gap-1.5 flex-1 py-2.5 text-center justify-center" style={{ display: 'flex', alignItems: 'center' }}>
+                      <Send className="w-3.5 h-3.5" /> Abrir WhatsApp
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Audit modal */}
+            {showAuditModal && (
+              <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 px-4 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                <div className="card w-full max-w-lg p-6 relative mb-8">
+                  <button onClick={() => setShowAuditModal(false)} className="absolute top-4 right-4" style={{ color: 'var(--color-text-muted)' }}>
+                    <X className="w-5 h-5" />
+                  </button>
+                  <h3 className="font-sub text-base font-medium mb-4" style={{ color: 'var(--color-text)' }}>Historial de cambios</h3>
+                  {guestAudit.length === 0 ? (
+                    <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Sin registros de auditoría.</p>
+                  ) : (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {guestAudit.map((entry) => (
+                        <div key={entry.id} className="flex gap-3 text-xs font-body" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 8 }}>
+                          <div className="w-2 h-2 rounded-full mt-1 flex-shrink-0" style={{ background: 'var(--color-primary)' }} />
+                          <div>
+                            <p className="font-medium" style={{ color: 'var(--color-text)' }}>{entry.action}</p>
+                            <p style={{ color: 'var(--color-text-muted)' }}>{new Date(entry.performed_at).toLocaleString()} · {entry.performed_by_type}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* CSV Import modal */}
+            {showCSVImport && (
+              <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 px-4 pb-8 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                <div className="card w-full max-w-2xl p-6 sm:p-8 relative">
+                  <button onClick={() => { setShowCSVImport(false); setCsvPreview(null); }} className="absolute top-4 right-4" style={{ color: 'var(--color-text-muted)' }}>
+                    <X className="w-5 h-5" />
+                  </button>
+                  <h2 className="font-sub text-lg font-medium mb-2" style={{ color: 'var(--color-text)' }}>Importar invitados desde CSV</h2>
+                  <p className="text-xs mb-5" style={{ color: 'var(--color-text-muted)' }}>Descarga la plantilla, complétala y súbela aquí. Verás una vista previa antes de confirmar.</p>
+                  {!csvPreview ? (
+                    <div className="space-y-4">
+                      <button onClick={handleDownloadTemplate} className="btn-outline text-sm gap-2 w-full py-3">
+                        <Download className="w-4 h-4" /> Descargar plantilla CSV
+                      </button>
+                      <div
+                        className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors"
+                        style={{ borderColor: 'var(--color-border)' }}
+                        onClick={() => { const i = document.createElement('input'); i.type='file'; i.accept='.csv'; i.onchange = (e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) handleCSVPreview(f); }; i.click(); }}
+                      >
+                        {csvImporting ? (
+                          <p className="text-sm font-body" style={{ color: 'var(--color-text-muted)' }}>Procesando archivo...</p>
+                        ) : (
+                          <>
+                            <Upload className="w-8 h-8 mx-auto mb-3 opacity-40" style={{ color: 'var(--color-primary)' }} />
+                            <p className="text-sm font-body font-medium" style={{ color: 'var(--color-text)' }}>Clic para seleccionar archivo CSV</p>
+                            <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Máximo 500 filas por importación</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="card p-3 text-center"><p className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>{csvPreview.total}</p><p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Total filas</p></div>
+                        <div className="card p-3 text-center"><p className="text-xl font-bold" style={{ color: '#22c55e' }}>{csvPreview.valid_count}</p><p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Válidas</p></div>
+                        <div className="card p-3 text-center"><p className="text-xl font-bold" style={{ color: '#ef4444' }}>{csvPreview.error_count}</p><p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Con errores</p></div>
+                      </div>
+                      {csvPreview.error_rows.length > 0 && (
+                        <div className="rounded-xl p-4 text-xs space-y-2 max-h-48 overflow-y-auto" style={{ background: '#fef2f2' }}>
+                          <p className="font-medium text-red-700">Filas con errores (no se importarán):</p>
+                          {csvPreview.error_rows.map((r) => (
+                            <div key={r.row} className="text-red-600">Fila {r.row}: {r.errors.join(', ')}</div>
+                          ))}
+                        </div>
+                      )}
+                      {csvPreview.valid_count > 0 && (
+                        <div className="overflow-x-auto max-h-48 rounded-xl border" style={{ borderColor: 'var(--color-border)' }}>
+                          <table className="w-full text-xs font-body">
+                            <thead style={{ background: 'var(--color-secondary)' }}>
+                              <tr>{Object.keys(csvPreview.valid_rows[0] ?? {}).map(k => <th key={k} className="px-3 py-2 text-left font-medium" style={{ color: 'var(--color-text-muted)' }}>{k}</th>)}</tr>
+                            </thead>
+                            <tbody>
+                              {csvPreview.valid_rows.slice(0, 10).map((row, i) => (
+                                <tr key={i} style={{ borderTop: '1px solid var(--color-border)' }}>
+                                  {Object.values(row).map((v, j) => <td key={j} className="px-3 py-1.5" style={{ color: 'var(--color-text)' }}>{String(v)}</td>)}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          {csvPreview.valid_count > 10 && <p className="text-xs text-center py-2" style={{ color: 'var(--color-text-muted)' }}>... y {csvPreview.valid_count - 10} filas más</p>}
+                        </div>
+                      )}
+                      <div className="flex gap-3">
+                        <button onClick={() => { setCsvPreview(null); }} className="btn-outline flex-1 py-2.5 text-sm">Cancelar</button>
+                        <button disabled={csvPreview.valid_count === 0 || csvImporting} onClick={handleCSVCommit} className="btn-primary flex-1 py-2.5 text-sm gap-2 disabled:opacity-50">
+                          {csvImporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                          Importar {csvPreview.valid_count} invitados
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -2592,19 +3568,85 @@ export default function AdminPage() {
                 </label>
               </div>
               {musicTracks.length > 0 ? (
-                <div className="space-y-2 mb-4">
-                  {musicTracks.map((track, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
-                      <Music2 className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-primary)' }} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-body font-medium truncate" style={{ color: 'var(--color-text)' }}>{track.title}</p>
-                        {track.artist && <p className="text-xs text-muted">{track.artist}</p>}
+                <div className="mb-4">
+                  <p className="text-xs font-body mb-2 flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
+                    <GripVertical className="w-3 h-3" />
+                    Arrastra para reordenar
+                  </p>
+                  <div className="space-y-1.5">
+                    {musicTracks.map((track, i) => (
+                      <div
+                        key={track.url + i}
+                        draggable
+                        onDragStart={(e) => {
+                          trackDragSrc.current = i;
+                          e.dataTransfer.effectAllowed = 'move';
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = 'move';
+                          setTrackDragOver(i);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          if (trackDragSrc.current !== null && trackDragSrc.current !== i) {
+                            moveTrack(trackDragSrc.current, i);
+                          }
+                          trackDragSrc.current = null;
+                          setTrackDragOver(null);
+                        }}
+                        onDragEnd={() => {
+                          trackDragSrc.current = null;
+                          setTrackDragOver(null);
+                        }}
+                        className="flex items-center gap-3 p-3 rounded-xl transition-all select-none"
+                        style={{
+                          background: 'var(--color-secondary)',
+                          opacity: trackDragSrc.current === i ? 0.4 : 1,
+                          borderLeft: trackDragOver === i && trackDragSrc.current !== i
+                            ? '3px solid var(--color-primary)'
+                            : '3px solid transparent',
+                          cursor: 'grab',
+                        }}
+                      >
+                        {/* Drag handle */}
+                        <GripVertical className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-text-muted)', cursor: 'grab' }} />
+                        {/* Track number */}
+                        <span className="text-xs font-body font-medium w-4 text-center flex-shrink-0" style={{ color: 'var(--color-text-muted)' }}>
+                          {i + 1}
+                        </span>
+                        <Music2 className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-primary)' }} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-body font-medium truncate" style={{ color: 'var(--color-text)' }}>{track.title}</p>
+                          {track.artist && <p className="text-xs text-muted truncate">{track.artist}</p>}
+                        </div>
+                        {/* Up/Down for mobile */}
+                        <div className="flex flex-col gap-0.5 flex-shrink-0">
+                          <button
+                            type="button"
+                            disabled={i === 0}
+                            onClick={() => moveTrack(i, i - 1)}
+                            className="p-0.5 rounded hover:bg-primary/10 disabled:opacity-20 transition-colors"
+                            title="Subir"
+                          >
+                            <ChevronUpIcon className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={i === musicTracks.length - 1}
+                            onClick={() => moveTrack(i, i + 1)}
+                            className="p-0.5 rounded hover:bg-primary/10 disabled:opacity-20 transition-colors"
+                            title="Bajar"
+                          >
+                            <ChevronDown className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
+                          </button>
+                        </div>
+                        <button type="button" onClick={() => removeTrackFromPlayer(track.url)} className="p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0">
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        </button>
                       </div>
-                      <button type="button" onClick={() => removeTrackFromPlayer(track.url)} className="p-1 rounded hover:bg-red-50 transition-colors">
-                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                      </button>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <p className="text-sm text-muted mb-4">No hay pistas en el reproductor.</p>
@@ -2914,5 +3956,25 @@ function buildDefaultValues(cfg: Record<string, unknown>): ConfigFormData {
     max_guests:              (rsvpSect.maxGuestsPerResponse as number) ?? sc.sections.rsvp.maxGuestsPerResponse ?? 4,
     notification_email:      (cfg.notification_email as string)        ?? '',
     palette:                 (theme.palette as PaletteKey)             ?? sc.theme.palette,
+    invitation_mode:               (cfg.invitation_mode as string)               ?? 'generic',
+    allow_public_rsvp:             (cfg.allow_public_rsvp as boolean)             ?? true,
+    track_invitation_opens:        (cfg.track_invitation_opens as boolean)        ?? true,
+    allow_guest_self_edit:         (cfg.allow_guest_self_edit as boolean)         ?? true,
+    allow_guest_member_names:      (cfg.allow_guest_member_names as boolean)      ?? false,
+    allow_guest_count_change:      (cfg.allow_guest_count_change as boolean)      ?? true,
+    rsvp_enforce_pass_limit:       (cfg.rsvp_enforce_pass_limit as boolean)       ?? true,
+    show_reserved_passes_message:  (cfg.show_reserved_passes_message as boolean)  ?? true,
+    whatsapp_template:             (cfg.whatsapp_template as string)              ?? '',
+    // Personalized full-view defaults
+    personalized_full_view:           (cfg.personalized_full_view as boolean)          ?? true,
+    personalized_hero_badge_enabled:  (cfg.personalized_hero_badge_enabled as boolean) ?? true,
+    personalized_hero_badge_label:    (cfg.personalized_hero_badge_label as string)    ?? 'Invitación especial para',
+    personalized_greeting_enabled:    (cfg.personalized_greeting_enabled as boolean)   ?? true,
+    personalized_greeting_position:   (cfg.personalized_greeting_position as string)   ?? 'after_hero',
+    personalized_greeting_title:      (cfg.personalized_greeting_title as string)      ?? 'Tu invitación personal',
+    personalized_greeting_body:       (cfg.personalized_greeting_body as string)       ?? 'Con mucho cariño te invitamos a compartir este día especial con nosotros. Nos emociona tenerte presente.',
+    personalized_show_passes:         (cfg.personalized_show_passes as boolean)        ?? true,
+    personalized_passes_label:        (cfg.personalized_passes_label as string)        ?? 'Hemos reservado {passes} lugar(es) para ti en este evento.',
+    personalized_show_type_badge:     (cfg.personalized_show_type_badge as boolean)    ?? true,
   };
 }

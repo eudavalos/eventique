@@ -1,5 +1,18 @@
 import axios from 'axios';
-import type { RSVPFormData, EventConfig, EventInfo, MediaFile } from '../types';
+import type {
+  RSVPFormData,
+  EventConfig,
+  EventInfo,
+  MediaFile,
+  PersonalizedInvitationData,
+  PersonalizedRSVPPayload,
+  GuestInvitation,
+  GuestInvitationCreate,
+  GuestStats,
+  CSVImportPreview,
+  InvitationStatus,
+  InvitationAuditEntry,
+} from '../types';
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? '/api',
@@ -132,6 +145,76 @@ export const rsvpApi = {
     client.put(`/events/${eventSlug}/rsvp/${id}`, data, {
       headers: { Authorization: `Bearer ${token}` },
     }),
+
+  // ── Personalized Invitations (public) ─────────────────────────────────────
+  getPersonalizedInvitation: (eventSlug: string, token: string) =>
+    client.get<PersonalizedInvitationData>(`/events/${eventSlug}/invitations/${token}`),
+
+  submitPersonalizedRSVP: (eventSlug: string, token: string, data: PersonalizedRSVPPayload) =>
+    client.post(`/events/${eventSlug}/invitations/${token}/rsvp`, data),
+
+  trackInvitationOpen: (eventSlug: string, token: string, source?: string) =>
+    client.post(`/events/${eventSlug}/invitations/${token}/open`, { source: source ?? 'direct' }),
+
+  // ── Guest Management (admin) ───────────────────────────────────────────────
+  listGuests: (eventSlug: string, token: string, params?: { status?: string; search?: string; page?: number; limit?: number }) =>
+    client.get<{ items: GuestInvitation[]; total: number; page: number; pages: number }>(
+      `/events/${eventSlug}/guests`, { headers: { Authorization: `Bearer ${token}` }, params }
+    ),
+
+  createGuest: (eventSlug: string, token: string, data: GuestInvitationCreate) =>
+    client.post<GuestInvitation>(`/events/${eventSlug}/guests`, data, { headers: { Authorization: `Bearer ${token}` } }),
+
+  updateGuest: (eventSlug: string, token: string, id: number, data: Partial<GuestInvitationCreate>) =>
+    client.put<GuestInvitation>(`/events/${eventSlug}/guests/${id}`, data, { headers: { Authorization: `Bearer ${token}` } }),
+
+  patchGuestStatus: (eventSlug: string, token: string, id: number, status: InvitationStatus, reason?: string) =>
+    client.patch(`/events/${eventSlug}/guests/${id}/status`, { status, blocked_reason: reason }, { headers: { Authorization: `Bearer ${token}` } }),
+
+  deleteGuest: (eventSlug: string, token: string, id: number) =>
+    client.delete(`/events/${eventSlug}/guests/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+
+  regenerateGuestToken: (eventSlug: string, token: string, id: number) =>
+    client.post<{ token_lookup: string; invitation_url: string }>(`/events/${eventSlug}/guests/${id}/regenerate-token`, {}, { headers: { Authorization: `Bearer ${token}` } }),
+
+  getGuestQRData: (eventSlug: string, token: string, id: number) =>
+    client.get<{ invitation_url: string }>(`/events/${eventSlug}/guests/${id}/qr-data`, { headers: { Authorization: `Bearer ${token}` } }),
+
+  getGuestStats: (eventSlug: string, token: string) =>
+    client.get<GuestStats>(`/events/${eventSlug}/guests/stats`, { headers: { Authorization: `Bearer ${token}` } }),
+
+  exportGuestsCSV: (eventSlug: string, token: string) =>
+    client.get(`/events/${eventSlug}/guests/export.csv`, {
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: 'blob',
+    }),
+
+  downloadGuestTemplate: (eventSlug: string, token: string) =>
+    client.get(`/events/${eventSlug}/guests/template.csv`, {
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: 'blob',
+    }),
+
+  importGuestsPreview: (eventSlug: string, token: string, file: File) => {
+    const fd = new FormData(); fd.append('file', file);
+    return client.post<CSVImportPreview>(`/events/${eventSlug}/guests/import/preview`, fd, {
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  importGuestsCommit: (eventSlug: string, token: string, rows: Array<Record<string, string>>) =>
+    client.post<{ imported: number; errors: number }>(`/events/${eventSlug}/guests/import/commit`, { rows }, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  getGuestWhatsApp: (eventSlug: string, token: string, id: number, baseUrl?: string) =>
+    client.get<{ message: string; url: string }>(`/events/${eventSlug}/guests/${id}/whatsapp`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: baseUrl ? { base_url: baseUrl } : undefined,
+    }),
+
+  getGuestAudit: (eventSlug: string, token: string, id: number) =>
+    client.get<InvitationAuditEntry[]>(`/events/${eventSlug}/guests/${id}/audit`, { headers: { Authorization: `Bearer ${token}` } }),
 };
 
 export default client;
