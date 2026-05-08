@@ -151,6 +151,12 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 - Los escenarios QA no crean tokens admin especificos por defecto; se administran con `ADMIN_TOKEN` global para evitar credenciales por evento.
 - Documentacion operativa: `docs/QA_50_EVENT_SCENARIOS.md` y `docs/TEST_EVENTS_GUIDE.md`.
 
+### Decisiones persistentes Invitaciones Personalizadas (2026-05-08)
+
+- La configuracion visual de una invitacion personalizada es por evento (`event_config.event_slug`), no por invitado.
+- `PersonalizedInvitationRoute` debe aplicar tambien el `event_config` que viene dentro de `GET /events/{slug}/invitations/{token}`; esto evita que un link personalizado renderice con defaults si falla el request separado a `/event-config`.
+- En `boda-conce-eume` existen dos registros operativos similares para Ilde Dávalos (`id=1` y `id=4`) con tokens y estados distintos; no archivar ninguno sin validar cual link se esta compartiendo.
+
 ---
 
 ## Thresholds — Política de parametrización

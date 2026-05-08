@@ -1,11 +1,12 @@
 # Eventique - Memory Index
 
-**Last Updated**: 2026-05-08 (QA 50 event scenarios + Paper Access skin + example2 reference + WhatsApp preview)
+**Last Updated**: 2026-05-08 (personalized config investigation + QA 50 event scenarios + Paper Access skin)
 
 ---
 
 ## Sessions
 
+- [session_2026_05_08_personalized_config_investigation.md](session_2026_05_08_personalized_config_investigation.md) - Investigacion de link personalizado `772d...`; config `paper-access` es por evento, hay duplicado operativo de invitado Ilde, y se reforzo `App.tsx` para aplicar `event_config` del payload personalizado como fallback inmediato.
 - [session_2026_05_08_qa50_event_scenarios.md](session_2026_05_08_qa50_event_scenarios.md) - Catalogo parametrizado de 50 escenarios QA, runner API para Pi, cobertura de tipos/skins/modos/musica/regalos/recintos/RSVP/invitados, documentacion operativa.
 - [session_2026_05_08_paper_access_skin.md](session_2026_05_08_paper_access_skin.md) - Implementacion de nueva skin `paper-access`, paleta `paper-olive`, configuracion full desde Admin, merge explicito, test `TC-020A`, deploy Pi y suite 56/56.
 - [session_2026_05_08_example2_reference_analysis.md](session_2026_05_08_example2_reference_analysis.md) - Analisis exhaustivo de `docs/example2`: video vertical Canva/Amorea style, 15 frames, estetica papel/off-white/olive/callas, secciones detectadas, implicacion de nueva skin `paper-access`/`canva-floral`.

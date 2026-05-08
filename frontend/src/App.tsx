@@ -126,6 +126,21 @@ function PersonalizedInvitationRoute() {
 
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
 
+  const applyInvitationPayloadConfig = useCallback((data: Partial<EventConfig>) => {
+    const merged = mergeConfig(staticConfig, data);
+    setEventConfig(merged);
+    applyTheme(merged.theme.palette, merged.theme.customColors);
+    if (merged.theme.fonts) {
+      applyFonts(merged.theme.fonts.heading, merged.theme.fonts.subheading, merged.theme.fonts.body);
+    }
+    if (data.event_type) setFavicon(data.event_type);
+    const { couple, dates } = merged;
+    document.title = [
+      couple.displayNames ?? couple.person1.firstName,
+      dates.displayDate ?? dates.ceremony.slice(0, 10),
+    ].filter(Boolean).join(' - ');
+  }, []);
+
   useEffect(() => {
     if (!slug) return;
     // Apply static defaults immediately so loading screen is themed
@@ -153,6 +168,10 @@ function PersonalizedInvitationRoute() {
     rsvpApi.getPersonalizedInvitation(slug, token)
       .then(({ data }) => {
         setGuestData(data);
+        if (data.event_config && Object.keys(data.event_config).length > 0) {
+          applyInvitationPayloadConfig(data.event_config as Partial<EventConfig>);
+          setConfigLoaded(true);
+        }
         rsvpApi.trackInvitationOpen(slug, token, 'direct').catch(() => {});
       })
       .catch((err) => {
@@ -163,7 +182,7 @@ function PersonalizedInvitationRoute() {
         else setGuestError('error');
       })
       .finally(() => setGuestLoaded(true));
-  }, [slug, token, refreshKey]);
+  }, [slug, token, refreshKey, applyInvitationPayloadConfig]);
 
   if (!configLoaded || !guestLoaded) return <GuestLoadingScreen />;
   if (guestError === 'not_found') return <GuestErrorScreen type="not_found" />;
