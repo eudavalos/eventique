@@ -22,6 +22,7 @@ import CollageHero from '../sections/CollageHero';
 import VenuesEnvelope from '../sections/VenuesEnvelope';
 import DressCode from '../sections/DressCode';
 import GalleryPolaroid from '../sections/GalleryPolaroid';
+import PaperAccessSkin from '../sections/PaperAccessSkin';
 import type { WeddingConfig } from '../types';
 
 // ── Nav links ─────────────────────────────────────────────────────────────────
@@ -34,6 +35,11 @@ const NAV_LINKS = [
 
 const NAV_LINKS_ENVELOPE = [
   { label: 'Ceremonia', href: '#recintos' },
+  { label: 'RSVP', href: '#rsvp' },
+];
+
+const NAV_LINKS_PAPER = [
+  { label: 'Detalles', href: '#recintos' },
   { label: 'RSVP', href: '#rsvp' },
 ];
 
@@ -177,6 +183,20 @@ function EnvelopeSkin() {
   );
 }
 
+function PaperSkin() {
+  const config = useConfig() as WeddingConfig;
+  const { music, couple } = config;
+  const names = couple.displayNames ?? `${couple.person1.firstName} & ${couple.person2.firstName}`;
+
+  return (
+    <div className="relative overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
+      <Navigation links={NAV_LINKS_PAPER} coupleNames={names} />
+      <PaperAccessSkin />
+      {music?.enabled && <MusicPlayer tracks={music.tracks} autoplay={music.autoplay} />}
+    </div>
+  );
+}
+
 // ── Main export — skin router ─────────────────────────────────────────────────
 
 export default function InvitationPage() {
@@ -185,6 +205,10 @@ export default function InvitationPage() {
 
   if (skin === 'envelope') {
     return <EnvelopeSkin />;
+  }
+
+  if (skin === 'paper-access') {
+    return <PaperSkin />;
   }
 
   return <ClassicSkin />;

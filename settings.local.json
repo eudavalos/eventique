@@ -1,16 +1,16 @@
-{
+﻿{
   "session_protocol": {
     "last_session_date": "2026-05-08",
-    "last_session_topic": "example2-reference-analysis",
-    "last_commit": "ec68c63",
-    "test_count_baseline": 55,
+    "last_session_topic": "paper-access-skin-implementation",
+    "last_commit": "3e76e9f",
+    "test_count_baseline": 56,
     "test_suite_file": "docs/test_suite.py",
     "test_suite_command": "python3 ~/Boda/docs/test_suite.py --base-url http://localhost:5176/api --token <ADMIN_TOKEN>",
     "test_suite_categories": ["Conectividad", "Seguridad", "Eventos", "Config", "RSVP", "Invitados", "Seguridad Avanzada", "CSV", "Cleanup"],
-    "test_suite_result_last_run": "55/55 — 100% en Pi",
+    "test_suite_result_last_run": "56/56 — 100% en Pi",
     "pending_issue": null,
-    "last_session_memory_file": "memory/session_2026_05_08_example2_reference_analysis.md",
-    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_08_example2_reference_analysis.md",
+    "last_session_memory_file": "memory/session_2026_05_08_paper_access_skin.md",
+    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_08_paper_access_skin.md",
     "git_workflow": {
       "initialized": true,
       "remote": "https://github.com/eudavalos/eventique",
@@ -55,17 +55,17 @@
     "frontend_healthcheck_method": "CMD-SHELL",
     "frontend_healthcheck_host": "127.0.0.1",
     "api_healthcheck_method": "python3-urllib",
-    "note_healthcheck": "Use 127.0.0.1 not localhost — Alpine resolves localhost to ::1 (IPv6) but nginx listens on IPv4 only"
+    "note_healthcheck": "Use 127.0.0.1 not localhost â€” Alpine resolves localhost to ::1 (IPv6) but nginx listens on IPv4 only"
   },
 
   "guest_invitation": {
     "valid_statuses": ["draft", "pending", "opened", "confirmed", "partial", "declined", "blocked"],
-    "note_opened_status": "API cambia status a 'opened' automáticamente cuando se llama GET /invitations/{token}",
+    "note_opened_status": "API cambia status a 'opened' automÃ¡ticamente cuando se llama GET /invitations/{token}",
     "import_commit_response_key": "imported",
-    "note_import_commit": "Respuesta es {'imported': N, 'errors': M} — NO 'created' ni 'count'",
+    "note_import_commit": "Respuesta es {'imported': N, 'errors': M} â€” NO 'created' ni 'count'",
     "token_length_chars": 64,
     "short_link_code_length_chars": 16,
-    "multipart_upload_note": "usar requests.post() directo (no session) para import preview — session Content-Type: application/json conflicta con multipart"
+    "multipart_upload_note": "usar requests.post() directo (no session) para import preview â€” session Content-Type: application/json conflicta con multipart"
   },
 
   "share_links": {
@@ -101,6 +101,37 @@
     }
   },
 
+  "invitation_skins": {
+    "available": ["classic", "envelope", "paper-access"],
+    "paper_access": {
+      "enabled": true,
+      "recommended_palette": "paper-olive",
+      "admin_location": "Admin -> Secciones -> Skin de Invitacion -> Paper Access",
+      "config_fields": [
+        "paper_access_intro_label",
+        "paper_access_intro_text",
+        "paper_access_tap_label",
+        "paper_access_guest_label",
+        "paper_access_passes_label",
+        "paper_music_prompt",
+        "paper_music_button_label",
+        "paper_parents_intro",
+        "paper_calendar_title",
+        "paper_calendar_button_label",
+        "paper_venues_title",
+        "paper_location_button_label",
+        "paper_gift_intro",
+        "paper_countdown_title",
+        "paper_countdown_subtitle",
+        "paper_countdown_days_label",
+        "paper_countdown_hours_label",
+        "paper_countdown_minutes_label",
+        "paper_rsvp_title"
+      ],
+      "validation": "Pi deploy OK; docs/test_suite.py 56/56 passed against http://localhost:5176/api"
+    }
+  },
+
   "docs": {
     "user_guide": "docs/GUIA_USUARIO_EVENTIQUE.md",
     "user_guide_lines": 800,
@@ -108,11 +139,11 @@
     "user_guide_last_updated": "2026-05-08",
     "test_suite": "docs/test_suite.py",
     "test_suite_version": "v2",
-    "test_suite_tests": 55
+    "test_suite_tests": 56
   },
 
   "theme": {
-    "palettes_available": ["nature", "rose-gold", "garden", "navy-gold", "sage", "midnight"],
+    "palettes_available": ["nature", "rose-gold", "garden", "navy-gold", "sage", "midnight", "paper-olive"],
     "default_palette": "nature",
     "palette_nature": {
       "primary": "#3E7B57",
@@ -139,11 +170,11 @@
     "youtube_embed_params": "enablejsapi=1&autoplay=0&controls=0&rel=0&modestbranding=1&playsinline=1",
     "youtube_embed_requires_origin_param": true,
     "youtube_postmessage_origin": "https://www.youtube.com",
-    "youtube_postmessage_origin_note": "NUNCA usar '*' — browsers móvil/estrictos ignoran mensajes wildcard",
+    "youtube_postmessage_origin_note": "NUNCA usar '*' â€” browsers mÃ³vil/estrictos ignoran mensajes wildcard",
     "youtube_onready_required": true,
     "youtube_onready_note": "Comandos enviados antes de onReady son silenciosamente ignorados; usar pendingPlayRef queue",
     "youtube_iframe_min_size_px": 1,
-    "youtube_iframe_min_size_note": "0×0 puede causar que el player no inicialice en algunos browsers",
+    "youtube_iframe_min_size_note": "0Ã—0 puede causar que el player no inicialice en algunos browsers",
     "youtube_detection_regex": "[?&]v=([a-zA-Z0-9_-]{11})|youtu\\.be\\/([a-zA-Z0-9_-]{11})",
     "youtube_block_detection_timeout_ms": 3000,
     "youtube_onready_safety_timeout_ms": 6000,
@@ -178,16 +209,16 @@
   "current_client": {
     "event_slug": "boda-conce-eume",
     "event_type": "boda",
-    "person1_name": "Concepción Davila",
-    "person2_name": "Eumelio Dávalos",
-    "display_names": "Concepción & Eumelio",
+    "person1_name": "ConcepciÃ³n Davila",
+    "person2_name": "Eumelio DÃ¡valos",
+    "display_names": "ConcepciÃ³n & Eumelio",
     "ceremony_date": "2026-06-07T16:00:00",
     "timezone": "America/Asuncion",
     "palette": "nature",
     "hashtag": "#ConcepcionYEumelio2026",
     "music_youtube_id": "zqlkbbJ003w",
-    "ceremony_venue": "Iglesia San Pedro Claver, Carapeguá, Paraguay",
-    "reception_venue": "Club de Pesca, Carapeguá, Paraguay",
+    "ceremony_venue": "Iglesia San Pedro Claver, CarapeguÃ¡, Paraguay",
+    "reception_venue": "Club de Pesca, CarapeguÃ¡, Paraguay",
     "personalized_invitation_sample_token": "aaaa6f456c6a051f24c5bc298fbb0bbbb327d701c548ff9f020e634946bf633e",
     "personalized_invitation_sample_guest": "Ilde Davalos y familia (3 passes, status: opened)"
   },
@@ -217,7 +248,7 @@
       "passes_label": "{passes}",
       "countdown_label": "{days}"
     },
-    "flag_icon_map_note": "FLAG_ICON_MAP en PersonalizedGreeting.tsx y PersonalizedInvitationPage.tsx — solo UI, sin texto",
+    "flag_icon_map_note": "FLAG_ICON_MAP en PersonalizedGreeting.tsx y PersonalizedInvitationPage.tsx â€” solo UI, sin texto",
     "already_responded_links": ["google_calendar", "google_maps", "native_share_api"],
     "google_calendar_url_built_from": ["config.dates.ceremony", "config.couple.displayNames", "config.venues.ceremony"]
   },
@@ -225,15 +256,15 @@
   "gift_bank": {
     "config_fields": ["gift_bank_enabled", "gift_bank_title", "gift_bank_body", "gift_bank_accounts"],
     "accounts_schema": "Array<{ label: string; value: string }>",
-    "admin_state_pattern": "local useState (giftBankAccounts) — igual que musicTracks, NO react-hook-form field",
+    "admin_state_pattern": "local useState (giftBankAccounts) â€” igual que musicTracks, NO react-hook-form field",
     "design": "fondo solid var(--color-primary), gift icon flotante, filas glassmorphism con copy-to-clipboard",
-    "coexistence_with_registry": "ambas secciones independientes; GiftRegistry renderiza 0/1/2 según flags"
+    "coexistence_with_registry": "ambas secciones independientes; GiftRegistry renderiza 0/1/2 segÃºn flags"
   },
 
   "admin_panel": {
     "tabs": ["dashboard", "rsvps", "invitados", "config", "tema", "media", "eventos", "secciones", "ayuda"],
     "tab_ayuda_added": "2026-05-08",
-    "tab_ayuda_content": "quick start 6 pasos + descripción de tabs + gestión invitados + skins + FAQ + contacto",
+    "tab_ayuda_content": "quick start 6 pasos + descripciÃ³n de tabs + gestiÃ³n invitados + skins + FAQ + contacto",
     "config_storage": "sqlite:event_config table (single row, JSON blob)",
     "config_endpoint_get": "GET /api/event-config",
     "config_endpoint_put": "PUT /api/event-config",
@@ -243,8 +274,8 @@
       "weddingParty", "accommodation", "gallery", "rsvp", "footer",
       "social", "music"
     ],
-    "save_sections_handler": "saveSections — persists all 10 sections + music + social in single PUT call",
-    "config_tab_gift_bank_card": "Datos Bancarios (Obsequio) — toggle + título + cuerpo + CRUD accounts"
+    "save_sections_handler": "saveSections â€” persists all 10 sections + music + social in single PUT call",
+    "config_tab_gift_bank_card": "Datos Bancarios (Obsequio) â€” toggle + tÃ­tulo + cuerpo + CRUD accounts"
   },
 
   "event_duplication": {
@@ -252,7 +283,7 @@
     "auth": "Superadmin (global ADMIN_TOKEN)",
     "request_schema": "EventCreate (name, slug, admin_token?)",
     "behavior": "copies EventConfig JSON blob to new slug; returns 404 if source missing, 400 if target slug exists",
-    "frontend_trigger": "Clonar button (Copy icon) per row in Eventos tab → opens duplicate modal"
+    "frontend_trigger": "Clonar button (Copy icon) per row in Eventos tab â†’ opens duplicate modal"
   },
 
   "auto_memory_protocol": {

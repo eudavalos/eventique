@@ -3,8 +3,8 @@
 // ============================================================
 
 export type Language = 'es' | 'en';
-export type PaletteKey = 'rose-gold' | 'garden' | 'nature' | 'navy-gold' | 'sage' | 'midnight' | 'platinum' | 'sapphire' | 'emerald' | 'coral' | 'lavender' | 'teal' | 'burgundy' | 'gold-premium' | 'ocean' | 'mint' | 'peach' | 'denim' | 'mustard' | 'cream' | 'olive' | 'custom';
-export type InvitationSkin = 'classic' | 'envelope';
+export type PaletteKey = 'rose-gold' | 'garden' | 'nature' | 'navy-gold' | 'sage' | 'midnight' | 'platinum' | 'sapphire' | 'emerald' | 'coral' | 'lavender' | 'teal' | 'burgundy' | 'gold-premium' | 'ocean' | 'mint' | 'peach' | 'denim' | 'mustard' | 'cream' | 'olive' | 'paper-olive' | 'custom';
+export type InvitationSkin = 'classic' | 'envelope' | 'paper-access';
 export type EventType = 'boda' | 'cumpleanos' | 'bautismo' | 'quinceanera' | 'graduacion' | 'corporativo' | 'primera-comunion' | 'aniversario' | 'baby-shower';
 export type PartySide = 'bride' | 'groom' | 'both';
 export type ScheduleLocation = 'ceremony' | 'reception' | 'other';
@@ -290,6 +290,26 @@ export interface WeddingConfig {
   gallery_polaroid_enabled?: boolean;
   gallery_polaroid_footer_text?: string;
   gallery_polaroid_bw?: boolean;
+  // Paper Access skin: mobile-first paper invitation format
+  paper_access_intro_label?: string;
+  paper_access_intro_text?: string;
+  paper_access_tap_label?: string;
+  paper_access_guest_label?: string;
+  paper_access_passes_label?: string;
+  paper_music_prompt?: string;
+  paper_music_button_label?: string;
+  paper_parents_intro?: string;
+  paper_calendar_title?: string;
+  paper_calendar_button_label?: string;
+  paper_venues_title?: string;
+  paper_location_button_label?: string;
+  paper_gift_intro?: string;
+  paper_countdown_title?: string;
+  paper_countdown_subtitle?: string;
+  paper_countdown_days_label?: string;
+  paper_countdown_hours_label?: string;
+  paper_countdown_minutes_label?: string;
+  paper_rsvp_title?: string;
 }
 
 // ---- Event Config (dynamic, stored in DB) ----

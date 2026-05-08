@@ -373,6 +373,7 @@ export const config: WeddingConfig = {
   //  9. SKIN DE INVITACIÓN
   //  'classic' = secciones clásicas (Hero, Countdown, OurStory, etc.)
   //  'envelope' = skin GoParty (sobre animado, cards flotantes, fondo olive)
+  //  'paper-access' = skin papel/editorial mobile-first con acceso personalizado
   // ──────────────────────────────────────────────────────────
   invitation_skin: 'classic' as const,
 
@@ -400,4 +401,25 @@ export const config: WeddingConfig = {
   gallery_polaroid_enabled: true,
   gallery_polaroid_footer_text: 'Te Esperamos',
   gallery_polaroid_bw: true,
+
+  // ── Paper Access skin: textos y controles 100% configurables ─────────────
+  paper_access_intro_label: 'Invitacion digital',
+  paper_access_intro_text: 'Abre nuestra invitacion',
+  paper_access_tap_label: 'Toca aqui',
+  paper_access_guest_label: 'Invitacion especial para',
+  paper_access_passes_label: 'Hemos reservado {passes} cupo(s) para ti.',
+  paper_music_prompt: 'Dale play para escuchar nuestra cancion',
+  paper_music_button_label: 'Reproducir musica',
+  paper_parents_intro: 'En compania de nuestras familias',
+  paper_calendar_title: 'Anadelo a tu calendario',
+  paper_calendar_button_label: 'Agregar al calendario',
+  paper_venues_title: 'Detalles del evento',
+  paper_location_button_label: 'Ubicacion',
+  paper_gift_intro: 'Su compania es lo mas importante.',
+  paper_countdown_title: 'Faltan',
+  paper_countdown_subtitle: 'Para nuestro gran dia',
+  paper_countdown_days_label: 'Dias',
+  paper_countdown_hours_label: 'Horas',
+  paper_countdown_minutes_label: 'Minutos',
+  paper_rsvp_title: 'Confirmar asistencia',
 };

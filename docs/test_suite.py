@@ -3,7 +3,7 @@
 Eventique — Enterprise Test Suite v2
 ======================================
 Suite de pruebas funcionales completa para la API de Eventique.
-Cubre 56 escenarios: conectividad, seguridad, eventos, config, validaciones,
+Cubre 56+ escenarios: conectividad, seguridad, eventos, config, validaciones,
 RSVP, invitados personalizados, seguridad avanzada, CSV import/export.
 
 Uso:
@@ -482,6 +482,51 @@ class EventiqueTestSuite:
             assert saved.get("invitation_skin") == "classic", "No restauró a 'classic'"
             return {"skin": "classic"}
         return self._run("TC-019", "Config — skin 'classic' restaurable desde 'envelope'", "Config", _)
+
+    def tc020a_paper_access_skin_full_roundtrip(self):
+        """TC-020A: Round-trip de campos Paper Access."""
+        def _():
+            fields = {
+                "invitation_skin": "paper-access",
+                "paper_access_intro_label": "Test: Invitacion digital",
+                "paper_access_intro_text": "Test: Abrir invitacion",
+                "paper_access_tap_label": "Test: Toca aqui",
+                "paper_access_guest_label": "Test: Invitado",
+                "paper_access_passes_label": "Test: {passes} cupos",
+                "paper_music_prompt": "Test: Dale play",
+                "paper_music_button_label": "Test: Reproducir",
+                "paper_parents_intro": "Test: Familias",
+                "paper_calendar_title": "Test: Calendario",
+                "paper_calendar_button_label": "Test: Agendar",
+                "paper_venues_title": "Test: Recintos",
+                "paper_location_button_label": "Test: Ubicacion",
+                "paper_gift_intro": "Test: Regalos",
+                "paper_countdown_title": "Test: Faltan",
+                "paper_countdown_subtitle": "Test: Gran dia",
+                "paper_countdown_days_label": "Test: Dias",
+                "paper_countdown_hours_label": "Test: Horas",
+                "paper_countdown_minutes_label": "Test: Minutos",
+                "paper_rsvp_title": "Test: RSVP",
+            }
+            current = self.session.get(self._url(f"/events/{self._test_slug}/event-config")).json()
+            current.update(fields)
+            if "theme" not in current:
+                current["theme"] = {}
+            current["theme"]["palette"] = "paper-olive"
+            r = self.session.put(
+                self._url(f"/events/{self._test_slug}/event-config"),
+                json=current, headers=self._auth(self._test_token)
+            )
+            self._assert_status(r, 200)
+            saved = self.session.get(self._url(f"/events/{self._test_slug}/event-config")).json()
+            failures = [
+                f"{k}: expected={v!r}, got={saved.get(k)!r}"
+                for k, v in fields.items() if saved.get(k) != v
+            ]
+            assert saved.get("theme", {}).get("palette") == "paper-olive", "Paleta paper-olive no persistio"
+            assert not failures, "Campos Paper Access no coinciden:\n" + "\n".join(failures)
+            return {"fields_verified": len(fields), "palette": "paper-olive"}
+        return self._run("TC-020A", "Config — round-trip completo Paper Access", "Config", _)
 
     def tc020_sections_enabled_persist(self):
         """TC-020: Secciones enabled/disabled persisten correctamente."""
@@ -1304,6 +1349,7 @@ class EventiqueTestSuite:
                 self.tc017_palette_olive_valid,
                 self.tc018_multiple_palettes_valid,
                 self.tc019_classic_skin_restore,
+                self.tc020a_paper_access_skin_full_roundtrip,
                 self.tc020_sections_enabled_persist,
             ],
             "RSVP": [

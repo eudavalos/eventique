@@ -18,7 +18,7 @@ import { config as staticConfig } from '../config/wedding';
 import { applyTheme } from '../lib/theme';
 import { setFavicon } from '../lib/favicon';
 import { getRecommendedPalettes } from '../lib/palettesByEventType';
-import type { PaletteKey, EventType, EventInfo, MediaFile, StoryEvent, ScheduleItem, FAQItem, GalleryPhoto, MusicTrack, WeddingPartyMember, Hotel, PartySide, GuestInvitation, GuestInvitationCreate, GuestStats, CSVImportPreview, InvitationAuditEntry, InvitationStatus, GuestType } from '../types';
+import type { PaletteKey, InvitationSkin, EventType, EventInfo, MediaFile, StoryEvent, ScheduleItem, FAQItem, GalleryPhoto, MusicTrack, WeddingPartyMember, Hotel, PartySide, GuestInvitation, GuestInvitationCreate, GuestStats, CSVImportPreview, InvitationAuditEntry, InvitationStatus, GuestType } from '../types';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -134,6 +134,7 @@ const PALETTE_OPTIONS: { key: PaletteKey; label: string; colors: string[]; categ
   { key: 'mustard',      label: 'Mustard',      colors: ['#D97706', '#7C3AED', '#FFFDF0', '#2D1A00'],      category: 'Natural' },
   { key: 'cream',        label: 'Cream',        colors: ['#92400E', '#065F46', '#FFFDF5', '#1C0A00'],        category: 'Natural' },
   { key: 'olive',        label: 'Olive',        colors: ['#4F6835', '#C9A84C', '#F8F3E8', '#2A2217'],        category: 'Envelope' },
+  { key: 'paper-olive',  label: 'Paper Olive',  colors: ['#3F5631', '#B58A2E', '#FBFAF6', '#23251F'],        category: 'Paper' },
 ];
 
 const EVENT_TYPE_OPTIONS: { value: EventType; label: string; emoji: string }[] = [
@@ -493,7 +494,7 @@ export default function AdminPage() {
   const [socialInstagram, setSocialInstagram] = useState('');
 
   // ── Invitation skin ───────────────────────────────────────────────────────
-  const [invitationSkin, setInvitationSkin] = useState<'classic' | 'envelope'>('classic');
+  const [invitationSkin, setInvitationSkin] = useState<InvitationSkin>('classic');
   const [envelopeOpeningText, setEnvelopeOpeningText] = useState('');
   const [envelopeTapLabel, setEnvelopeTapLabel] = useState('');
   const [collageCountdownLabel, setCollageCountdownLabel] = useState('');
@@ -508,6 +509,25 @@ export default function AdminPage() {
   const [galleryPolaroidEnabled, setGalleryPolaroidEnabled] = useState(true);
   const [galleryPolaroidFooter, setGalleryPolaroidFooter] = useState('');
   const [galleryPolaroidBw, setGalleryPolaroidBw] = useState(true);
+  const [paperAccessIntroLabel, setPaperAccessIntroLabel] = useState('');
+  const [paperAccessIntroText, setPaperAccessIntroText] = useState('');
+  const [paperAccessTapLabel, setPaperAccessTapLabel] = useState('');
+  const [paperAccessGuestLabel, setPaperAccessGuestLabel] = useState('');
+  const [paperAccessPassesLabel, setPaperAccessPassesLabel] = useState('');
+  const [paperMusicPrompt, setPaperMusicPrompt] = useState('');
+  const [paperMusicButtonLabel, setPaperMusicButtonLabel] = useState('');
+  const [paperParentsIntro, setPaperParentsIntro] = useState('');
+  const [paperCalendarTitle, setPaperCalendarTitle] = useState('');
+  const [paperCalendarButtonLabel, setPaperCalendarButtonLabel] = useState('');
+  const [paperVenuesTitle, setPaperVenuesTitle] = useState('');
+  const [paperLocationButtonLabel, setPaperLocationButtonLabel] = useState('');
+  const [paperGiftIntro, setPaperGiftIntro] = useState('');
+  const [paperCountdownTitle, setPaperCountdownTitle] = useState('');
+  const [paperCountdownSubtitle, setPaperCountdownSubtitle] = useState('');
+  const [paperCountdownDaysLabel, setPaperCountdownDaysLabel] = useState('');
+  const [paperCountdownHoursLabel, setPaperCountdownHoursLabel] = useState('');
+  const [paperCountdownMinutesLabel, setPaperCountdownMinutesLabel] = useState('');
+  const [paperRsvpTitle, setPaperRsvpTitle] = useState('');
 
   // Music extras
   const [musicEnabled, setMusicEnabled] = useState(true);
@@ -687,7 +707,7 @@ export default function AdminPage() {
         setMusicAutoplay((mus?.autoplay as boolean) ?? false);
 
         // Invitation skin
-        setInvitationSkin(((cfg.invitation_skin as string) ?? 'classic') as 'classic' | 'envelope');
+        setInvitationSkin(((cfg.invitation_skin as string) ?? 'classic') as InvitationSkin);
         setEnvelopeOpeningText((cfg.envelope_opening_text as string) ?? 'Empieza una nueva etapa en nuestras vidas');
         setEnvelopeTapLabel((cfg.envelope_tap_label as string) ?? 'Tocá aquí');
         setCollageCountdownLabel((cfg.collage_countdown_label as string) ?? 'Sólo Faltan');
@@ -702,6 +722,25 @@ export default function AdminPage() {
         setGalleryPolaroidEnabled((cfg.gallery_polaroid_enabled as boolean) ?? true);
         setGalleryPolaroidFooter((cfg.gallery_polaroid_footer_text as string) ?? 'Te Esperamos');
         setGalleryPolaroidBw((cfg.gallery_polaroid_bw as boolean) ?? true);
+        setPaperAccessIntroLabel((cfg.paper_access_intro_label as string) ?? 'Invitacion digital');
+        setPaperAccessIntroText((cfg.paper_access_intro_text as string) ?? 'Abre nuestra invitacion');
+        setPaperAccessTapLabel((cfg.paper_access_tap_label as string) ?? 'Toca aqui');
+        setPaperAccessGuestLabel((cfg.paper_access_guest_label as string) ?? 'Invitacion especial para');
+        setPaperAccessPassesLabel((cfg.paper_access_passes_label as string) ?? 'Hemos reservado {passes} cupo(s) para ti.');
+        setPaperMusicPrompt((cfg.paper_music_prompt as string) ?? 'Dale play para escuchar nuestra cancion');
+        setPaperMusicButtonLabel((cfg.paper_music_button_label as string) ?? 'Reproducir musica');
+        setPaperParentsIntro((cfg.paper_parents_intro as string) ?? 'En compania de nuestras familias');
+        setPaperCalendarTitle((cfg.paper_calendar_title as string) ?? 'Anadelo a tu calendario');
+        setPaperCalendarButtonLabel((cfg.paper_calendar_button_label as string) ?? 'Agregar al calendario');
+        setPaperVenuesTitle((cfg.paper_venues_title as string) ?? 'Detalles del evento');
+        setPaperLocationButtonLabel((cfg.paper_location_button_label as string) ?? 'Ubicacion');
+        setPaperGiftIntro((cfg.paper_gift_intro as string) ?? 'Su compania es lo mas importante.');
+        setPaperCountdownTitle((cfg.paper_countdown_title as string) ?? 'Faltan');
+        setPaperCountdownSubtitle((cfg.paper_countdown_subtitle as string) ?? 'Para nuestro gran dia');
+        setPaperCountdownDaysLabel((cfg.paper_countdown_days_label as string) ?? 'Dias');
+        setPaperCountdownHoursLabel((cfg.paper_countdown_hours_label as string) ?? 'Horas');
+        setPaperCountdownMinutesLabel((cfg.paper_countdown_minutes_label as string) ?? 'Minutos');
+        setPaperRsvpTitle((cfg.paper_rsvp_title as string) ?? 'Confirmar asistencia');
 
         // Secondary data (events + media) — don't fail auth on errors
         Promise.allSettled([
@@ -1139,6 +1178,25 @@ export default function AdminPage() {
         gallery_polaroid_enabled: galleryPolaroidEnabled,
         gallery_polaroid_footer_text: galleryPolaroidFooter || undefined,
         gallery_polaroid_bw: galleryPolaroidBw,
+        paper_access_intro_label: paperAccessIntroLabel || undefined,
+        paper_access_intro_text: paperAccessIntroText || undefined,
+        paper_access_tap_label: paperAccessTapLabel || undefined,
+        paper_access_guest_label: paperAccessGuestLabel || undefined,
+        paper_access_passes_label: paperAccessPassesLabel || undefined,
+        paper_music_prompt: paperMusicPrompt || undefined,
+        paper_music_button_label: paperMusicButtonLabel || undefined,
+        paper_parents_intro: paperParentsIntro || undefined,
+        paper_calendar_title: paperCalendarTitle || undefined,
+        paper_calendar_button_label: paperCalendarButtonLabel || undefined,
+        paper_venues_title: paperVenuesTitle || undefined,
+        paper_location_button_label: paperLocationButtonLabel || undefined,
+        paper_gift_intro: paperGiftIntro || undefined,
+        paper_countdown_title: paperCountdownTitle || undefined,
+        paper_countdown_subtitle: paperCountdownSubtitle || undefined,
+        paper_countdown_days_label: paperCountdownDaysLabel || undefined,
+        paper_countdown_hours_label: paperCountdownHoursLabel || undefined,
+        paper_countdown_minutes_label: paperCountdownMinutesLabel || undefined,
+        paper_rsvp_title: paperRsvpTitle || undefined,
       };
       await rsvpApi.updateEventConfig(eventSlug, token, updated as never);
       toast.success('Secciones guardadas correctamente');
@@ -3887,10 +3945,11 @@ export default function AdminPage() {
               </p>
 
               {/* Selector de skin */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
                 {([
                   { value: 'classic', label: 'Clásico', desc: 'Hero, Countdown, Historia, Itinerario, Galería y más.' },
                   { value: 'envelope', label: 'Envelope (GoParty)', desc: 'Sobre animado, collage de cards, venues olive, galería polaroid.' },
+                  { value: 'paper-access', label: 'Paper Access', desc: 'Formato papel/editorial, acceso personalizado, cards apiladas y RSVP integrado.' },
                 ] as const).map(opt => (
                   <button
                     key={opt.value}
@@ -3995,6 +4054,113 @@ export default function AdminPage() {
 
                   <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
                     Tip: Para el skin Envelope se recomienda la paleta <strong>Olive</strong> (disponible en la pestaña Tema).
+                  </p>
+                </div>
+              )}
+
+              {invitationSkin === 'paper-access' && (
+                <div className="space-y-5 pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
+                  <p className="text-xs font-medium uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>Configuración Paper Access</p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="input-label">Etiqueta superior</label>
+                      <input value={paperAccessIntroLabel} onChange={e => setPaperAccessIntroLabel(e.target.value)} className="input-field" placeholder="Invitacion digital" />
+                    </div>
+                    <div>
+                      <label className="input-label">Texto de apertura</label>
+                      <input value={paperAccessIntroText} onChange={e => setPaperAccessIntroText(e.target.value)} className="input-field" placeholder="Abre nuestra invitacion" />
+                    </div>
+                    <div>
+                      <label className="input-label">Label del sobre</label>
+                      <input value={paperAccessTapLabel} onChange={e => setPaperAccessTapLabel(e.target.value)} className="input-field" placeholder="Toca aqui" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="input-label">Etiqueta invitado personalizado</label>
+                      <input value={paperAccessGuestLabel} onChange={e => setPaperAccessGuestLabel(e.target.value)} className="input-field" placeholder="Invitacion especial para" />
+                    </div>
+                    <div>
+                      <label className="input-label">Texto de cupos ({'{passes}'})</label>
+                      <input value={paperAccessPassesLabel} onChange={e => setPaperAccessPassesLabel(e.target.value)} className="input-field" placeholder="Hemos reservado {passes} cupo(s) para ti." />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="input-label">Prompt de música</label>
+                      <input value={paperMusicPrompt} onChange={e => setPaperMusicPrompt(e.target.value)} className="input-field" placeholder="Dale play para escuchar nuestra cancion" />
+                    </div>
+                    <div>
+                      <label className="input-label">Label música</label>
+                      <input value={paperMusicButtonLabel} onChange={e => setPaperMusicButtonLabel(e.target.value)} className="input-field" placeholder="Reproducir musica" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="input-label">Texto familia/padres</label>
+                      <input value={paperParentsIntro} onChange={e => setPaperParentsIntro(e.target.value)} className="input-field" placeholder="En compania de nuestras familias" />
+                    </div>
+                    <div>
+                      <label className="input-label">Introducción regalos</label>
+                      <input value={paperGiftIntro} onChange={e => setPaperGiftIntro(e.target.value)} className="input-field" placeholder="Su compania es lo mas importante." />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="input-label">Título calendario</label>
+                      <input value={paperCalendarTitle} onChange={e => setPaperCalendarTitle(e.target.value)} className="input-field" placeholder="Anadelo a tu calendario" />
+                    </div>
+                    <div>
+                      <label className="input-label">Botón calendario</label>
+                      <input value={paperCalendarButtonLabel} onChange={e => setPaperCalendarButtonLabel(e.target.value)} className="input-field" placeholder="Agregar al calendario" />
+                    </div>
+                    <div>
+                      <label className="input-label">Botón ubicación</label>
+                      <input value={paperLocationButtonLabel} onChange={e => setPaperLocationButtonLabel(e.target.value)} className="input-field" placeholder="Ubicacion" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="input-label">Título venues</label>
+                      <input value={paperVenuesTitle} onChange={e => setPaperVenuesTitle(e.target.value)} className="input-field" placeholder="Detalles del evento" />
+                    </div>
+                    <div>
+                      <label className="input-label">Título RSVP</label>
+                      <input value={paperRsvpTitle} onChange={e => setPaperRsvpTitle(e.target.value)} className="input-field" placeholder="Confirmar asistencia" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+                    <div>
+                      <label className="input-label">Countdown título</label>
+                      <input value={paperCountdownTitle} onChange={e => setPaperCountdownTitle(e.target.value)} className="input-field" placeholder="Faltan" />
+                    </div>
+                    <div>
+                      <label className="input-label">Días</label>
+                      <input value={paperCountdownDaysLabel} onChange={e => setPaperCountdownDaysLabel(e.target.value)} className="input-field" placeholder="Dias" />
+                    </div>
+                    <div>
+                      <label className="input-label">Horas</label>
+                      <input value={paperCountdownHoursLabel} onChange={e => setPaperCountdownHoursLabel(e.target.value)} className="input-field" placeholder="Horas" />
+                    </div>
+                    <div>
+                      <label className="input-label">Minutos</label>
+                      <input value={paperCountdownMinutesLabel} onChange={e => setPaperCountdownMinutesLabel(e.target.value)} className="input-field" placeholder="Minutos" />
+                    </div>
+                    <div>
+                      <label className="input-label">Subtítulo</label>
+                      <input value={paperCountdownSubtitle} onChange={e => setPaperCountdownSubtitle(e.target.value)} className="input-field" placeholder="Para nuestro gran dia" />
+                    </div>
+                  </div>
+
+                  <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                    Tip: Para Paper Access se recomienda la paleta <strong>Paper Olive</strong>. Los datos de padres se leen desde Configuración → Personas.
                   </p>
                 </div>
               )}

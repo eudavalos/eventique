@@ -106,9 +106,10 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 | Fase 12 — Invitaciones Personalizadas | ✅ COMPLETO | GuestInvitation model, 18 endpoints, Admin Invitados tab, /e/:slug/i/:token, CSV import/export, QR, WhatsApp, tracking privado |
 | Fase 13 — UX Invitación Personalizada | ✅ COMPLETO | PersonalizedGreeting enterprise redesign, YouTube fix, parametrización total, sección Obsequio bancaria |
 | Fase 14 — Skin Envelope | ✅ COMPLETO | EnvelopeHero, CollageHero, VenuesEnvelope, DressCode, GalleryPolaroid, paleta olive |
-| Fase 15 — Test Suite Enterprise | ✅ COMPLETO | 55 tests en 9 categorías, 100% en Pi, docs/test_suite.py |
+| Fase 15 — Test Suite Enterprise | ✅ COMPLETO | 56 tests en 9 categorías, 100% en Pi, docs/test_suite.py |
 | Fase 16 — Documentación + Ayuda Admin | ✅ COMPLETO | GUIA_USUARIO_EVENTIQUE.md ~800 líneas + Tab "Ayuda" integrada en AdminPage |
 | Fase 17 — WhatsApp Preview + Short Links | ✅ COMPLETO | `/s/{short_code}` con Open Graph para WhatsApp, redirección a invitación real, link corto en WhatsApp/QR/copiar link |
+| Fase 18 — Paper Access Skin | ✅ COMPLETO | Nueva skin `paper-access`, paleta `paper-olive`, config full desde Admin, RSVP/música/invitados/venues/regalos integrados |
 
 **Cliente actual**: Concepción & Eumelio · boda · 2026-06-07 · paleta `nature`  
 **Recintos**: Iglesia de San Pedro Claver + Club de Pesca, Carapeguá, Paraguay  
@@ -131,6 +132,14 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 - Secciones detectadas: access hero personalizado con cupos, sobre interactivo, musica, tarjeta formal/padres, calendario, ceremonia, recepcion, dress code, regalos, countdown y confirmacion RSVP.
 - Decision: tratar `docs/example2` como material de inspiracion/referencia, no como asset productivo, salvo confirmacion de derechos.
 - Recomendacion tecnica: implementar como nueva skin/variante (`paper-access` o `canva-floral`) reutilizando `useConfig()`, invitaciones personalizadas, venues, music, gift registry, countdown y RSVP existentes.
+
+### Decisiones persistentes Paper Access (2026-05-08)
+
+- `paper-access` es una skin oficial configurable desde Admin -> Secciones -> Skin de Invitacion.
+- La paleta recomendada para este formato es `paper-olive`.
+- Todo texto visible del formato Paper Access vive en config dinamica con prefijo `paper_*`; no debe depender de valores sueltos fuera de `WeddingConfig`/SQLite.
+- El formato reutiliza `GuestContext`, `MusicPlayer`, `GiftRegistry`, `RSVP`, venues, countdown y footer existentes para no duplicar contratos de negocio.
+- Validacion en Pi: deploy frontend OK y `docs/test_suite.py` completo paso 56/56 contra `http://localhost:5176/api`.
 
 ---
 
