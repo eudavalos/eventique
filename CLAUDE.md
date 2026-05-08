@@ -332,3 +332,28 @@ En cada sesión significativa, actualizar estos cuatro artefactos:
 ### Tab Media — integración
 - Imágenes: botón toggle "Galería" → `addPhotoToGallery` / `removePhotoFromGallery` (persiste inmediatamente)
 - Audio: botón toggle Music → `addTrackToPlayer` / `removeTrackFromPlayer` (persiste inmediatamente)
+
+---
+
+## Music Playback — Paper Access (2026-05-08)
+
+### Decisión Persistente
+- `music` sigue siendo configuración de evento (`enabled`, `autoplay`, `tracks`) y no debe hardcodearse en skins.
+- El formato `paper-access` debe iniciar música mediante gesto explícito del usuario desde su tarjeta visible de música.
+- Para desacoplar skins y reproductor global, usar eventos internos:
+  - `eventique:music-player:play`
+  - `eventique:music-player:toggle`
+- Los links YouTube con playlist deben preservar el parámetro `list` en el iframe embed.
+
+### Hallazgo Producción
+- Evento `boda-conce-eume` tenía guardado correctamente:
+  - `https://youtu.be/Zp9V76_1dTY?list=PL5tjfSPzC_uq1RTTFgLOpz3CD2TnLveUb`
+- La invitación personalizada recibía la configuración correcta.
+- El fallo estaba en UX/lógica: la tarjeta de música de `paper-access` era visual y no disparaba `MusicPlayer`; además `autoplay` puede ser bloqueado por el navegador.
+
+### Validación
+- Build local frontend OK.
+- Deploy Pi frontend OK.
+- `eventique-frontend` healthy.
+- Ruta de invitación personalizada devuelve `200 OK`.
+- Suite Pi `docs/test_suite.py`: `56/56` OK.

@@ -9,6 +9,7 @@ import GiftRegistry from './GiftRegistry';
 import RSVP from './RSVP';
 import Footer from './Footer';
 import type { Venue, WeddingConfig } from '../types';
+import { requestMusicPlayback } from '../lib/musicPlayerEvents';
 
 function cfgText(config: WeddingConfig, key: keyof WeddingConfig): string {
   const value = config[key];
@@ -149,10 +150,15 @@ function MusicPaperCard({ config }: { config: WeddingConfig }) {
         <p className="font-sub text-xl italic" style={{ color: 'var(--color-text)' }}>
           {cfgText(config, 'paper_music_prompt')}
         </p>
-        <div className="mt-5 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full grid place-items-center" style={{ border: '1px solid var(--color-primary)', color: 'var(--color-primary)' }}>
+        <button
+          type="button"
+          onClick={requestMusicPlayback}
+          className="mt-5 flex w-full items-center gap-3 text-left rounded-lg transition-transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-primary/30"
+          aria-label={`${cfgText(config, 'paper_music_button_label')}: ${track.title}`}
+        >
+          <span className="w-10 h-10 rounded-full grid place-items-center flex-shrink-0" style={{ border: '1px solid var(--color-primary)', color: 'var(--color-primary)' }}>
             <Play className="w-4 h-4 ml-0.5" />
-          </div>
+          </span>
           <div className="min-w-0">
             <p className="font-body text-[10px] uppercase tracking-[0.18em]" style={{ color: 'var(--color-primary)' }}>
               {cfgText(config, 'paper_music_button_label')}
@@ -160,7 +166,7 @@ function MusicPaperCard({ config }: { config: WeddingConfig }) {
             <p className="font-body text-sm font-medium truncate" style={{ color: 'var(--color-text)' }}>{track.title}</p>
             {track.artist && <p className="font-body text-xs truncate" style={{ color: 'var(--color-text-muted)' }}>{track.artist}</p>}
           </div>
-        </div>
+        </button>
       </div>
     </DetailCard>
   );

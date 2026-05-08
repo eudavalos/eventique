@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Music, Play, Pause, SkipForward, Volume2, VolumeX, ChevronUp } from 'lucide-react';
 import type { MusicTrack } from '../types';
+import { MUSIC_PLAYER_PLAY_EVENT, MUSIC_PLAYER_TOGGLE_EVENT } from '../lib/musicPlayerEvents';
 
 interface MusicPlayerProps {
   tracks: MusicTrack[];
@@ -21,16 +22,36 @@ function isYouTube(url: string) {
   return !!extractYouTubeId(url);
 }
 
+function extractYouTubePlaylist(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    return parsed.searchParams.get('list');
+  } catch {
+    return null;
+  }
+}
+
 function buildYouTubeSrc(url: string): string {
   const id = extractYouTubeId(url);
   if (!id) return '';
-  const origin =
-    typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : '';
-  return (
-    `${YT_ORIGIN}/embed/${id}` +
-    `?enablejsapi=1&autoplay=0&controls=0&rel=0&modestbranding=1` +
-    `&playsinline=1&origin=${origin}`
-  );
+
+  const params = new URLSearchParams({
+    enablejsapi: '1',
+    autoplay: '0',
+    controls: '0',
+    rel: '0',
+    modestbranding: '1',
+    playsinline: '1',
+  });
+
+  if (typeof window !== 'undefined') {
+    params.set('origin', window.location.origin);
+  }
+
+  const playlist = extractYouTubePlaylist(url);
+  if (playlist) params.set('list', playlist);
+
+  return `${YT_ORIGIN}/embed/${id}?${params.toString()}`;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -226,25 +247,51 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
 
   // ── Controls ──────────────────────────────────────────────────────────────
 
-  const toggle = () => {
+  const playCurrent = useCallback(() => {
     if (!current) return;
     if (isYouTube(current.url)) {
-      if (playing) {
-        ytCmd('pauseVideo');
-        setPlaying(false);
-      } else {
-        ytPlay();
-      }
-    } else {
-      if (!audioRef.current) return;
-      if (playing) {
-        audioRef.current.pause();
-        setPlaying(false);
-      } else {
-        audioRef.current.play().then(() => setPlaying(true)).catch(() => {});
-      }
+      ytPlay();
+      return;
     }
-  };
+
+    if (!audioRef.current) return;
+    if (audioRef.current.src !== current.url) {
+      audioRef.current.src = current.url;
+      audioRef.current.load();
+    }
+    audioRef.current.play().then(() => setPlaying(true)).catch(() => {});
+  }, [current, ytPlay]);
+
+  const pauseCurrent = useCallback(() => {
+    if (!current) return;
+    if (isYouTube(current.url)) {
+      ytCmd('pauseVideo');
+    } else {
+      audioRef.current?.pause();
+    }
+    setPlaying(false);
+  }, [current, ytCmd]);
+
+  const toggle = useCallback(() => {
+    if (!current) return;
+    if (playing) {
+      pauseCurrent();
+    } else {
+      playCurrent();
+    }
+  }, [current, pauseCurrent, playCurrent, playing]);
+
+  useEffect(() => {
+    const handlePlay = () => playCurrent();
+    const handleToggle = () => toggle();
+
+    window.addEventListener(MUSIC_PLAYER_PLAY_EVENT, handlePlay);
+    window.addEventListener(MUSIC_PLAYER_TOGGLE_EVENT, handleToggle);
+    return () => {
+      window.removeEventListener(MUSIC_PLAYER_PLAY_EVENT, handlePlay);
+      window.removeEventListener(MUSIC_PLAYER_TOGGLE_EVENT, handleToggle);
+    };
+  }, [playCurrent, toggle]);
 
   const next = () => {
     if (!current) return;

@@ -1,7 +1,7 @@
 ﻿{
   "session_protocol": {
     "last_session_date": "2026-05-08",
-    "last_session_topic": "personalized-config-investigation",
+    "last_session_topic": "music-playback-paper-access",
     "last_commit": "0f619e8",
     "test_count_baseline": 56,
     "test_suite_file": "docs/test_suite.py",
@@ -9,8 +9,8 @@
     "test_suite_categories": ["Conectividad", "Seguridad", "Eventos", "Config", "RSVP", "Invitados", "Seguridad Avanzada", "CSV", "Cleanup"],
     "test_suite_result_last_run": "56/56 — 100% en Pi",
     "pending_issue": null,
-    "last_session_memory_file": "memory/session_2026_05_08_personalized_config_investigation.md",
-    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_08_personalized_config_investigation.md",
+    "last_session_memory_file": "memory/session_2026_05_08_music_playback_paper_access.md",
+    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_08_music_playback_paper_access.md",
     "git_workflow": {
       "initialized": true,
       "remote": "https://github.com/eudavalos/eventique",
@@ -200,12 +200,25 @@
     "youtube_iframe_min_size_px": 1,
     "youtube_iframe_min_size_note": "0Ã—0 puede causar que el player no inicialice en algunos browsers",
     "youtube_detection_regex": "[?&]v=([a-zA-Z0-9_-]{11})|youtu\\.be\\/([a-zA-Z0-9_-]{11})",
+    "youtube_playlist_param_supported": true,
     "youtube_block_detection_timeout_ms": 3000,
     "youtube_onready_safety_timeout_ms": 6000,
     "local_mp3_path": "/public/music/",
     "photos_path": "/public/photos/",
     "admin_youtube_form_fields": ["url", "title", "artist"],
-    "config_top_level_keys": ["enabled", "autoplay", "tracks"]
+    "config_top_level_keys": ["enabled", "autoplay", "tracks"],
+    "playback_request_events": ["eventique:music-player:play", "eventique:music-player:toggle"],
+    "paper_access_music_card_action": "MusicPaperCard dispatches eventique:music-player:play so the visible card uses an explicit user gesture and bypasses autoplay blocking"
+  },
+
+  "music_playback_investigation": {
+    "investigated_on": "2026-05-08",
+    "event_slug": "boda-conce-eume",
+    "token_prefix": "772d591daff904d7",
+    "finding": "production config already had the requested YouTube link; Paper Access music card was visual-only and did not trigger MusicPlayer",
+    "configured_url": "https://youtu.be/Zp9V76_1dTY?list=PL5tjfSPzC_uq1RTTFgLOpz3CD2TnLveUb",
+    "fix": "add musicPlayerEvents bridge, wire PaperAccessSkin music card to requestMusicPlayback, preserve YouTube playlist list parameter",
+    "pi_validation": "frontend healthy; invitation route 200; personalized API returns paper-access + expected music; docs/test_suite.py 56/56"
   },
 
   "media": {
@@ -240,7 +253,8 @@
     "timezone": "America/Asuncion",
     "palette": "nature",
     "hashtag": "#ConcepcionYEumelio2026",
-    "music_youtube_id": "zqlkbbJ003w",
+    "music_youtube_id": "Zp9V76_1dTY",
+    "music_youtube_playlist_id": "PL5tjfSPzC_uq1RTTFgLOpz3CD2TnLveUb",
     "ceremony_venue": "Iglesia San Pedro Claver, CarapeguÃ¡, Paraguay",
     "reception_venue": "Club de Pesca, CarapeguÃ¡, Paraguay",
     "personalized_invitation_sample_token": "aaaa6f456c6a051f24c5bc298fbb0bbbb327d701c548ff9f020e634946bf633e",

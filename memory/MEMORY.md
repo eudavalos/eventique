@@ -1,11 +1,12 @@
 # Eventique - Memory Index
 
-**Last Updated**: 2026-05-08 (personalized config investigation + QA 50 event scenarios + Paper Access skin)
+**Last Updated**: 2026-05-08 (music playback Paper Access + personalized config investigation + QA 50 event scenarios)
 
 ---
 
 ## Sessions
 
+- [session_2026_05_08_music_playback_paper_access.md](session_2026_05_08_music_playback_paper_access.md) - Investigacion de musica en `paper-access`: link YouTube estaba guardado, la tarjeta visible no disparaba el reproductor; se agrego canal interno `eventique:music-player:*`, soporte playlist `list`, deploy Pi y suite 56/56.
 - [session_2026_05_08_personalized_config_investigation.md](session_2026_05_08_personalized_config_investigation.md) - Investigacion de link personalizado `772d...`; config `paper-access` es por evento, hay duplicado operativo de invitado Ilde, y se reforzo `App.tsx` para aplicar `event_config` del payload personalizado como fallback inmediato.
 - [session_2026_05_08_qa50_event_scenarios.md](session_2026_05_08_qa50_event_scenarios.md) - Catalogo parametrizado de 50 escenarios QA, runner API para Pi, cobertura de tipos/skins/modos/musica/regalos/recintos/RSVP/invitados, documentacion operativa.
 - [session_2026_05_08_paper_access_skin.md](session_2026_05_08_paper_access_skin.md) - Implementacion de nueva skin `paper-access`, paleta `paper-olive`, configuracion full desde Admin, merge explicito, test `TC-020A`, deploy Pi y suite 56/56.
