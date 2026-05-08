@@ -138,6 +138,7 @@ function GuestAccessCard({ config }: { config: WeddingConfig }) {
 
 function MusicPaperCard({ config }: { config: WeddingConfig }) {
   const track = config.music?.tracks?.[0];
+  const prompt = cfgText(config, 'paper_music_prompt').trim();
   if (!config.music?.enabled || !track) return null;
 
   return (
@@ -147,9 +148,11 @@ function MusicPaperCard({ config }: { config: WeddingConfig }) {
         <div className="w-12 h-12 rounded-full grid place-items-center mb-4" style={{ background: 'var(--color-primary)', color: 'white' }}>
           <Music className="w-5 h-5" />
         </div>
-        <p className="font-sub text-xl italic" style={{ color: 'var(--color-text)' }}>
-          {cfgText(config, 'paper_music_prompt')}
-        </p>
+        {prompt && (
+          <p className="font-sub text-xl italic" style={{ color: 'var(--color-text)' }}>
+            {prompt}
+          </p>
+        )}
         <button
           type="button"
           onClick={requestMusicPlayback}

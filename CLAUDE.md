@@ -357,3 +357,8 @@ En cada sesión significativa, actualizar estos cuatro artefactos:
 - `eventique-frontend` healthy.
 - Ruta de invitación personalizada devuelve `200 OK`.
 - Suite Pi `docs/test_suite.py`: `56/56` OK.
+
+### Ajuste Visual Posterior
+- `paper_music_prompt` puede quedar como string vacío para ocultar el texto superior de la tarjeta de música en `paper-access`.
+- `MusicPaperCard` solo renderiza ese prompt si tiene contenido no vacío.
+- Admin debe persistir `paper_music_prompt = ""` cuando el usuario quiere ocultarlo; no convertirlo a `undefined` porque eso reactiva el fallback por defecto.

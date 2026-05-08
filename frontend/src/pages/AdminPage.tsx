@@ -1372,7 +1372,7 @@ export default function AdminPage() {
         paper_access_tap_label: paperAccessTapLabel || undefined,
         paper_access_guest_label: paperAccessGuestLabel || undefined,
         paper_access_passes_label: paperAccessPassesLabel || undefined,
-        paper_music_prompt: paperMusicPrompt || undefined,
+        paper_music_prompt: paperMusicPrompt,
         paper_music_button_label: paperMusicButtonLabel || undefined,
         paper_parents_intro: paperParentsIntro || undefined,
         paper_calendar_title: paperCalendarTitle || undefined,
