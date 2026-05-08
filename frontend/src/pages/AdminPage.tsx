@@ -331,6 +331,195 @@ function GuestForm({ initial, onSave, onCancel }: GuestFormProps) {
   );
 }
 
+// ── Ayuda tab — typed content data ────────────────────────────────────────
+// All help content lives here as module-level constants so the JSX stays
+// clean and the text can be updated without touching component logic.
+
+const HELP_QUICK_START: Array<{ tab: string; action: string }> = [
+  { tab: 'Tab Config',          action: 'Completá los datos del evento: nombres, fecha, ceremonia, recepción y horarios.' },
+  { tab: 'Tab Tema',            action: 'Elegí la paleta de colores. Hay 22 opciones organizadas por tipo de evento.' },
+  { tab: 'Tab Media',           action: 'Subí la foto de portada (JPG/PNG hasta 10 MB) y fotos para la galería.' },
+  { tab: 'Secciones → Hero',    action: 'Pegá la URL de tu foto de portada y escribí el subtítulo del evento.' },
+  { tab: 'Secciones → Skin',    action: 'Seleccioná el estilo visual: Clásico, Envelope (GoParty) o Paper Access.' },
+  { tab: 'Config → Modo',       action: 'Definí cómo funciona el RSVP: Genérico, Personalizado o Híbrido.' },
+  { tab: 'Tab Invitados',       action: 'Importá tu lista desde CSV o cargá invitados uno a uno con su cupo asignado.' },
+  { tab: 'Invitados → WhatsApp',action: 'Enviá el enlace corto personalizado. WhatsApp muestra una preview automática del evento.' },
+];
+
+const HELP_TABS: Array<{ tab: string; desc: string }> = [
+  { tab: 'Inicio',        desc: 'Dashboard principal: estadísticas de confirmaciones, cupos totales, estado de invitados y accesos rápidos.' },
+  { tab: 'RSVPs',         desc: 'Lista completa de confirmaciones públicas con edición, eliminación y exportación. Stats en tiempo real.' },
+  { tab: 'Invitados',     desc: 'Gestión completa: crear, importar CSV, ver QR, enviar WhatsApp, historial de auditoría y cambio de estados.' },
+  { tab: 'Configuración', desc: 'Datos del evento, recintos, modo de invitaciones, plantilla WhatsApp, regalos y datos bancarios.' },
+  { tab: 'Tema',          desc: '22 paletas de colores organizadas por tipo de evento. El cambio se aplica de inmediato en toda la invitación.' },
+  { tab: 'Media',         desc: 'Subir fotos (hasta 10 MB) y audio MP3 (hasta 50 MB). Asignar fotos a galería y MP3 al reproductor de música.' },
+  { tab: 'Eventos',       desc: 'Para superadministrador: crear, clonar y eliminar eventos. Acceso a todos los slugs del sistema.' },
+  { tab: 'Secciones',     desc: 'Editor de cada bloque: portada, historia, venues, itinerario, cortejo, música, skin de invitación y más.' },
+  { tab: 'Ayuda',         desc: 'Esta guía de usuario con referencia completa del sistema.' },
+];
+
+const HELP_INVITATION_MODES: Array<{ mode: string; color: string; desc: string; useCase: string }> = [
+  {
+    mode: 'Genérico',
+    color: '#6B7280',
+    desc: 'Todos acceden a la misma URL pública. El RSVP es abierto — cualquiera puede confirmar con nombre y email.',
+    useCase: 'Ideal para eventos pequeños o cuando no necesitás controlar cupos por invitado.',
+  },
+  {
+    mode: 'Personalizado',
+    color: '#3B82F6',
+    desc: 'Cada invitado tiene su propio enlace único con token. El sistema controla los cupos asignados. La URL pública no tiene RSVP.',
+    useCase: 'Ideal para bodas y eventos exclusivos con control preciso de cupos y tracking de apertura.',
+  },
+  {
+    mode: 'Híbrido',
+    color: '#8B5CF6',
+    desc: 'La URL pública tiene RSVP abierto Y cada invitado tiene su enlace personalizado. Ambos flujos coexisten.',
+    useCase: 'Útil cuando tenés invitados cargados y también querés aceptar confirmaciones espontáneas.',
+  },
+];
+
+const HELP_GUEST_STATUSES: Array<{ label: string; color: string; desc: string }> = [
+  { label: 'Borrador',   color: '#9CA3AF', desc: 'Recién creado, invitación no enviada' },
+  { label: 'Pendiente',  color: '#F59E0B', desc: 'Enlace enviado, no respondió' },
+  { label: 'Abierto',    color: '#3B82F6', desc: 'Abrió la invitación, sin responder' },
+  { label: 'Confirmado', color: '#10B981', desc: 'Confirmó todos sus cupos' },
+  { label: 'Parcial',    color: '#F97316', desc: 'Confirmó solo parte de sus cupos' },
+  { label: 'Rechazado',  color: '#EF4444', desc: 'Respondió que no podrá asistir' },
+  { label: 'Bloqueado',  color: '#6B7280', desc: 'Acceso bloqueado por el administrador' },
+];
+
+const HELP_SKINS: Array<{ id: string; label: string; palette: string; accentColor: string; desc: string; features: string[] }> = [
+  {
+    id: 'classic',
+    label: 'Clásico',
+    palette: 'Compatible con cualquier paleta',
+    accentColor: 'var(--color-primary)',
+    desc: 'El estilo estándar de Eventique. Layout vertical con todas las secciones activables.',
+    features: [
+      'Portada con foto + cuenta regresiva',
+      'Historia, venues con mapa y itinerario',
+      'Galería, FAQ, RSVP y regalos',
+      'Saludo personalizado por invitado',
+    ],
+  },
+  {
+    id: 'envelope',
+    label: 'Envelope (GoParty)',
+    palette: 'Recomendada: Olive',
+    accentColor: '#6E8F4A',
+    desc: 'Sobre animado con sello de cera dorado. Experiencia inmersiva tipo invitación de papel premium.',
+    features: [
+      'Sobre animado con apertura interactiva',
+      'Collage de cards (monograma, fecha, countdown)',
+      'Venues y Dress Code sobre fondo olive',
+      'Galería Polaroid con filtro B&N',
+      'Compatible con URLs personalizadas',
+    ],
+  },
+  {
+    id: 'paper-access',
+    label: 'Paper Access',
+    palette: 'Recomendada: Paper Olive',
+    accentColor: '#C8A96E',
+    desc: 'Estética editorial papel/off-white. Tarjeta de acceso con nombre del invitado que cubre la invitación.',
+    features: [
+      'Tarjeta de acceso personalizada deslizante',
+      'Cards apiladas estilo editorial',
+      'Countdown, venues y RSVP integrados',
+      'Paleta cálida papel/crema/dorado',
+      'Pensado para invitaciones con token',
+    ],
+  },
+];
+
+const HELP_FAQ: Array<{ q: string; a: string }> = [
+  {
+    q: '¿Mis cambios se guardan automáticamente?',
+    a: 'No. Cada tab tiene su propio botón Guardar. Confirmá siempre antes de cambiar de tab o cerrar el navegador para no perder cambios.',
+  },
+  {
+    q: '¿Por qué los invitados no ven los cambios que hice?',
+    a: 'Pediles que actualicen la página (F5 en PC, deslizar para refrescar en celular). Los cambios se aplican de inmediato pero el navegador puede mostrar la versión en caché.',
+  },
+  {
+    q: '¿Qué es el enlace corto que aparece en WhatsApp?',
+    a: 'El sistema genera automáticamente un enlace corto del tipo /s/{código}. Al abrirlo, el invitado es redirigido a su URL personalizada. WhatsApp, Facebook, Telegram y otras redes muestran automáticamente una preview con imagen y descripción del evento.',
+  },
+  {
+    q: '¿Qué significa "modo de invitación" en Config?',
+    a: 'Controla cómo funciona el RSVP. Genérico: cualquiera confirma por la URL pública. Personalizado: cada invitado necesita su enlace único con cupo asignado. Híbrido: ambos funcionan al mismo tiempo.',
+  },
+  {
+    q: '¿Puedo cambiar el skin después de enviar las invitaciones?',
+    a: 'Sí. El skin se aplica dinámicamente al abrir la invitación — todos los invitados verán el nuevo estilo la próxima vez que abran su enlace. El enlace no cambia.',
+  },
+  {
+    q: '¿El enlace de un invitado dejó de funcionar?',
+    a: 'Verificá en Tab Invitados que el invitado no está bloqueado ni eliminado. Si regeneraste su token recientemente, el enlace viejo queda inválido — enviá el nuevo desde el botón WhatsApp de esa fila.',
+  },
+  {
+    q: '¿La música no suena automáticamente?',
+    a: 'Es normal. Los navegadores modernos bloquean el audio hasta que el usuario interactúa con la página. El invitado verá el reproductor y puede tocarlo para iniciar la reproducción.',
+  },
+  {
+    q: '¿Cómo agrego música al reproductor?',
+    a: 'Dos opciones: (1) URL de YouTube — ir a Tab Secciones → Música → pegar la URL y darle nombre. (2) Archivo MP3 — subir desde Tab Media → aparece el botón "Agregar al reproductor". Podés reordenar las pistas con drag & drop.',
+  },
+  {
+    q: '¿Puedo cambiar la paleta de colores después de enviar las invitaciones?',
+    a: 'Sí, los invitados no necesitan un nuevo enlace. Al abrir su URL verán la nueva paleta automáticamente en la próxima visita.',
+  },
+  {
+    q: '¿Cuántas fotos puedo subir a la galería?',
+    a: 'No hay límite. Cada foto puede ser hasta 10 MB. Recomendamos fotos en formato landscape (horizontal) para mejor presentación en la galería.',
+  },
+  {
+    q: '¿Qué pasa si elimino un invitado?',
+    a: 'El invitado se marca como inactivo (soft-delete): su enlace deja de funcionar pero el historial y los datos se conservan. No se borra definitivamente para mantener el registro de auditoría.',
+  },
+  {
+    q: '¿Olvidé la contraseña del admin?',
+    a: 'Contactá al administrador del sistema: eudavalos91@gmail.com. El administrador puede generar un nuevo token de acceso.',
+  },
+];
+
+const HELP_WHATSAPP_VARS: Array<{ variable: string; desc: string }> = [
+  { variable: '{display_name}',       desc: 'Nombre del invitado tal como fue cargado en el sistema' },
+  { variable: '{event_name}',         desc: 'Nombre del evento (ej: Boda de Concepción & Eumelio)' },
+  { variable: '{event_date}',         desc: 'Fecha del evento en formato legible' },
+  { variable: '{allowed_passes}',     desc: 'Cupos asignados a ese invitado específico' },
+  { variable: '{invitation_url}',     desc: 'Enlace corto enmascarado /s/{código} — se usa en el mensaje' },
+  { variable: '{short_url}',          desc: 'Idéntico a {invitation_url} — alias para compatibilidad' },
+  { variable: '{full_invitation_url}',desc: 'URL completa /e/{slug}/i/{token} — para uso interno' },
+  { variable: '{rsvp_deadline}',      desc: 'Fecha límite de confirmación si está configurada' },
+];
+
+const HELP_MUSIC_SOURCES: Array<{ type: string; accentColor: string; desc: string; steps: string[] }> = [
+  {
+    type: 'YouTube',
+    accentColor: '#EF4444',
+    desc: 'Pista de video/audio de YouTube vinculada por URL. No requiere descarga ni almacenamiento.',
+    steps: [
+      'Abrí Tab Secciones → expandí "Música"',
+      'Pegá la URL completa del video de YouTube',
+      'Ingresá título y artista (opcional)',
+      'Clic en "Agregar" → "Guardar secciones"',
+    ],
+  },
+  {
+    type: 'Archivo MP3',
+    accentColor: '#3B82F6',
+    desc: 'Audio subido localmente al servidor. Máximo 50 MB por archivo. Reproducción 100% privada.',
+    steps: [
+      'Abrí Tab Media → arrastrá o seleccioná el archivo MP3',
+      'Una vez subido, clic en el ícono de nota musical (Agregar al reproductor)',
+      'El track aparece automáticamente en Secciones → Música',
+      'Podés reordenar pistas con drag & drop',
+    ],
+  },
+];
+
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -4177,192 +4366,306 @@ export default function AdminPage() {
 
         {/* ── TAB: Ayuda / Guía de usuario ── */}
         {activeTab === 'ayuda' && (
-          <div className="space-y-6 max-w-3xl mx-auto">
-            {/* Header */}
-            <div className="card p-6" style={{ borderLeft: '4px solid var(--color-primary)' }}>
+          <div className="space-y-6 max-w-4xl mx-auto">
+
+            {/* ── Header ── */}
+            <div className="card p-6" style={{ borderLeft: '4px solid var(--color-primary)', background: 'var(--color-surface)' }}>
               <div className="flex items-start gap-4">
-                <HelpCircle className="w-8 h-8 flex-shrink-0 mt-1" style={{ color: 'var(--color-primary)' }} />
-                <div>
-                  <h2 className="font-heading text-2xl mb-1" style={{ color: 'var(--color-text)' }}>Guía de usuario — Eventique</h2>
-                  <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-                    Todo lo que necesitás saber para gestionar tu evento desde este panel.
+                <HelpCircle className="w-10 h-10 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-3 mb-2">
+                    <h2 className="font-heading text-2xl" style={{ color: 'var(--color-text)' }}>Guía de usuario — Eventique</h2>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'var(--color-primary)', color: '#fff' }}>v2 Enterprise</span>
+                  </div>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+                    Referencia completa del panel de administración. Todos los flujos, skins, modos de invitación, integración con WhatsApp y configuración de música.
                   </p>
+                </div>
+              </div>
+              {/* Index */}
+              <div className="mt-5 pt-5 border-t" style={{ borderColor: 'var(--color-border)' }}>
+                <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--color-text-muted)' }}>Contenido de esta guía</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    '1. Inicio rápido', '2. Tabs del panel', '3. Modos de invitación',
+                    '4. Gestión de invitados', '5. Estilos (Skins)', '6. WhatsApp y enlaces cortos',
+                    '7. Música', '8. Preguntas frecuentes',
+                  ].map((item) => (
+                    <span key={item} className="text-xs px-3 py-1 rounded-full" style={{ background: 'var(--color-secondary)', color: 'var(--color-text-muted)' }}>{item}</span>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Quick Start */}
+            {/* ── 1. Inicio rápido ── */}
             <div className="card p-6">
-              <h3 className="font-sub text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-primary)' }}>
-                <span className="w-7 h-7 rounded-full text-white text-sm flex items-center justify-center font-bold" style={{ background: 'var(--color-primary)' }}>1</span>
+              <h3 className="font-sub text-lg font-semibold mb-5 flex items-center gap-3" style={{ color: 'var(--color-text)' }}>
+                <span className="w-8 h-8 rounded-full text-white text-sm flex items-center justify-center font-bold flex-shrink-0" style={{ background: 'var(--color-primary)' }}>1</span>
                 Inicio rápido — Primeros pasos
               </h3>
-              <ol className="space-y-3 text-sm" style={{ color: 'var(--color-text)' }}>
-                {[
-                  ['Tab Config', 'Completá los datos del evento: nombres, fecha, lugar, horario'],
-                  ['Tab Tema', 'Elegí la paleta de colores que más te guste'],
-                  ['Tab Media', 'Subí la foto de portada y fotos para la galería'],
-                  ['Tab Secciones → Hero', 'Asigná la foto de portada y el subtítulo'],
-                  ['Tab Invitados', 'Importá tu lista de invitados (CSV) o cargalos uno a uno'],
-                  ['Invitados → WhatsApp', 'Enviá el enlace personalizado a cada invitado'],
-                ].map(([step, desc], i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-white mt-0.5" style={{ background: 'var(--color-accent)' }}>{i + 1}</span>
-                    <span><strong>{step}</strong> — {desc}</span>
-                  </li>
+              <div className="space-y-3">
+                {HELP_QUICK_START.map(({ tab, action }, i) => (
+                  <div key={tab} className="flex items-start gap-4 p-3 rounded-xl" style={{ background: 'var(--color-secondary)' }}>
+                    <span className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-white mt-0.5" style={{ background: 'var(--color-accent)' }}>{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>{tab}</p>
+                      <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{action}</p>
+                    </div>
+                  </div>
                 ))}
-              </ol>
+              </div>
             </div>
 
-            {/* Tabs overview */}
+            {/* ── 2. Tabs del panel ── */}
             <div className="card p-6">
-              <h3 className="font-sub text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-primary)' }}>
-                <span className="w-7 h-7 rounded-full text-white text-sm flex items-center justify-center font-bold" style={{ background: 'var(--color-primary)' }}>2</span>
+              <h3 className="font-sub text-lg font-semibold mb-5 flex items-center gap-3" style={{ color: 'var(--color-text)' }}>
+                <span className="w-8 h-8 rounded-full text-white text-sm flex items-center justify-center font-bold flex-shrink-0" style={{ background: 'var(--color-primary)' }}>2</span>
                 ¿Para qué sirve cada tab?
               </h3>
-              <div className="space-y-3">
-                {[
-                  { tab: 'Inicio',         desc: 'Resumen del evento, estadísticas de confirmaciones y accesos rápidos.' },
-                  { tab: 'RSVPs',          desc: 'Lista completa de confirmaciones. Podés editar o eliminar cualquier RSVP.' },
-                  { tab: 'Invitados',      desc: 'Gestión de invitados personalizados: crear, importar CSV, ver QR, enviar WhatsApp.' },
-                  { tab: 'Configuración',  desc: 'Datos básicos del evento, recintos, modo de invitaciones, plantilla de WhatsApp.' },
-                  { tab: 'Tema',           desc: 'Paleta de colores (22 opciones). El cambio se aplica en toda la invitación.' },
-                  { tab: 'Media',          desc: 'Subir fotos (hasta 10 MB) y audio (hasta 50 MB). Asignar a galería o reproductor.' },
-                  { tab: 'Eventos',        desc: 'Para el superadministrador: crear, clonar o eliminar eventos del sistema.' },
-                  { tab: 'Secciones',      desc: 'Editor completo de cada bloque de la invitación (portada, historia, venues, música, etc.).' },
-                  { tab: 'Ayuda',          desc: 'Esta guía de usuario.' },
-                ].map(({ tab, desc }) => (
-                  <div key={tab} className="flex gap-3 p-3 rounded-lg" style={{ background: 'var(--color-secondary)' }}>
-                    <span className="font-medium text-sm w-32 flex-shrink-0" style={{ color: 'var(--color-primary)' }}>{tab}</span>
+              <div className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
+                {HELP_TABS.map(({ tab, desc }) => (
+                  <div key={tab} className="flex gap-4 py-3">
+                    <span className="font-semibold text-sm flex-shrink-0 w-28" style={{ color: 'var(--color-primary)' }}>{tab}</span>
                     <span className="text-sm" style={{ color: 'var(--color-text)' }}>{desc}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Invitados guide */}
+            {/* ── 3. Modos de invitación ── */}
             <div className="card p-6">
-              <h3 className="font-sub text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-primary)' }}>
-                <span className="w-7 h-7 rounded-full text-white text-sm flex items-center justify-center font-bold" style={{ background: 'var(--color-primary)' }}>3</span>
-                Cómo gestionar invitados
+              <h3 className="font-sub text-lg font-semibold mb-2 flex items-center gap-3" style={{ color: 'var(--color-text)' }}>
+                <span className="w-8 h-8 rounded-full text-white text-sm flex items-center justify-center font-bold flex-shrink-0" style={{ background: 'var(--color-primary)' }}>3</span>
+                Modos de invitación
               </h3>
-              <div className="space-y-4 text-sm" style={{ color: 'var(--color-text)' }}>
-                <div>
-                  <p className="font-semibold mb-1">Importar desde Excel / CSV</p>
-                  <ol className="space-y-1 ml-4 list-decimal" style={{ color: 'var(--color-text-muted)' }}>
-                    <li>Descargá la plantilla (botón "Exportar Plantilla")</li>
-                    <li>Completá los datos en Excel: nombre, cupos, email, teléfono</li>
-                    <li>Guardá como CSV y subilo con "Importar CSV"</li>
-                    <li>Revisá la previsualización → Confirmar importación</li>
-                  </ol>
-                </div>
-                <div>
-                  <p className="font-semibold mb-2">Estados de un invitado</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { estado: 'Pendiente', color: '#F59E0B', desc: 'No respondió aún' },
-                      { estado: 'Confirmado', color: '#10B981', desc: 'Confirmó todos sus cupos' },
-                      { estado: 'Parcial', color: '#F97316', desc: 'Confirmó algunos cupos' },
-                      { estado: 'Rechazado', color: '#EF4444', desc: 'Respondió que no va' },
-                      { estado: 'Bloqueado', color: '#6B7280', desc: 'No puede confirmar' },
-                      { estado: 'Abierto', color: '#3B82F6', desc: 'Abrió el enlace, sin responder' },
-                    ].map(({ estado, color, desc }) => (
-                      <div key={estado} className="flex items-center gap-2 p-2 rounded" style={{ background: 'var(--color-secondary)' }}>
-                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color }} />
-                        <div>
-                          <p className="font-medium text-xs">{estado}</p>
-                          <p className="text-xs opacity-70">{desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="font-semibold mb-1">Enviar por WhatsApp</p>
-                  <p style={{ color: 'var(--color-text-muted)' }}>
-                    Clic en el ícono de WhatsApp en la fila del invitado → revisá el mensaje → clic en "Abrir WhatsApp". El enlace que aparece en el mensaje es corto y enmascara el token largo del invitado.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Skins */}
-            <div className="card p-6">
-              <h3 className="font-sub text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-primary)' }}>
-                <span className="w-7 h-7 rounded-full text-white text-sm flex items-center justify-center font-bold" style={{ background: 'var(--color-primary)' }}>4</span>
-                Estilos de invitación (Skins)
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div className="p-4 rounded-xl border-2" style={{ borderColor: 'var(--color-primary)', background: 'var(--color-secondary)' }}>
-                  <p className="font-semibold mb-2" style={{ color: 'var(--color-primary)' }}>Classic (Clásico)</p>
-                  <p style={{ color: 'var(--color-text-muted)' }}>
-                    El estilo estándar. Portada, historia, venues, itinerario, cortejo, galería, hospedaje, FAQ, RSVP, regalos y footer. Compatible con todas las paletas.
-                  </p>
-                </div>
-                <div className="p-4 rounded-xl border-2" style={{ borderColor: 'var(--color-accent)', background: 'var(--color-secondary)' }}>
-                  <p className="font-semibold mb-2" style={{ color: 'var(--color-accent)' }}>Envelope (GoParty)</p>
-                  <p style={{ color: 'var(--color-text-muted)' }}>
-                    Sobre interactivo animado, collage de cards, venues sobre fondo olive, dress code, galería polaroid. Para activar: Tab Secciones → Skin → Envelope + paleta Olive.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* FAQ */}
-            <div className="card p-6">
-              <h3 className="font-sub text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-primary)' }}>
-                <span className="w-7 h-7 rounded-full text-white text-sm flex items-center justify-center font-bold" style={{ background: 'var(--color-primary)' }}>5</span>
-                Preguntas frecuentes
-              </h3>
-              <div className="space-y-4 text-sm">
-                {[
-                  {
-                    q: '¿Mis cambios se guardan automáticamente?',
-                    a: 'No. Cada tab tiene su propio botón Guardar. Siempre confirmá antes de cambiar de tab o cerrar el navegador.',
-                  },
-                  {
-                    q: '¿Por qué los invitados no ven los cambios?',
-                    a: 'Pediles que actualicen la página (F5 o deslizar para refrescar en celular). Los cambios se aplican de inmediato pero el navegador puede mostrar la versión en caché.',
-                  },
-                  {
-                    q: '¿La música no suena automáticamente?',
-                    a: 'Es normal. Los navegadores modernos bloquean el audio sin interacción del usuario. El invitado verá el reproductor y puede tocarlo para iniciar.',
-                  },
-                  {
-                    q: '¿El enlace de un invitado dejó de funcionar?',
-                    a: 'Verificá en Tab Invitados que el invitado está activo y no bloqueado. Si regeneraste el token recientemente, el enlace viejo queda inválido — enviá el nuevo desde el botón de WhatsApp.',
-                  },
-                  {
-                    q: '¿Puedo cambiar la paleta después de enviar las invitaciones?',
-                    a: 'Sí. Los invitados no necesitan un nuevo enlace — al abrir su URL verán la nueva paleta.',
-                  },
-                  {
-                    q: '¿Olvidé la contraseña del admin?',
-                    a: 'Contactá al administrador del sistema: eudavalos91@gmail.com',
-                  },
-                ].map(({ q, a }) => (
-                  <div key={q} className="p-3 rounded-lg" style={{ background: 'var(--color-secondary)' }}>
-                    <p className="font-semibold mb-1" style={{ color: 'var(--color-text)' }}>{q}</p>
-                    <p style={{ color: 'var(--color-text-muted)' }}>{a}</p>
+              <p className="text-sm mb-5 ml-11" style={{ color: 'var(--color-text-muted)' }}>
+                Configurá en <strong>Tab Configuración → Modo de invitación</strong>. Determina cómo los invitados acceden al RSVP.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {HELP_INVITATION_MODES.map(({ mode, color, desc, useCase }) => (
+                  <div key={mode} className="p-4 rounded-xl border-2 flex flex-col gap-3" style={{ borderColor: color + '40', background: 'var(--color-secondary)' }}>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: color }} />
+                      <p className="font-semibold text-sm" style={{ color }}>{mode}</p>
+                    </div>
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--color-text)' }}>{desc}</p>
+                    <div className="mt-auto pt-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
+                      <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                        <strong>Ideal para:</strong> {useCase}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Contact */}
-            <div className="card p-6 text-center">
-              <HelpCircle className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
-              <h3 className="font-sub text-lg font-semibold mb-1" style={{ color: 'var(--color-text)' }}>¿Necesitás más ayuda?</h3>
-              <p className="text-sm mb-3" style={{ color: 'var(--color-text-muted)' }}>
-                Contactá al administrador del sistema con cualquier consulta o problema técnico.
-              </p>
-              <a
-                href="mailto:eudavalos91@gmail.com"
-                className="btn-primary inline-flex"
-              >
-                eudavalos91@gmail.com
-              </a>
+            {/* ── 4. Gestión de invitados ── */}
+            <div className="card p-6">
+              <h3 className="font-sub text-lg font-semibold mb-5 flex items-center gap-3" style={{ color: 'var(--color-text)' }}>
+                <span className="w-8 h-8 rounded-full text-white text-sm flex items-center justify-center font-bold flex-shrink-0" style={{ background: 'var(--color-primary)' }}>4</span>
+                Gestión de invitados
+              </h3>
+
+              {/* Import flow */}
+              <div className="mb-6">
+                <p className="text-sm font-semibold mb-3" style={{ color: 'var(--color-text)' }}>Importar lista desde Excel / CSV</p>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+                  {[
+                    { n: 1, label: 'Descargar plantilla', sub: 'Botón "Exportar Plantilla"' },
+                    { n: 2, label: 'Completar en Excel', sub: 'Nombre, cupos, email, teléfono' },
+                    { n: 3, label: 'Subir CSV', sub: 'Botón "Importar CSV"' },
+                    { n: 4, label: 'Confirmar', sub: 'Revisar preview → Confirmar' },
+                  ].map(({ n, label, sub }, idx, arr) => (
+                    <div key={n} className="flex sm:flex-col items-center sm:items-center gap-3 sm:gap-1 flex-1">
+                      <div className="flex sm:flex-col items-center gap-2 sm:gap-1 flex-1">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: 'var(--color-primary)' }}>{n}</div>
+                        <div className="text-center sm:text-center">
+                          <p className="text-xs font-semibold" style={{ color: 'var(--color-text)' }}>{label}</p>
+                          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{sub}</p>
+                        </div>
+                      </div>
+                      {idx < arr.length - 1 && (
+                        <span className="text-lg flex-shrink-0 sm:hidden" style={{ color: 'var(--color-text-muted)' }}>→</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Statuses */}
+              <div>
+                <p className="text-sm font-semibold mb-3" style={{ color: 'var(--color-text)' }}>Estados de un invitado</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {HELP_GUEST_STATUSES.map(({ label, color, desc }) => (
+                    <div key={label} className="flex items-center gap-3 p-3 rounded-lg" style={{ background: 'var(--color-secondary)' }}>
+                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: color }} />
+                      <div>
+                        <p className="text-xs font-semibold" style={{ color: 'var(--color-text)' }}>{label}</p>
+                        <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
+
+            {/* ── 5. Skins ── */}
+            <div className="card p-6">
+              <h3 className="font-sub text-lg font-semibold mb-2 flex items-center gap-3" style={{ color: 'var(--color-text)' }}>
+                <span className="w-8 h-8 rounded-full text-white text-sm flex items-center justify-center font-bold flex-shrink-0" style={{ background: 'var(--color-primary)' }}>5</span>
+                Estilos de invitación (Skins)
+              </h3>
+              <p className="text-sm mb-5 ml-11" style={{ color: 'var(--color-text-muted)' }}>
+                Activá en <strong>Tab Secciones → Skin de invitación</strong>. El skin se aplica en el próximo page load — sin reenviar enlaces.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {HELP_SKINS.map(({ label, palette, accentColor, desc, features }) => (
+                  <div key={label} className="p-4 rounded-xl border-2 flex flex-col gap-3" style={{ borderColor: accentColor + '60', background: 'var(--color-secondary)' }}>
+                    <div>
+                      <p className="font-semibold text-sm mb-1" style={{ color: accentColor }}>{label}</p>
+                      <p className="text-xs px-2 py-0.5 rounded-full inline-block" style={{ background: accentColor + '20', color: accentColor }}>
+                        {palette}
+                      </p>
+                    </div>
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--color-text)' }}>{desc}</p>
+                    <ul className="mt-auto space-y-1">
+                      {features.map((f) => (
+                        <li key={f} className="flex items-start gap-2 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                          <span className="mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: accentColor }} />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── 6. WhatsApp y enlaces cortos ── */}
+            <div className="card p-6">
+              <h3 className="font-sub text-lg font-semibold mb-2 flex items-center gap-3" style={{ color: 'var(--color-text)' }}>
+                <span className="w-8 h-8 rounded-full text-white text-sm flex items-center justify-center font-bold flex-shrink-0" style={{ background: 'var(--color-primary)' }}>6</span>
+                WhatsApp y enlaces cortos
+              </h3>
+              <p className="text-sm mb-5 ml-11" style={{ color: 'var(--color-text-muted)' }}>
+                Cada invitado recibe su propio enlace enmascarado. WhatsApp, Telegram, Facebook e iMessage
+                muestran automáticamente una preview con imagen y descripción del evento gracias al protocolo Open Graph.
+              </p>
+
+              {/* Flow */}
+              <div className="p-4 rounded-xl mb-5" style={{ background: 'var(--color-secondary)' }}>
+                <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--color-text-muted)' }}>Flujo del enlace</p>
+                <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--color-text)' }}>
+                  {[
+                    'Admin copia o envía enlace',
+                    'https://eventique…/s/{código}',
+                    'WhatsApp muestra preview',
+                    'Invitado abre → redirige a /e/{slug}/i/{token}',
+                  ].map((step, idx, arr) => (
+                    <span key={step} className="flex items-center gap-2">
+                      <span className="px-2 py-1 rounded-lg" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>{step}</span>
+                      {idx < arr.length - 1 && <span style={{ color: 'var(--color-text-muted)' }}>→</span>}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Template vars */}
+              <div>
+                <p className="text-sm font-semibold mb-3" style={{ color: 'var(--color-text)' }}>Variables disponibles en la plantilla de WhatsApp</p>
+                <div className="divide-y rounded-xl overflow-hidden border" style={{ borderColor: 'var(--color-border)' }}>
+                  {HELP_WHATSAPP_VARS.map(({ variable, desc }) => (
+                    <div key={variable} className="flex items-start gap-4 px-4 py-2.5" style={{ background: 'var(--color-secondary)' }}>
+                      <code className="text-xs font-mono flex-shrink-0 px-2 py-0.5 rounded" style={{ background: 'var(--color-surface)', color: 'var(--color-primary)', border: '1px solid var(--color-border)' }}>
+                        {variable}
+                      </code>
+                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{desc}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                  Editá la plantilla en <strong>Tab Configuración → Plantilla de WhatsApp</strong>. Usá <code className="font-mono">{'{invitation_url}'}</code> para el enlace corto.
+                </p>
+              </div>
+            </div>
+
+            {/* ── 7. Música ── */}
+            <div className="card p-6">
+              <h3 className="font-sub text-lg font-semibold mb-2 flex items-center gap-3" style={{ color: 'var(--color-text)' }}>
+                <span className="w-8 h-8 rounded-full text-white text-sm flex items-center justify-center font-bold flex-shrink-0" style={{ background: 'var(--color-primary)' }}>7</span>
+                Reproductor de música
+              </h3>
+              <p className="text-sm mb-5 ml-11" style={{ color: 'var(--color-text-muted)' }}>
+                El reproductor aparece como una barra flotante en la invitación. Soporta YouTube y MP3 locales.
+                Podés reordenar las pistas con drag &amp; drop desde <strong>Tab Secciones → Música</strong>.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {HELP_MUSIC_SOURCES.map(({ type, accentColor, desc, steps }) => (
+                  <div key={type} className="p-4 rounded-xl border-2" style={{ borderColor: accentColor + '50', background: 'var(--color-secondary)' }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: accentColor }} />
+                      <p className="font-semibold text-sm" style={{ color: accentColor }}>{type}</p>
+                    </div>
+                    <p className="text-xs mb-3 leading-relaxed" style={{ color: 'var(--color-text)' }}>{desc}</p>
+                    <ol className="space-y-1">
+                      {steps.map((s, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                          <span className="font-bold flex-shrink-0" style={{ color: accentColor }}>{idx + 1}.</span>
+                          {s}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 p-3 rounded-xl" style={{ background: 'var(--color-secondary)', border: '1px dashed var(--color-border)' }}>
+                <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  <strong>Autoplay bloqueado:</strong> los navegadores modernos requieren interacción del usuario antes de reproducir audio.
+                  Los invitados verán el reproductor con el botón de play. Podés activar el intento de autoplay en <strong>Secciones → Música → Autoplay</strong>.
+                </p>
+              </div>
+            </div>
+
+            {/* ── 8. FAQ ── */}
+            <div className="card p-6">
+              <h3 className="font-sub text-lg font-semibold mb-5 flex items-center gap-3" style={{ color: 'var(--color-text)' }}>
+                <span className="w-8 h-8 rounded-full text-white text-sm flex items-center justify-center font-bold flex-shrink-0" style={{ background: 'var(--color-primary)' }}>8</span>
+                Preguntas frecuentes
+              </h3>
+              <div className="space-y-3">
+                {HELP_FAQ.map(({ q, a }, idx) => (
+                  <details key={idx} className="rounded-xl overflow-hidden group" style={{ border: '1px solid var(--color-border)' }}>
+                    <summary
+                      className="flex items-start justify-between gap-3 p-4 cursor-pointer select-none text-sm font-semibold"
+                      style={{ color: 'var(--color-text)', background: 'var(--color-secondary)', listStyle: 'none' }}
+                    >
+                      <span>{q}</span>
+                      <span className="flex-shrink-0 text-lg leading-none" style={{ color: 'var(--color-text-muted)' }}>+</span>
+                    </summary>
+                    <div className="px-4 pb-4 pt-3 text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)', background: 'var(--color-surface)' }}>
+                      {a}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Contact ── */}
+            <div className="card p-6" style={{ background: 'var(--color-secondary)', border: '1px solid var(--color-border)' }}>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <HelpCircle className="w-10 h-10 flex-shrink-0" style={{ color: 'var(--color-primary)' }} />
+                <div className="flex-1 text-center sm:text-left">
+                  <h3 className="font-sub text-base font-semibold mb-1" style={{ color: 'var(--color-text)' }}>¿Necesitás ayuda adicional?</h3>
+                  <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                    Contactá al administrador del sistema para consultas técnicas, nuevos eventos o recuperación de acceso.
+                  </p>
+                </div>
+                <a href="mailto:eudavalos91@gmail.com" className="btn-primary flex-shrink-0">
+                  eudavalos91@gmail.com
+                </a>
+              </div>
+            </div>
+
           </div>
         )}
 
