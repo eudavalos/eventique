@@ -122,6 +122,7 @@ export function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>):
     paper_access_tap_label:       (dyn.paper_access_tap_label as string | undefined)       ?? base.paper_access_tap_label,
     paper_access_guest_label:     (dyn.paper_access_guest_label as string | undefined)     ?? base.paper_access_guest_label,
     paper_access_passes_label:    (dyn.paper_access_passes_label as string | undefined)    ?? base.paper_access_passes_label,
+    paper_music_card_enabled:     (dyn.paper_music_card_enabled as boolean | undefined)    ?? base.paper_music_card_enabled ?? true,
     paper_music_prompt:           (dyn.paper_music_prompt as string | undefined)           ?? base.paper_music_prompt,
     paper_music_button_label:     (dyn.paper_music_button_label as string | undefined)     ?? base.paper_music_button_label,
     paper_parents_intro:          (dyn.paper_parents_intro as string | undefined)          ?? base.paper_parents_intro,

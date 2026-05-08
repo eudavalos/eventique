@@ -1,7 +1,7 @@
 ﻿{
   "session_protocol": {
     "last_session_date": "2026-05-08",
-    "last_session_topic": "remove-paper-music-prompt",
+    "last_session_topic": "toggle-paper-music-card",
     "last_commit": "5411f2e",
     "test_count_baseline": 56,
     "test_suite_file": "docs/test_suite.py",
@@ -9,8 +9,8 @@
     "test_suite_categories": ["Conectividad", "Seguridad", "Eventos", "Config", "RSVP", "Invitados", "Seguridad Avanzada", "CSV", "Cleanup"],
     "test_suite_result_last_run": "56/56 — 100% en Pi",
     "pending_issue": null,
-    "last_session_memory_file": "memory/session_2026_05_08_remove_paper_music_prompt.md",
-    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_08_remove_paper_music_prompt.md",
+    "last_session_memory_file": "memory/session_2026_05_08_toggle_paper_music_card.md",
+    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_08_toggle_paper_music_card.md",
     "git_workflow": {
       "initialized": true,
       "remote": "https://github.com/eudavalos/eventique",
@@ -113,6 +113,7 @@
         "paper_access_tap_label",
         "paper_access_guest_label",
         "paper_access_passes_label",
+        "paper_music_card_enabled",
         "paper_music_prompt",
         "paper_music_button_label",
         "paper_parents_intro",
@@ -230,6 +231,19 @@
     "rendering_rule": "MusicPaperCard renders paper_music_prompt only when trim() is non-empty",
     "admin_persistence_rule": "AdminPage must persist empty string instead of undefined so the default fallback does not reappear",
     "pi_validation": "personalized API returns paper_music_prompt empty; docs/test_suite.py 56/56"
+  },
+
+  "paper_access_music_card_visibility": {
+    "updated_on": "2026-05-08",
+    "event_slug": "boda-conce-eume",
+    "requested_ui_change": "configure whether the full Paper Access music card is shown or hidden",
+    "config_key": "paper_music_card_enabled",
+    "default": true,
+    "production_value": false,
+    "admin_location": "Admin -> Secciones -> Skin de Invitacion -> Paper Access -> Mostrar tarjeta de musica",
+    "independent_from": "music.enabled",
+    "rendering_rule": "MusicPaperCard returns null when paper_music_card_enabled is false, even if music is enabled",
+    "pi_validation": "personalized API returns paper_music_card_enabled=false; docs/test_suite.py 56/56; frontend/api healthy"
   },
 
   "media": {

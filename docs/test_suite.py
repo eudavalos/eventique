@@ -493,6 +493,7 @@ class EventiqueTestSuite:
                 "paper_access_tap_label": "Test: Toca aqui",
                 "paper_access_guest_label": "Test: Invitado",
                 "paper_access_passes_label": "Test: {passes} cupos",
+                "paper_music_card_enabled": False,
                 "paper_music_prompt": "Test: Dale play",
                 "paper_music_button_label": "Test: Reproducir",
                 "paper_parents_intro": "Test: Familias",

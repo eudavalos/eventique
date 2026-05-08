@@ -139,7 +139,8 @@ function GuestAccessCard({ config }: { config: WeddingConfig }) {
 function MusicPaperCard({ config }: { config: WeddingConfig }) {
   const track = config.music?.tracks?.[0];
   const prompt = cfgText(config, 'paper_music_prompt').trim();
-  if (!config.music?.enabled || !track) return null;
+  const showCard = config.paper_music_card_enabled !== false;
+  if (!showCard || !config.music?.enabled || !track) return null;
 
   return (
     <DetailCard className="p-6">

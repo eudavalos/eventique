@@ -1,11 +1,12 @@
 # Eventique - Memory Index
 
-**Last Updated**: 2026-05-08 (remove Paper Access music prompt + music playback + personalized config)
+**Last Updated**: 2026-05-08 (toggle Paper Access music card + remove prompt + music playback)
 
 ---
 
 ## Sessions
 
+- [session_2026_05_08_toggle_paper_music_card.md](session_2026_05_08_toggle_paper_music_card.md) - Nuevo flag parametrizado `paper_music_card_enabled` para mostrar/ocultar la tarjeta completa de musica en `paper-access`; Admin checkbox, merge/config/tipos/test/catalogo, deploy Pi y suite 56/56.
 - [session_2026_05_08_remove_paper_music_prompt.md](session_2026_05_08_remove_paper_music_prompt.md) - Remocion parametrizada del texto superior de la tarjeta de musica `paper-access`; `paper_music_prompt` vacio ya no renderiza y Admin puede persistir string vacio; deploy Pi y suite 56/56.
 - [session_2026_05_08_music_playback_paper_access.md](session_2026_05_08_music_playback_paper_access.md) - Investigacion de musica en `paper-access`: link YouTube estaba guardado, la tarjeta visible no disparaba el reproductor; se agrego canal interno `eventique:music-player:*`, soporte playlist `list`, deploy Pi y suite 56/56.
 - [session_2026_05_08_personalized_config_investigation.md](session_2026_05_08_personalized_config_investigation.md) - Investigacion de link personalizado `772d...`; config `paper-access` es por evento, hay duplicado operativo de invitado Ilde, y se reforzo `App.tsx` para aplicar `event_config` del payload personalizado como fallback inmediato.

@@ -362,3 +362,6 @@ En cada sesión significativa, actualizar estos cuatro artefactos:
 - `paper_music_prompt` puede quedar como string vacío para ocultar el texto superior de la tarjeta de música en `paper-access`.
 - `MusicPaperCard` solo renderiza ese prompt si tiene contenido no vacío.
 - Admin debe persistir `paper_music_prompt = ""` cuando el usuario quiere ocultarlo; no convertirlo a `undefined` porque eso reactiva el fallback por defecto.
+- `paper_music_card_enabled` controla si la tarjeta completa de música se muestra en `paper-access`.
+- Este flag es independiente de `music.enabled`: ocultar la tarjeta no elimina la música ni las pistas configuradas.
+- Admin -> Secciones -> Paper Access incluye el checkbox `Mostrar tarjeta de música`.

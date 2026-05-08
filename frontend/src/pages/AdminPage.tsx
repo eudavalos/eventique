@@ -703,6 +703,7 @@ export default function AdminPage() {
   const [paperAccessTapLabel, setPaperAccessTapLabel] = useState('');
   const [paperAccessGuestLabel, setPaperAccessGuestLabel] = useState('');
   const [paperAccessPassesLabel, setPaperAccessPassesLabel] = useState('');
+  const [paperMusicCardEnabled, setPaperMusicCardEnabled] = useState(true);
   const [paperMusicPrompt, setPaperMusicPrompt] = useState('');
   const [paperMusicButtonLabel, setPaperMusicButtonLabel] = useState('');
   const [paperParentsIntro, setPaperParentsIntro] = useState('');
@@ -916,6 +917,7 @@ export default function AdminPage() {
         setPaperAccessTapLabel((cfg.paper_access_tap_label as string) ?? 'Toca aqui');
         setPaperAccessGuestLabel((cfg.paper_access_guest_label as string) ?? 'Invitacion especial para');
         setPaperAccessPassesLabel((cfg.paper_access_passes_label as string) ?? 'Hemos reservado {passes} cupo(s) para ti.');
+        setPaperMusicCardEnabled((cfg.paper_music_card_enabled as boolean | undefined) ?? true);
         setPaperMusicPrompt((cfg.paper_music_prompt as string) ?? 'Dale play para escuchar nuestra cancion');
         setPaperMusicButtonLabel((cfg.paper_music_button_label as string) ?? 'Reproducir musica');
         setPaperParentsIntro((cfg.paper_parents_intro as string) ?? 'En compania de nuestras familias');
@@ -1372,6 +1374,7 @@ export default function AdminPage() {
         paper_access_tap_label: paperAccessTapLabel || undefined,
         paper_access_guest_label: paperAccessGuestLabel || undefined,
         paper_access_passes_label: paperAccessPassesLabel || undefined,
+        paper_music_card_enabled: paperMusicCardEnabled,
         paper_music_prompt: paperMusicPrompt,
         paper_music_button_label: paperMusicButtonLabel || undefined,
         paper_parents_intro: paperParentsIntro || undefined,
@@ -4278,6 +4281,22 @@ export default function AdminPage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label className="flex items-start gap-3 rounded-lg p-4 cursor-pointer" style={{ background: 'var(--color-secondary)', border: '1px solid var(--color-border)' }}>
+                      <input
+                        type="checkbox"
+                        checked={paperMusicCardEnabled}
+                        onChange={(e) => setPaperMusicCardEnabled(e.target.checked)}
+                        className="w-4 h-4 mt-0.5 accent-primary"
+                      />
+                      <span className="min-w-0">
+                        <span className="block font-body text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+                          Mostrar tarjeta de música
+                        </span>
+                        <span className="block font-body text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                          Controla solo la tarjeta visual de Paper Access. El reproductor se maneja en la seccion Musica.
+                        </span>
+                      </span>
+                    </label>
                     <div>
                       <label className="input-label">Prompt de música</label>
                       <input value={paperMusicPrompt} onChange={e => setPaperMusicPrompt(e.target.value)} className="input-field" placeholder="Dale play para escuchar nuestra cancion" />

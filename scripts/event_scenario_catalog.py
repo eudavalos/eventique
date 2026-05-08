@@ -448,6 +448,7 @@ def _build_config(
         "paper_access_tap_label": "Toca aqui",
         "paper_access_guest_label": "Invitacion especial para",
         "paper_access_passes_label": "Hemos reservado {passes} cupo(s) para ti.",
+        "paper_music_card_enabled": True,
         "paper_music_prompt": "Dale play para escuchar la musica del evento",
         "paper_music_button_label": "Reproducir musica",
         "paper_parents_intro": "En compania de nuestras familias",

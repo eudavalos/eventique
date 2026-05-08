@@ -296,6 +296,7 @@ export interface WeddingConfig {
   paper_access_tap_label?: string;
   paper_access_guest_label?: string;
   paper_access_passes_label?: string;
+  paper_music_card_enabled?: boolean;
   paper_music_prompt?: string;
   paper_music_button_label?: string;
   paper_parents_intro?: string;
