@@ -75,6 +75,9 @@ interface ConfigFormData {
   gift_registry_label: string;
   gift_registry_title: string;
   gift_registry_description: string;
+  gift_bank_enabled: boolean;
+  gift_bank_title: string;
+  gift_bank_body: string;
   same_venue: boolean;
   rsvp_enabled: boolean;
   rsvp_deadline: string;
@@ -414,6 +417,9 @@ export default function AdminPage() {
   const [footerCredits, setFooterCredits] = useState('');
   const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
   const [musicTracks, setMusicTracks] = useState<MusicTrack[]>([]);
+  const [giftBankAccounts, setGiftBankAccounts] = useState<Array<{ label: string; value: string }>>([]);
+  const [newBankLabel, setNewBankLabel] = useState('');
+  const [newBankValue, setNewBankValue] = useState('');
   const [savingSections, setSavingSections] = useState(false);
   // Section add-form state
   const [newStoryDate, setNewStoryDate] = useState('');
@@ -612,6 +618,7 @@ export default function AdminPage() {
         setFooterCredits((foot?.credits as string) ?? '');
         setGalleryPhotos((gal?.photos as GalleryPhoto[]) ?? []);
         setMusicTracks((mus?.tracks as MusicTrack[]) ?? []);
+        setGiftBankAccounts((cfg.gift_bank_accounts as Array<{ label: string; value: string }>) ?? []);
 
         // Extended sections
         const hero = sects.hero as Record<string, unknown> | undefined;
@@ -786,6 +793,10 @@ export default function AdminPage() {
         gift_registry_label: formData.gift_registry_label || undefined,
         gift_registry_title: formData.gift_registry_title || undefined,
         gift_registry_description: formData.gift_registry_description || undefined,
+        gift_bank_enabled: formData.gift_bank_enabled,
+        gift_bank_title: formData.gift_bank_title || undefined,
+        gift_bank_body: formData.gift_bank_body || undefined,
+        gift_bank_accounts: giftBankAccounts.length > 0 ? giftBankAccounts : undefined,
         invitation_mode: formData.invitation_mode || 'generic',
         allow_public_rsvp: formData.allow_public_rsvp,
         track_invitation_opens: formData.track_invitation_opens,
@@ -2182,6 +2193,126 @@ export default function AdminPage() {
                         disabled={!enabledField.value}
                       />
                       <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Texto de apoyo que acompaña el botón (opcional).</p>
+                    </div>
+                  </div>
+                )}
+              />
+            </div>
+
+            {/* Bank Gift Section */}
+            <div className="card p-6 sm:p-8">
+              <div className="flex items-start justify-between gap-4 mb-5">
+                <div>
+                  <h2 className="font-sub text-lg font-medium leading-tight" style={{ color: 'var(--color-text)' }}>Datos Bancarios (Obsequio)</h2>
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                    Sección oscura con datos bancarios para transferencias directas. Se muestra debajo de la mesa de regalos.
+                  </p>
+                </div>
+                <Controller
+                  name="gift_bank_enabled"
+                  control={control}
+                  render={({ field }) => (
+                    <button
+                      type="button"
+                      onClick={() => field.onChange(!field.value)}
+                      className="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-body font-medium transition-all duration-200 border"
+                      style={{
+                        background: field.value ? 'var(--color-primary)' : 'var(--color-surface)',
+                        color: field.value ? 'white' : 'var(--color-text-muted)',
+                        borderColor: field.value ? 'var(--color-primary)' : 'var(--color-border)',
+                      }}
+                    >
+                      <span className="w-2 h-2 rounded-full transition-colors" style={{ background: field.value ? 'white' : 'var(--color-text-muted)', opacity: field.value ? 1 : 0.5 }} />
+                      {field.value ? 'Visible' : 'Oculta'}
+                    </button>
+                  )}
+                />
+              </div>
+
+              <Controller
+                name="gift_bank_enabled"
+                control={control}
+                render={({ field: enabledField }) => (
+                  <div className="space-y-5 transition-opacity duration-200" style={{ opacity: enabledField.value ? 1 : 0.45, pointerEvents: enabledField.value ? 'auto' : 'none' }}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="input-label">Título de la sección</label>
+                        <input {...register('gift_bank_title')} className="input-field" placeholder="Obsequio" disabled={!enabledField.value} />
+                        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Aparece en letras pequeñas sobre el ícono.</p>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="input-label">Mensaje de bienvenida</label>
+                      <textarea {...register('gift_bank_body')} rows={2} className="input-field resize-none" placeholder="Tu presencia es nuestro mejor regalo…" disabled={!enabledField.value} />
+                    </div>
+
+                    {/* Bank accounts CRUD */}
+                    <div>
+                      <label className="input-label mb-3">Cuentas / datos bancarios</label>
+                      <div className="space-y-2 mb-3">
+                        {giftBankAccounts.map((acc, i) => (
+                          <div key={i} className="flex items-center gap-2 p-3 rounded-xl border" style={{ borderColor: 'var(--color-border)', background: 'var(--color-secondary)' }}>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium font-body" style={{ color: 'var(--color-text-muted)' }}>{acc.label}</p>
+                              <p className="text-sm font-medium font-sub truncate" style={{ color: 'var(--color-text)' }}>{acc.value}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setGiftBankAccounts((prev) => prev.filter((_, j) => j !== i))}
+                              className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
+                              style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                        {giftBankAccounts.length === 0 && (
+                          <p className="text-xs text-center py-3 font-body" style={{ color: 'var(--color-text-muted)' }}>
+                            Sin cuentas aún — agrega una abajo
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          value={newBankLabel}
+                          onChange={(e) => setNewBankLabel(e.target.value)}
+                          className="input-field flex-[0_0_35%]"
+                          placeholder="Ej: Alias, CBU, CI"
+                          disabled={!enabledField.value}
+                        />
+                        <input
+                          value={newBankValue}
+                          onChange={(e) => setNewBankValue(e.target.value)}
+                          className="input-field flex-1"
+                          placeholder="Valor"
+                          disabled={!enabledField.value}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && newBankLabel.trim() && newBankValue.trim()) {
+                              e.preventDefault();
+                              setGiftBankAccounts((prev) => [...prev, { label: newBankLabel.trim(), value: newBankValue.trim() }]);
+                              setNewBankLabel('');
+                              setNewBankValue('');
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!newBankLabel.trim() || !newBankValue.trim()) return;
+                            setGiftBankAccounts((prev) => [...prev, { label: newBankLabel.trim(), value: newBankValue.trim() }]);
+                            setNewBankLabel('');
+                            setNewBankValue('');
+                          }}
+                          disabled={!newBankLabel.trim() || !newBankValue.trim() || !enabledField.value}
+                          className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all disabled:opacity-40"
+                          style={{ background: 'var(--color-primary)', color: 'white' }}
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Agregar
+                        </button>
+                      </div>
+                      <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                        Cada fila se muestra con un botón de copiar al portapapeles. Presiona Enter o clic en Agregar.
+                      </p>
                     </div>
                   </div>
                 )}
@@ -3950,6 +4081,9 @@ function buildDefaultValues(cfg: Record<string, unknown>): ConfigFormData {
     gift_registry_label:      (cfg.gift_registry_label as string)      ?? '',
     gift_registry_title:      (cfg.gift_registry_title as string)      ?? '',
     gift_registry_description:(cfg.gift_registry_description as string)?? '',
+    gift_bank_enabled:       (cfg.gift_bank_enabled as boolean)        ?? false,
+    gift_bank_title:         (cfg.gift_bank_title as string)           ?? 'Obsequio',
+    gift_bank_body:          (cfg.gift_bank_body as string)            ?? 'Tu presencia es nuestro mejor regalo. Si aún así querés tener un detalle, te dejamos nuestros datos bancarios:',
     same_venue:              (venues.sameVenue as boolean)             ?? sc.venues.sameVenue ?? false,
     rsvp_enabled:            (rsvpSect.enabled as boolean)             ?? sc.sections.rsvp.enabled,
     rsvp_deadline:           (rsvpSect.deadline as string)             ?? sc.sections.rsvp.deadline ?? '',

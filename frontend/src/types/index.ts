@@ -227,6 +227,11 @@ export interface WeddingConfig {
   gift_registry_label?: string;
   gift_registry_title?: string;
   gift_registry_description?: string;
+  // ── Bank transfer gift section ────────────────────────────────────────────
+  gift_bank_enabled?: boolean;
+  gift_bank_title?: string;
+  gift_bank_body?: string;
+  gift_bank_accounts?: Array<{ label: string; value: string }>;
   // Invitation mode settings (stored in config_json)
   invitation_mode?: InvitationMode;
   allow_public_rsvp?: boolean;

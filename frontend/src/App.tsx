@@ -119,6 +119,10 @@ function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): Weddin
     gift_registry_label: (dyn.gift_registry_label as string | undefined) ?? base.gift_registry_label,
     gift_registry_title: (dyn.gift_registry_title as string | undefined) ?? base.gift_registry_title,
     gift_registry_description: (dyn.gift_registry_description as string | undefined) ?? base.gift_registry_description,
+    gift_bank_enabled: (dyn.gift_bank_enabled as boolean | undefined) ?? base.gift_bank_enabled ?? false,
+    gift_bank_title: (dyn.gift_bank_title as string | undefined) ?? base.gift_bank_title,
+    gift_bank_body: (dyn.gift_bank_body as string | undefined) ?? base.gift_bank_body,
+    gift_bank_accounts: (dyn.gift_bank_accounts as WeddingConfig['gift_bank_accounts']) ?? base.gift_bank_accounts,
     // ── Personalized full-view fields ──────────────────────────────────────
     personalized_full_view:           (dyn.personalized_full_view as boolean | undefined)          ?? base.personalized_full_view,
     personalized_hero_badge_enabled:  (dyn.personalized_hero_badge_enabled as boolean | undefined) ?? base.personalized_hero_badge_enabled,

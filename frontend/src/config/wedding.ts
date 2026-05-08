@@ -285,6 +285,12 @@ export const config: WeddingConfig = {
 
   gift_registry_enabled: true,
 
+  // ── Bank / datos bancarios (alternativa sin mesa de regalos externa) ──────
+  gift_bank_enabled: false,
+  gift_bank_title: 'Obsequio',
+  gift_bank_body: 'Tu presencia es nuestro mejor regalo. Si aún así querés tener un detalle, te dejamos nuestros datos bancarios:',
+  gift_bank_accounts: [] as Array<{ label: string; value: string }>,
+
   // ──────────────────────────────────────────────────────────
   //  6. MÚSICA  (agrega archivos en /public/music/)
   // ──────────────────────────────────────────────────────────
