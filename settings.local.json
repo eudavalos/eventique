@@ -1,9 +1,14 @@
 {
   "session_protocol": {
-    "last_session_date": "2026-05-07",
-    "last_session_topic": "personalized-ux-youtube-fix-gift-bank-section-merge-deploy",
-    "test_count_baseline": 0,
-    "note_on_tests": "No automated test suite yet — validation is manual via browser + curl",
+    "last_session_date": "2026-05-08",
+    "last_session_topic": "test-suite-55-docs-ayuda-tab-admin",
+    "last_commit": "7519879",
+    "test_count_baseline": 55,
+    "test_suite_file": "docs/test_suite.py",
+    "test_suite_command": "python3 ~/Boda/docs/test_suite.py --base-url http://localhost:5176/api --token <ADMIN_TOKEN>",
+    "test_suite_categories": ["Conectividad", "Seguridad", "Eventos", "Config", "RSVP", "Invitados", "Seguridad Avanzada", "CSV", "Cleanup"],
+    "test_suite_result_last_run": "55/55 — 100% en Pi",
+    "pending_issue": "Usuario reportó 'No funciona las funciones que te pedi' sin especificar cuál — requiere seguimiento",
     "git_workflow": {
       "initialized": true,
       "remote": "https://github.com/eudavalos/eventique",
@@ -49,6 +54,25 @@
     "frontend_healthcheck_host": "127.0.0.1",
     "api_healthcheck_method": "python3-urllib",
     "note_healthcheck": "Use 127.0.0.1 not localhost — Alpine resolves localhost to ::1 (IPv6) but nginx listens on IPv4 only"
+  },
+
+  "guest_invitation": {
+    "valid_statuses": ["draft", "pending", "opened", "confirmed", "partial", "declined", "blocked"],
+    "note_opened_status": "API cambia status a 'opened' automáticamente cuando se llama GET /invitations/{token}",
+    "import_commit_response_key": "imported",
+    "note_import_commit": "Respuesta es {'imported': N, 'errors': M} — NO 'created' ni 'count'",
+    "token_length_chars": 64,
+    "multipart_upload_note": "usar requests.post() directo (no session) para import preview — session Content-Type: application/json conflicta con multipart"
+  },
+
+  "docs": {
+    "user_guide": "docs/GUIA_USUARIO_EVENTIQUE.md",
+    "user_guide_lines": 800,
+    "user_guide_sections": 17,
+    "user_guide_last_updated": "2026-05-08",
+    "test_suite": "docs/test_suite.py",
+    "test_suite_version": "v2",
+    "test_suite_tests": 55
   },
 
   "theme": {
@@ -171,7 +195,9 @@
   },
 
   "admin_panel": {
-    "tabs": ["rsvps", "config", "tema", "media", "eventos", "secciones", "invitados"],
+    "tabs": ["dashboard", "rsvps", "invitados", "config", "tema", "media", "eventos", "secciones", "ayuda"],
+    "tab_ayuda_added": "2026-05-08",
+    "tab_ayuda_content": "quick start 6 pasos + descripción de tabs + gestión invitados + skins + FAQ + contacto",
     "config_storage": "sqlite:event_config table (single row, JSON blob)",
     "config_endpoint_get": "GET /api/event-config",
     "config_endpoint_put": "PUT /api/event-config",

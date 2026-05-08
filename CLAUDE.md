@@ -88,7 +88,7 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 
 ---
 
-## Estado del proyecto (2026-05-07)
+## Estado del proyecto (2026-05-08)
 
 | Fase | Estado | Descripción |
 |------|--------|-------------|
@@ -105,11 +105,18 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 | Fase 11 — Event duplication | ✅ COMPLETO | POST /events/{slug}/duplicate, modal "Clonar" en tab Eventos |
 | Fase 12 — Invitaciones Personalizadas | ✅ COMPLETO | GuestInvitation model, 18 endpoints, Admin Invitados tab, /e/:slug/i/:token, CSV import/export, QR, WhatsApp, tracking privado |
 | Fase 13 — UX Invitación Personalizada | ✅ COMPLETO | PersonalizedGreeting enterprise redesign, YouTube fix, parametrización total, sección Obsequio bancaria |
+| Fase 14 — Skin Envelope | ✅ COMPLETO | EnvelopeHero, CollageHero, VenuesEnvelope, DressCode, GalleryPolaroid, paleta olive |
+| Fase 15 — Test Suite Enterprise | ✅ COMPLETO | 55 tests en 9 categorías, 100% en Pi, docs/test_suite.py |
+| Fase 16 — Documentación + Ayuda Admin | ✅ COMPLETO | GUIA_USUARIO_EVENTIQUE.md ~800 líneas + Tab "Ayuda" integrada en AdminPage |
 
 **Cliente actual**: Concepción & Eumelio · boda · 2026-06-07 · paleta `nature`  
 **Recintos**: Iglesia de San Pedro Claver + Club de Pesca, Carapeguá, Paraguay  
 **Música**: YouTube track `zqlkbbJ003w` (track 1) + 2 MP3 placeholder  
-**Rama activa**: `main` — todas las features mergeadas y deployed a Pi
+**Rama activa**: `main` — todas las features mergeadas y deployed a Pi  
+**Último commit**: `7519879` — feat(docs+admin): suite 55/55 + guía de usuario integrada en panel admin
+
+### ⚠️ Pendiente sin resolver (2026-05-08)
+Usuario reportó "No funciona las funciones que te pedi" sin especificar cuál. El build y test suite confirman 55/55 en Pi. **Requiere seguimiento en próxima sesión**: preguntar qué función específica falla (pantalla, URL, mensaje de error).
 
 ---
 
@@ -156,6 +163,9 @@ Valores en `settings.local.json`:
 | Hardcodear texto en componentes de invitación personalizada | No configurable desde admin; viola principio de parametrización total | Todo texto via `useConfig()` con fallback a defaults en `wedding.ts` |
 | Campos nuevos en WeddingConfig sin agregar a `mergeConfig` | La propagación DB→config NO es automática — `mergeConfig` usa spread solo para campos conocidos | Agregar línea explícita en `mergeConfig()` en `App.tsx` para cada campo nuevo |
 | Arrays CRUD (tracks, accounts) como campos de `useForm`/`register` | Arrays dinámicos con CRUD no encajan en react-hook-form sin `useFieldArray` | Usar local `useState` array (patrón `musicTracks`, `giftBankAccounts`) |
+| Asumir que evento de prueba tiene config completa | Evento recién creado tiene `{}` como config — assertions sobre campos estructurales fallan | Hacer PUT con config seed antes de duplicar/verificar campos en tests |
+| Buscar `"created"` o `"count"` en respuesta de import commit | API retorna `{"imported": N, "errors": M}` no `{"created": N}` | Buscar `data.get("imported")` primero en el lookup chain |
+| Asumir `"pending"` es el único estado inicial de guest | API puede retornar `"opened"` si el GET /invitations/{token} fue llamado antes (auto-tracking) | `GUEST_VALID_STATUS` debe incluir `"opened"` junto a los demás estados |
 
 ---
 
@@ -243,7 +253,7 @@ En cada sesión significativa, actualizar estos cuatro artefactos:
 
 ## Admin Panel — Cobertura de secciones (post Fase 12)
 
-**7 tabs**: `rsvps` · `config` · `tema` · `media` · `eventos` · `secciones` · `invitados`
+**8 tabs**: `dashboard` · `rsvps` · `invitados` · `config` · `tema` · `media` · `eventos` · `secciones` · `ayuda`
 
 ### Tab Invitados — funcionalidades
 - Stats dashboard: total invitaciones, cupos totales, confirmados, pendientes + barra de estados
