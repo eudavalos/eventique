@@ -116,7 +116,7 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 **Recintos**: Iglesia de San Pedro Claver + Club de Pesca, Carapeguá, Paraguay  
 **Música**: YouTube track `zqlkbbJ003w` (track 1) + 2 MP3 placeholder  
 **Rama activa**: `main` — todas las features mergeadas y deployed a Pi  
-**Último commit**: pendiente de commit en sesion actual — QA 50 Event Scenarios
+**Último commit**: `79e7714` — feat: add qa event scenario generator
 
 ### Decisiones persistentes nuevas (2026-05-08)
 - WhatsApp debe compartir links cortos internos `https://eventique.tecnopowerpy.top/s/{short_code}` para invitaciones personalizadas.
