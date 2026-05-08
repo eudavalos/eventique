@@ -1,14 +1,16 @@
 {
   "session_protocol": {
     "last_session_date": "2026-05-08",
-    "last_session_topic": "test-suite-55-docs-ayuda-tab-admin",
-    "last_commit": "7519879",
+    "last_session_topic": "whatsapp-preview-shortlinks-and-memory-protocol",
+    "last_commit": "ec68c63",
     "test_count_baseline": 55,
     "test_suite_file": "docs/test_suite.py",
     "test_suite_command": "python3 ~/Boda/docs/test_suite.py --base-url http://localhost:5176/api --token <ADMIN_TOKEN>",
     "test_suite_categories": ["Conectividad", "Seguridad", "Eventos", "Config", "RSVP", "Invitados", "Seguridad Avanzada", "CSV", "Cleanup"],
     "test_suite_result_last_run": "55/55 — 100% en Pi",
-    "pending_issue": "Usuario reportó 'No funciona las funciones que te pedi' sin especificar cuál — requiere seguimiento",
+    "pending_issue": null,
+    "last_session_memory_file": "memory/session_2026_05_08_whatsapp_preview_shortlinks.md",
+    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_08_whatsapp_preview_shortlinks.md",
     "git_workflow": {
       "initialized": true,
       "remote": "https://github.com/eudavalos/eventique",
@@ -62,7 +64,25 @@
     "import_commit_response_key": "imported",
     "note_import_commit": "Respuesta es {'imported': N, 'errors': M} — NO 'created' ni 'count'",
     "token_length_chars": 64,
+    "short_link_code_length_chars": 16,
     "multipart_upload_note": "usar requests.post() directo (no session) para import preview — session Content-Type: application/json conflicta con multipart"
+  },
+
+  "share_links": {
+    "enabled": true,
+    "short_link_route": "/s/{short_code}",
+    "short_code_source": "first 16 chars of GuestInvitation.token_lookup",
+    "short_code_length_chars": 16,
+    "full_invitation_route": "/e/{slug}/i/{token}",
+    "whatsapp_template_invitation_url_uses": "short_url",
+    "template_variables": ["{display_name}", "{event_name}", "{event_date}", "{allowed_passes}", "{invitation_url}", "{short_url}", "{full_invitation_url}", "{rsvp_deadline}"],
+    "crawler_behavior": "WhatsApp/Facebook/Twitter/Telegram/LinkedIn/Slack user-agents receive Open Graph HTML",
+    "browser_behavior": "normal users receive 302 redirect to the full personalized invitation URL",
+    "og_image_path": "/og-eventique.jpg",
+    "og_image_public_url": "https://eventique.tecnopowerpy.top/og-eventique.jpg",
+    "og_image_dimensions": "1200x630",
+    "public_base_url_priority": true,
+    "note": "PUBLIC_BASE_URL must remain HTTPS in production so previews never emit localhost/http URLs"
   },
 
   "docs": {
@@ -222,10 +242,13 @@
   "auto_memory_protocol": {
     "enabled": true,
     "memory_dir": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/",
-    "save_on": "every significant order/response pair",
+    "save_on": "every significant order/question/response iteration",
     "types": ["user", "feedback", "project", "reference"],
     "index_file": "MEMORY.md",
     "session_file_pattern": "session_YYYY_MM_DD_<topic>.md",
-    "four_artifact_rule": ["session_*.md", "CLAUDE.md", "settings.local.json", "MEMORY.md"]
+    "project_memory_dir": "memory/",
+    "four_artifact_rule": ["session_*.md", "CLAUDE.md", "settings.local.json", "MEMORY.md"],
+    "must_capture": ["investigation", "decisions", "requirements", "problems", "validations", "deployments", "commits"],
+    "current_user_instruction": "Guardar automaticamente memoria/contexto en cada iteracion nueva del chat; no esperar al final."
   }
 }

@@ -108,15 +108,21 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 | Fase 14 — Skin Envelope | ✅ COMPLETO | EnvelopeHero, CollageHero, VenuesEnvelope, DressCode, GalleryPolaroid, paleta olive |
 | Fase 15 — Test Suite Enterprise | ✅ COMPLETO | 55 tests en 9 categorías, 100% en Pi, docs/test_suite.py |
 | Fase 16 — Documentación + Ayuda Admin | ✅ COMPLETO | GUIA_USUARIO_EVENTIQUE.md ~800 líneas + Tab "Ayuda" integrada en AdminPage |
+| Fase 17 — WhatsApp Preview + Short Links | ✅ COMPLETO | `/s/{short_code}` con Open Graph para WhatsApp, redirección a invitación real, link corto en WhatsApp/QR/copiar link |
 
 **Cliente actual**: Concepción & Eumelio · boda · 2026-06-07 · paleta `nature`  
 **Recintos**: Iglesia de San Pedro Claver + Club de Pesca, Carapeguá, Paraguay  
 **Música**: YouTube track `zqlkbbJ003w` (track 1) + 2 MP3 placeholder  
 **Rama activa**: `main` — todas las features mergeadas y deployed a Pi  
-**Último commit**: `7519879` — feat(docs+admin): suite 55/55 + guía de usuario integrada en panel admin
+**Último commit**: `ec68c63` — feat(share): add WhatsApp preview short links
 
-### ⚠️ Pendiente sin resolver (2026-05-08)
-Usuario reportó "No funciona las funciones que te pedi" sin especificar cuál. El build y test suite confirman 55/55 en Pi. **Requiere seguimiento en próxima sesión**: preguntar qué función específica falla (pantalla, URL, mensaje de error).
+### Decisiones persistentes nuevas (2026-05-08)
+- WhatsApp debe compartir links cortos internos `https://eventique.tecnopowerpy.top/s/{short_code}` para invitaciones personalizadas.
+- `short_code` usa los primeros 16 caracteres del token de invitación; el token completo de 64 caracteres no se muestra en el mensaje.
+- `GET /s/{short_code}` devuelve HTML Open Graph para crawlers sociales (WhatsApp/Facebook/etc.) y `302` al link real para usuarios normales.
+- `PUBLIC_BASE_URL` tiene prioridad para construir URLs públicas HTTPS en previews, evitando `http://localhost` o `http://eventique...` cuando se prueba desde el proxy local del Pi.
+- `{invitation_url}` en la plantilla WhatsApp resuelve al link corto. Variables disponibles: `{short_url}` y `{full_invitation_url}`.
+- `frontend/public/og-eventique.jpg` es el asset JPG 1200x630 usado como imagen de preview.
 
 ---
 
@@ -248,6 +254,7 @@ En cada sesión significativa, actualizar estos cuatro artefactos:
 | GET | /events/{slug}/guests/{id}/qr-data | EventAdmin | Datos para generar QR |
 | GET | /events/{slug}/guests/{id}/audit | EventAdmin | Historial de auditoría |
 | GET | /events/{slug}/guests/{id}/whatsapp | EventAdmin | Generar mensaje + URL wa.me |
+| GET | /s/{short_code} | — | Link corto público: Open Graph para crawlers sociales y redirect 302 a invitación personalizada |
 
 ---
 
@@ -263,13 +270,13 @@ En cada sesión significativa, actualizar estos cuatro artefactos:
 - Importar CSV: descarga template → upload → preview 2-fases → commit
 - Exportar CSV completo
 - Modal QR con `qrcode.react`
-- Modal WhatsApp: mensaje pre-generado con URL personalizada, botón abrir wa.me
+- Modal WhatsApp: mensaje pre-generado con link corto `/s/{short_code}`, preview Open Graph y botón abrir wa.me
 - Modal auditoría por invitado
 
 ### Tab Config — Invitation Mode
 - Selector 3 modos: Genérico / Personalizado / Híbrido
 - 7 toggles configurables: public_rsvp, require_token, track_opens, self_edit, member_names, count_change, enforce_limit
-- Campo WhatsApp template con variables: {display_name}, {event_name}, {invitation_url}, {allowed_passes}
+- Campo WhatsApp template con variables: {display_name}, {event_name}, {event_date}, {allowed_passes}, {invitation_url}, {short_url}, {full_invitation_url}, {rsvp_deadline}
 - Toggle Gift Registry (ocultar sección si no aplica)
 - Card "Datos Bancarios (Obsequio)": toggle + título + cuerpo + CRUD de cuentas bancarias (label/valor)
 
