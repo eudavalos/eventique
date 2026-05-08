@@ -132,6 +132,7 @@ const PALETTE_OPTIONS: { key: PaletteKey; label: string; colors: string[]; categ
   { key: 'denim',        label: 'Denim',        colors: ['#1D4ED8', '#F59E0B', '#F8FAFF', '#1E3A5F'],        category: 'Natural' },
   { key: 'mustard',      label: 'Mustard',      colors: ['#D97706', '#7C3AED', '#FFFDF0', '#2D1A00'],      category: 'Natural' },
   { key: 'cream',        label: 'Cream',        colors: ['#92400E', '#065F46', '#FFFDF5', '#1C0A00'],        category: 'Natural' },
+  { key: 'olive',        label: 'Olive',        colors: ['#4F6835', '#C9A84C', '#F8F3E8', '#2A2217'],        category: 'Envelope' },
 ];
 
 const EVENT_TYPE_OPTIONS: { value: EventType; label: string; emoji: string }[] = [
@@ -490,6 +491,23 @@ export default function AdminPage() {
   const [socialHashtag, setSocialHashtag] = useState('');
   const [socialInstagram, setSocialInstagram] = useState('');
 
+  // ── Invitation skin ───────────────────────────────────────────────────────
+  const [invitationSkin, setInvitationSkin] = useState<'classic' | 'envelope'>('classic');
+  const [envelopeOpeningText, setEnvelopeOpeningText] = useState('');
+  const [envelopeTapLabel, setEnvelopeTapLabel] = useState('');
+  const [collageCountdownLabel, setCollageCountdownLabel] = useState('');
+  const [collageSubtitle, setCollageSubtitle] = useState('');
+  const [venuesCeremonyLabel, setVenuesCeremonyLabel] = useState('');
+  const [venuesReceptionLabel, setVenuesReceptionLabel] = useState('');
+  const [venuesCeremonyIcon, setVenuesCeremonyIcon] = useState('');
+  const [venuesReceptionIcon, setVenuesReceptionIcon] = useState('');
+  const [dressCodeEnabled, setDressCodeEnabled] = useState(true);
+  const [dressCodeTitle, setDressCodeTitle] = useState('');
+  const [dressCodeValue, setDressCodeValue] = useState('');
+  const [galleryPolaroidEnabled, setGalleryPolaroidEnabled] = useState(true);
+  const [galleryPolaroidFooter, setGalleryPolaroidFooter] = useState('');
+  const [galleryPolaroidBw, setGalleryPolaroidBw] = useState(true);
+
   // Music extras
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicAutoplay, setMusicAutoplay] = useState(false);
@@ -660,6 +678,23 @@ export default function AdminPage() {
 
         setMusicEnabled((mus?.enabled as boolean) ?? true);
         setMusicAutoplay((mus?.autoplay as boolean) ?? false);
+
+        // Invitation skin
+        setInvitationSkin(((cfg.invitation_skin as string) ?? 'classic') as 'classic' | 'envelope');
+        setEnvelopeOpeningText((cfg.envelope_opening_text as string) ?? 'Empieza una nueva etapa en nuestras vidas');
+        setEnvelopeTapLabel((cfg.envelope_tap_label as string) ?? 'Tocá aquí');
+        setCollageCountdownLabel((cfg.collage_countdown_label as string) ?? 'Sólo Faltan');
+        setCollageSubtitle((cfg.collage_subtitle as string) ?? 'Nuestra Boda');
+        setVenuesCeremonyLabel((cfg.venues_ceremony_label as string) ?? 'Misa');
+        setVenuesReceptionLabel((cfg.venues_reception_label as string) ?? 'Brindis');
+        setVenuesCeremonyIcon((cfg.venues_ceremony_icon as string) ?? 'church');
+        setVenuesReceptionIcon((cfg.venues_reception_icon as string) ?? 'champagne');
+        setDressCodeEnabled((cfg.dress_code_enabled as boolean) ?? true);
+        setDressCodeTitle((cfg.dress_code_title as string) ?? 'Código de Vestimenta');
+        setDressCodeValue((cfg.dress_code_value as string) ?? 'Formal');
+        setGalleryPolaroidEnabled((cfg.gallery_polaroid_enabled as boolean) ?? true);
+        setGalleryPolaroidFooter((cfg.gallery_polaroid_footer_text as string) ?? 'Te Esperamos');
+        setGalleryPolaroidBw((cfg.gallery_polaroid_bw as boolean) ?? true);
 
         // Secondary data (events + media) — don't fail auth on errors
         Promise.allSettled([
@@ -1082,6 +1117,21 @@ export default function AdminPage() {
         },
         music:  { ...(current.music  as object ?? {}), enabled: musicEnabled, autoplay: musicAutoplay, tracks: musicTracks },
         social: { hashtag: socialHashtag || undefined, instagram: socialInstagram || undefined },
+        invitation_skin: invitationSkin,
+        envelope_opening_text: envelopeOpeningText || undefined,
+        envelope_tap_label: envelopeTapLabel || undefined,
+        collage_countdown_label: collageCountdownLabel || undefined,
+        collage_subtitle: collageSubtitle || undefined,
+        venues_ceremony_label: venuesCeremonyLabel || undefined,
+        venues_reception_label: venuesReceptionLabel || undefined,
+        venues_ceremony_icon: venuesCeremonyIcon || undefined,
+        venues_reception_icon: venuesReceptionIcon || undefined,
+        dress_code_enabled: dressCodeEnabled,
+        dress_code_title: dressCodeTitle || undefined,
+        dress_code_value: dressCodeValue || undefined,
+        gallery_polaroid_enabled: galleryPolaroidEnabled,
+        gallery_polaroid_footer_text: galleryPolaroidFooter || undefined,
+        gallery_polaroid_bw: galleryPolaroidBw,
       };
       await rsvpApi.updateEventConfig(eventSlug, token, updated as never);
       toast.success('Secciones guardadas correctamente');
@@ -3794,6 +3844,129 @@ export default function AdminPage() {
                 </button>
               </div>
               <p className="text-xs text-muted mt-3">Para MP3, sube el archivo en la pestaña Media y actívalo ahí.</p>
+            </div>
+
+            {/* ── Skin de Invitación ──────────────────────────────────────── */}
+            <div className="card p-6 sm:p-8">
+              <h2 className="font-sub text-lg font-medium mb-4" style={{ color: 'var(--color-text)' }}>
+                Skin de Invitación
+              </h2>
+              <p className="text-xs mb-4" style={{ color: 'var(--color-text-muted)' }}>
+                Elige entre la experiencia clásica con todas las secciones o el skin <strong>Envelope</strong> inspirado en invitaciones físicas (sobre animado, cards flotantes, paleta olive).
+              </p>
+
+              {/* Selector de skin */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                {([
+                  { value: 'classic', label: 'Clásico', desc: 'Hero, Countdown, Historia, Itinerario, Galería y más.' },
+                  { value: 'envelope', label: 'Envelope (GoParty)', desc: 'Sobre animado, collage de cards, venues olive, galería polaroid.' },
+                ] as const).map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setInvitationSkin(opt.value)}
+                    className="text-left p-4 rounded-xl border-2 transition-all"
+                    style={{
+                      borderColor: invitationSkin === opt.value ? 'var(--color-primary)' : 'var(--color-border)',
+                      background: invitationSkin === opt.value ? 'var(--color-secondary)' : 'var(--color-surface)',
+                    }}
+                  >
+                    <p className="font-medium text-sm font-body" style={{ color: 'var(--color-text)' }}>{opt.label}</p>
+                    <p className="text-xs mt-1 font-body" style={{ color: 'var(--color-text-muted)' }}>{opt.desc}</p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Campos del skin Envelope */}
+              {invitationSkin === 'envelope' && (
+                <div className="space-y-4 pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
+                  <p className="text-xs font-medium uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>Configuración Envelope</p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="input-label">Texto de apertura del sobre</label>
+                      <input value={envelopeOpeningText} onChange={e => setEnvelopeOpeningText(e.target.value)} className="input-field" placeholder="Empieza una nueva etapa en nuestras vidas" />
+                    </div>
+                    <div>
+                      <label className="input-label">Label del sobre ("Tocá aquí")</label>
+                      <input value={envelopeTapLabel} onChange={e => setEnvelopeTapLabel(e.target.value)} className="input-field" placeholder="Tocá aquí" />
+                    </div>
+                    <div>
+                      <label className="input-label">Subtítulo en monograma</label>
+                      <input value={collageSubtitle} onChange={e => setCollageSubtitle(e.target.value)} className="input-field" placeholder="Nuestra Boda" />
+                    </div>
+                    <div>
+                      <label className="input-label">Label countdown</label>
+                      <input value={collageCountdownLabel} onChange={e => setCollageCountdownLabel(e.target.value)} className="input-field" placeholder="Sólo Faltan" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="input-label">Etiqueta Venue 1 (Ceremonia)</label>
+                      <input value={venuesCeremonyLabel} onChange={e => setVenuesCeremonyLabel(e.target.value)} className="input-field" placeholder="Misa" />
+                    </div>
+                    <div>
+                      <label className="input-label">Etiqueta Venue 2 (Recepción)</label>
+                      <input value={venuesReceptionLabel} onChange={e => setVenuesReceptionLabel(e.target.value)} className="input-field" placeholder="Brindis" />
+                    </div>
+                    <div>
+                      <label className="input-label">Icono Venue 1</label>
+                      <select value={venuesCeremonyIcon} onChange={e => setVenuesCeremonyIcon(e.target.value)} className="input-field">
+                        <option value="church">Iglesia</option>
+                        <option value="champagne">Copas / Brindis</option>
+                        <option value="heart">Corazón</option>
+                        <option value="star">Estrella</option>
+                        <option value="music">Música</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="input-label">Icono Venue 2</label>
+                      <select value={venuesReceptionIcon} onChange={e => setVenuesReceptionIcon(e.target.value)} className="input-field">
+                        <option value="champagne">Copas / Brindis</option>
+                        <option value="church">Iglesia</option>
+                        <option value="heart">Corazón</option>
+                        <option value="star">Estrella</option>
+                        <option value="music">Música</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="flex items-center gap-2 cursor-pointer mb-2">
+                        <input type="checkbox" checked={dressCodeEnabled} onChange={e => setDressCodeEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                        <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Mostrar Código de Vestimenta</span>
+                      </label>
+                      {dressCodeEnabled && (
+                        <div className="space-y-2">
+                          <input value={dressCodeTitle} onChange={e => setDressCodeTitle(e.target.value)} className="input-field" placeholder="Código de Vestimenta" />
+                          <input value={dressCodeValue} onChange={e => setDressCodeValue(e.target.value)} className="input-field" placeholder="Elegante" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="flex items-center gap-2 cursor-pointer mb-2">
+                        <input type="checkbox" checked={galleryPolaroidEnabled} onChange={e => setGalleryPolaroidEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                        <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Galería Polaroid</span>
+                      </label>
+                      {galleryPolaroidEnabled && (
+                        <div className="space-y-2">
+                          <input value={galleryPolaroidFooter} onChange={e => setGalleryPolaroidFooter(e.target.value)} className="input-field" placeholder="Te Esperamos" />
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked={galleryPolaroidBw} onChange={e => setGalleryPolaroidBw(e.target.checked)} className="w-4 h-4 accent-primary" />
+                            <span className="font-body text-xs" style={{ color: 'var(--color-text)' }}>Fotos en blanco y negro</span>
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                    Tip: Para el skin Envelope se recomienda la paleta <strong>Olive</strong> (disponible en la pestaña Tema).
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Save */}

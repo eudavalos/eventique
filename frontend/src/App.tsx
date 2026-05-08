@@ -145,6 +145,23 @@ function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): Weddin
     personalized_rsvp_confirmed_title:        (dyn.personalized_rsvp_confirmed_title as string | undefined)        ?? base.personalized_rsvp_confirmed_title,
     personalized_rsvp_confirmed_body_attending: (dyn.personalized_rsvp_confirmed_body_attending as string | undefined) ?? base.personalized_rsvp_confirmed_body_attending,
     personalized_rsvp_confirmed_body_declined:  (dyn.personalized_rsvp_confirmed_body_declined as string | undefined)  ?? base.personalized_rsvp_confirmed_body_declined,
+    // ── Invitation skin fields ─────────────────────────────────────────────
+    invitation_skin:              (dyn.invitation_skin as WeddingConfig['invitation_skin']) ?? base.invitation_skin ?? 'classic',
+    envelope_opening_text:        (dyn.envelope_opening_text as string | undefined)        ?? base.envelope_opening_text,
+    envelope_tap_label:           (dyn.envelope_tap_label as string | undefined)           ?? base.envelope_tap_label,
+    collage_countdown_label:      (dyn.collage_countdown_label as string | undefined)      ?? base.collage_countdown_label,
+    collage_subtitle:             (dyn.collage_subtitle as string | undefined)             ?? base.collage_subtitle,
+    collage_monogram_separator:   (dyn.collage_monogram_separator as string | undefined)   ?? base.collage_monogram_separator,
+    venues_ceremony_label:        (dyn.venues_ceremony_label as string | undefined)        ?? base.venues_ceremony_label,
+    venues_reception_label:       (dyn.venues_reception_label as string | undefined)       ?? base.venues_reception_label,
+    venues_ceremony_icon:         (dyn.venues_ceremony_icon as string | undefined)         ?? base.venues_ceremony_icon,
+    venues_reception_icon:        (dyn.venues_reception_icon as string | undefined)        ?? base.venues_reception_icon,
+    dress_code_enabled:           (dyn.dress_code_enabled as boolean | undefined)          ?? base.dress_code_enabled ?? true,
+    dress_code_title:             (dyn.dress_code_title as string | undefined)             ?? base.dress_code_title,
+    dress_code_value:             (dyn.dress_code_value as string | undefined)             ?? base.dress_code_value,
+    gallery_polaroid_enabled:     (dyn.gallery_polaroid_enabled as boolean | undefined)    ?? base.gallery_polaroid_enabled ?? true,
+    gallery_polaroid_footer_text: (dyn.gallery_polaroid_footer_text as string | undefined) ?? base.gallery_polaroid_footer_text,
+    gallery_polaroid_bw:          (dyn.gallery_polaroid_bw as boolean | undefined)         ?? base.gallery_polaroid_bw ?? true,
   };
 }
 

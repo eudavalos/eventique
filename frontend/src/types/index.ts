@@ -3,7 +3,8 @@
 // ============================================================
 
 export type Language = 'es' | 'en';
-export type PaletteKey = 'rose-gold' | 'garden' | 'nature' | 'navy-gold' | 'sage' | 'midnight' | 'platinum' | 'sapphire' | 'emerald' | 'coral' | 'lavender' | 'teal' | 'burgundy' | 'gold-premium' | 'ocean' | 'mint' | 'peach' | 'denim' | 'mustard' | 'cream' | 'custom';
+export type PaletteKey = 'rose-gold' | 'garden' | 'nature' | 'navy-gold' | 'sage' | 'midnight' | 'platinum' | 'sapphire' | 'emerald' | 'coral' | 'lavender' | 'teal' | 'burgundy' | 'gold-premium' | 'ocean' | 'mint' | 'peach' | 'denim' | 'mustard' | 'cream' | 'olive' | 'custom';
+export type InvitationSkin = 'classic' | 'envelope';
 export type EventType = 'boda' | 'cumpleanos' | 'bautismo' | 'quinceanera' | 'graduacion' | 'corporativo' | 'primera-comunion' | 'aniversario' | 'baby-shower';
 export type PartySide = 'bride' | 'groom' | 'both';
 export type ScheduleLocation = 'ceremony' | 'reception' | 'other';
@@ -267,6 +268,28 @@ export interface WeddingConfig {
   personalized_rsvp_confirmed_title?: string;
   personalized_rsvp_confirmed_body_attending?: string;
   personalized_rsvp_confirmed_body_declined?: string;
+  // ── Invitation skin ────────────────────────────────────────────────────────
+  invitation_skin?: InvitationSkin;
+  // ── Envelope skin: EnvelopeHero section ───────────────────────────────────
+  envelope_opening_text?: string;
+  envelope_tap_label?: string;
+  // ── Envelope skin: CollageHero section ────────────────────────────────────
+  collage_countdown_label?: string;
+  collage_subtitle?: string;
+  collage_monogram_separator?: string;
+  // ── Envelope skin: Venues section labels ──────────────────────────────────
+  venues_ceremony_label?: string;
+  venues_reception_label?: string;
+  venues_ceremony_icon?: string;
+  venues_reception_icon?: string;
+  // ── Envelope skin: DressCode section ──────────────────────────────────────
+  dress_code_enabled?: boolean;
+  dress_code_title?: string;
+  dress_code_value?: string;
+  // ── Envelope skin: GalleryPolaroid section ─────────────────────────────────
+  gallery_polaroid_enabled?: boolean;
+  gallery_polaroid_footer_text?: string;
+  gallery_polaroid_bw?: boolean;
 }
 
 // ---- Event Config (dynamic, stored in DB) ----

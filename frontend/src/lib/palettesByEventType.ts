@@ -2,7 +2,7 @@ import type { PaletteKey } from '../types';
 import type { EventType } from '../types';
 
 export const palettesByEventType: Record<EventType, PaletteKey[]> = {
-  boda:             ['rose-gold', 'burgundy', 'gold-premium', 'cream', 'sage', 'navy-gold', 'lavender'],
+  boda:             ['rose-gold', 'burgundy', 'gold-premium', 'cream', 'sage', 'navy-gold', 'lavender', 'olive'],
   cumpleanos:       ['coral', 'peach', 'teal', 'lavender', 'emerald', 'sapphire'],
   bautismo:         ['mint', 'lavender', 'sage', 'cream', 'ocean', 'navy-gold', 'rose-gold'],
   quinceanera:      ['lavender', 'peach', 'rose-gold', 'burgundy', 'coral', 'gold-premium'],

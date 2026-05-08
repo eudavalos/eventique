@@ -368,4 +368,36 @@ export const config: WeddingConfig = {
   personalized_rsvp_confirmed_body_attending: '¡Nos emociona mucho verte en este día tan especial!',
   personalized_rsvp_confirmed_body_declined:
     'Lamentamos que no puedas estar, pero te tendremos muy presente.',
+
+  // ──────────────────────────────────────────────────────────
+  //  9. SKIN DE INVITACIÓN
+  //  'classic' = secciones clásicas (Hero, Countdown, OurStory, etc.)
+  //  'envelope' = skin GoParty (sobre animado, cards flotantes, fondo olive)
+  // ──────────────────────────────────────────────────────────
+  invitation_skin: 'classic' as const,
+
+  // ── Envelope skin: sobre animado ──────────────────────────
+  envelope_opening_text: 'Empieza una nueva etapa en nuestras vidas',
+  envelope_tap_label: 'Tocá aquí',
+
+  // ── Envelope skin: collage de cards ───────────────────────
+  collage_countdown_label: 'Sólo Faltan',
+  collage_subtitle: 'Nuestra Boda',
+  collage_monogram_separator: '|',
+
+  // ── Envelope skin: etiquetas de venues ────────────────────
+  venues_ceremony_label: 'Misa',
+  venues_reception_label: 'Brindis',
+  venues_ceremony_icon: 'church',
+  venues_reception_icon: 'champagne',
+
+  // ── Envelope skin: código de vestimenta ───────────────────
+  dress_code_enabled: true,
+  dress_code_title: 'Código de Vestimenta',
+  dress_code_value: 'Formal',
+
+  // ── Envelope skin: galería polaroid ───────────────────────
+  gallery_polaroid_enabled: true,
+  gallery_polaroid_footer_text: 'Te Esperamos',
+  gallery_polaroid_bw: true,
 };

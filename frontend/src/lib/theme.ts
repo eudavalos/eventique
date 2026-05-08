@@ -254,6 +254,18 @@ export const palettes: Record<Exclude<PaletteKey, 'custom'>, PaletteColors> = {
     textMuted: '#78584A',
     border: '#E7D5C0',
   },
+  'olive': {
+    primary: '#4F6835',
+    primaryLight: '#6E8F4A',
+    primaryDark: '#354825',
+    secondary: '#F5EFE0',
+    accent: '#C9A84C',
+    bg: '#F8F3E8',
+    surface: '#FFFFFF',
+    text: '#2A2217',
+    textMuted: '#6E6050',
+    border: '#D6C9A5',
+  },
 };
 
 const cssVarMap: Record<keyof PaletteColors, string> = {

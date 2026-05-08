@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useConfig } from '../context/ConfigContext';
 import { useGuest } from '../context/GuestContext';
 import Navigation from '../components/Navigation';
@@ -15,6 +16,15 @@ import RSVP from '../sections/RSVP';
 import Footer from '../sections/Footer';
 import GiftRegistry from '../sections/GiftRegistry';
 import PersonalizedGreeting from '../sections/PersonalizedGreeting';
+// Envelope skin
+import EnvelopeHero from '../sections/EnvelopeHero';
+import CollageHero from '../sections/CollageHero';
+import VenuesEnvelope from '../sections/VenuesEnvelope';
+import DressCode from '../sections/DressCode';
+import GalleryPolaroid from '../sections/GalleryPolaroid';
+import type { WeddingConfig } from '../types';
+
+// ── Nav links ─────────────────────────────────────────────────────────────────
 
 const NAV_LINKS = [
   { label: 'Nuestra Historia', href: '#historia' },
@@ -22,7 +32,14 @@ const NAV_LINKS = [
   { label: 'Itinerario', href: '#itinerario' },
 ];
 
-export default function InvitationPage() {
+const NAV_LINKS_ENVELOPE = [
+  { label: 'Ceremonia', href: '#recintos' },
+  { label: 'RSVP', href: '#rsvp' },
+];
+
+// ── Classic skin ──────────────────────────────────────────────────────────────
+
+function ClassicSkin() {
   const config = useConfig();
   const guest = useGuest();
   const { sections, music, couple } = config;
@@ -105,4 +122,70 @@ export default function InvitationPage() {
       {music?.enabled && <MusicPlayer tracks={music.tracks} autoplay={music.autoplay} />}
     </div>
   );
+}
+
+// ── Envelope skin ─────────────────────────────────────────────────────────────
+
+function EnvelopeSkin() {
+  const config = useConfig() as WeddingConfig & Record<string, unknown>;
+  const { sections, music, couple } = config;
+  const names = couple.displayNames ?? `${couple.person1.firstName} & ${couple.person2.firstName}`;
+  const collageRef = useRef<HTMLDivElement>(null);
+
+  const handleOpen = () => {
+    setTimeout(() => {
+      collageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
+  return (
+    <div className="relative overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
+      <Navigation links={NAV_LINKS_ENVELOPE} coupleNames={names} />
+
+      {/* Sobre animado — pantalla 1 */}
+      <EnvelopeHero onOpen={handleOpen} />
+
+      {/* Collage de cards + countdown — pantalla 2 */}
+      <div ref={collageRef}>
+        <CollageHero />
+      </div>
+
+      {/* Venues estilo olive con iconos SVG */}
+      <VenuesEnvelope />
+
+      {/* Código de vestimenta */}
+      <DressCode />
+
+      {/* Obsequio / Gift (existente, funciona sobre fondo olive) */}
+      <GiftRegistry />
+
+      {/* RSVP */}
+      {sections.rsvp?.enabled !== false && (
+        <section id="rsvp">
+          <RSVP />
+        </section>
+      )}
+
+      {/* Galería estilo polaroid */}
+      <GalleryPolaroid />
+
+      {/* Footer */}
+      {sections.footer?.enabled !== false && <Footer />}
+
+      {music?.enabled && <MusicPlayer tracks={music.tracks} autoplay={music.autoplay} />}
+    </div>
+  );
+}
+
+// ── Main export — skin router ─────────────────────────────────────────────────
+
+export default function InvitationPage() {
+  const config = useConfig() as WeddingConfig & Record<string, unknown>;
+  const skin = (config.invitation_skin as string | undefined) ?? 'classic';
+
+  if (skin === 'envelope') {
+    return <EnvelopeSkin />;
+  }
+
+  return <ClassicSkin />;
 }
