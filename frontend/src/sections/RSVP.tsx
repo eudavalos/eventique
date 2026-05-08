@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { Heart, Check, X, ChevronRight, ChevronLeft, Music, MessageSquare, Users, UserCheck, Clock } from 'lucide-react';
+import { Heart, Check, X, ChevronRight, ChevronLeft, Music, MessageSquare, Users, UserCheck, Clock, Calendar, MapPin, Share2 } from 'lucide-react';
 import { useConfig } from '../context/ConfigContext';
 import { useGuest } from '../context/GuestContext';
 import { useEventSlug } from '../context/EventSlugContext';
@@ -48,10 +48,37 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 
 // ── Personalized RSVP already-responded screen ──────────────────────────────
 
+function buildGoogleCalendarUrl(config: ReturnType<typeof useConfig>): string {
+  try {
+    const start = config.dates.ceremony.replace(/[-:]/g, '').replace('T', 'T');
+    const startClean = start.replace(/[^0-9T]/g, '');
+    const title = encodeURIComponent(`Boda de ${config.couple.displayNames ?? `${config.couple.person1.firstName} & ${config.couple.person2.firstName}`}`);
+    const location = encodeURIComponent(`${config.venues.ceremony.name}, ${config.venues.ceremony.address}, ${config.venues.ceremony.city}`);
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startClean}/${startClean}&location=${location}`;
+  } catch {
+    return '';
+  }
+}
+
 function PersonalizedAlreadyResponded({ confirmed_passes, status }: { confirmed_passes: number; status: string }) {
   const config = useConfig();
-  const { rsvp } = config.sections;
+  const cfg = config as typeof config & Record<string, unknown>;
   const isAttending = status === 'confirmed' || status === 'partial';
+
+  const confirmedTitle   = (cfg.personalized_rsvp_confirmed_title as string | undefined) ?? '¡Gracias por confirmar!';
+  const confirmedBodyYes = (cfg.personalized_rsvp_confirmed_body_attending as string | undefined) ?? '¡Nos emociona mucho verte en este día tan especial!';
+  const confirmedBodyNo  = (cfg.personalized_rsvp_confirmed_body_declined as string | undefined)  ?? 'Lamentamos que no puedas estar, pero te tendremos muy presente.';
+
+  const calendarUrl = buildGoogleCalendarUrl(config);
+  const mapsUrl = config.venues.ceremony.mapsUrl;
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({ title: confirmedTitle, url: window.location.href }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(window.location.href).then(() => toast.success('Enlace copiado')).catch(() => {});
+    }
+  };
 
   return (
     <div className="section-padding" style={{ background: 'var(--color-secondary)' }}>
@@ -68,17 +95,70 @@ function PersonalizedAlreadyResponded({ confirmed_passes, status }: { confirmed_
             : <Clock className="w-8 h-8 text-white" />
           }
         </motion.div>
+
         <AnimatedSection delay={0.2}>
-          <h2 className="section-title text-3xl mb-3">
-            {rsvp.confirmationMessage ?? '¡Ya confirmaste tu asistencia!'}
-          </h2>
+          <h2 className="section-title text-3xl mb-3">{confirmedTitle}</h2>
+          <p className="font-body text-sm mb-4" style={{ color: 'var(--color-text-muted)' }}>
+            {isAttending ? confirmedBodyYes : confirmedBodyNo}
+          </p>
           {isAttending && confirmed_passes > 0 && (
-            <p className="font-body text-sm mb-4" style={{ color: 'var(--color-text-muted)' }}>
-              {confirmed_passes} {confirmed_passes === 1 ? 'lugar confirmado' : 'lugares confirmados'} para este evento.
+            <p className="font-body text-xs font-medium mb-4" style={{ color: 'var(--color-primary)' }}>
+              {confirmed_passes} {confirmed_passes === 1 ? 'lugar confirmado' : 'lugares confirmados'}
             </p>
           )}
           <OrnamentDivider />
         </AnimatedSection>
+
+        {isAttending && (
+          <AnimatedSection delay={0.35}>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
+              {calendarUrl && (
+                <a
+                  href={calendarUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-body font-medium transition-all"
+                  style={{
+                    background: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
+                    color: 'var(--color-primary)',
+                    border: '1px solid color-mix(in srgb, var(--color-primary) 25%, transparent)',
+                  }}
+                >
+                  <Calendar className="w-4 h-4" />
+                  Añadir al calendario
+                </a>
+              )}
+              {mapsUrl && (
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-body font-medium transition-all"
+                  style={{
+                    background: 'var(--color-bg)',
+                    color: 'var(--color-text-muted)',
+                    border: '1px solid var(--color-border)',
+                  }}
+                >
+                  <MapPin className="w-4 h-4" />
+                  Ver ubicación
+                </a>
+              )}
+              <button
+                onClick={handleShare}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-body font-medium transition-all"
+                style={{
+                  background: 'var(--color-bg)',
+                  color: 'var(--color-text-muted)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
+                <Share2 className="w-4 h-4" />
+                Compartir
+              </button>
+            </div>
+          </AnimatedSection>
+        )}
       </div>
     </div>
   );
@@ -112,8 +192,13 @@ function PersonalizedRSVPView() {
   const allowSong = rsvp.allowSongRequest !== false;
   const allowMsg = rsvp.allowMessage !== false;
 
-  const title = (cfg.personalized_rsvp_title as string | undefined) ?? rsvp.title ?? 'Confirmar asistencia';
+  const title    = (cfg.personalized_rsvp_title as string | undefined)    ?? rsvp.title    ?? 'Confirmar asistencia';
   const subtitle = (cfg.personalized_rsvp_subtitle as string | undefined) ?? rsvp.subtitle;
+  const step1Title          = (cfg.personalized_rsvp_step1_title as string | undefined)           ?? '¿Podrás acompañarnos?';
+  const step2AttendingTitle = (cfg.personalized_rsvp_step2_attending_title as string | undefined) ?? 'Cuéntanos más';
+  const step2DeclinedTitle  = (cfg.personalized_rsvp_step2_declined_title as string | undefined)  ?? 'Lo entendemos';
+  const step2DeclinedBody   = (cfg.personalized_rsvp_step2_declined_body as string | undefined)   ?? 'Gracias por hacernos saber. Te tendremos en mente en nuestro día especial.';
+  const step3Title          = (cfg.personalized_rsvp_step3_title as string | undefined)           ?? 'Un último detalle';
 
   const handleCountChange = (n: number) => {
     setGuestCount(n);
@@ -190,7 +275,7 @@ function PersonalizedRSVPView() {
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}>
                 <h3 className="font-sub text-xl font-medium mb-8 text-center" style={{ color: 'var(--color-text)' }}>
-                  ¿Podrás acompañarnos?
+                  {step1Title}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   {[
@@ -224,7 +309,7 @@ function PersonalizedRSVPView() {
                 {attending ? (
                   <>
                     <h3 className="font-sub text-xl font-medium mb-2 text-center" style={{ color: 'var(--color-text)' }}>
-                      Cuéntanos más
+                      {step2AttendingTitle}
                     </h3>
 
                     {allowCountChange && maxPasses > 1 && (
@@ -272,10 +357,10 @@ function PersonalizedRSVPView() {
                 ) : (
                   <div className="text-center py-4">
                     <h3 className="font-sub text-xl font-medium mb-3" style={{ color: 'var(--color-text)' }}>
-                      Lo entendemos
+                      {step2DeclinedTitle}
                     </h3>
                     <p className="font-body text-sm font-light" style={{ color: 'var(--color-text-muted)' }}>
-                      Gracias por hacernos saber. Te tendremos en mente en nuestro día especial.
+                      {step2DeclinedBody}
                     </p>
                   </div>
                 )}
@@ -304,7 +389,7 @@ function PersonalizedRSVPView() {
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }} className="space-y-5">
                 <h3 className="font-sub text-xl font-medium mb-6 text-center" style={{ color: 'var(--color-text)' }}>
-                  Un último detalle
+                  {step3Title}
                 </h3>
 
                 {allowSong && (

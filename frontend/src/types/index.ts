@@ -249,6 +249,19 @@ export interface WeddingConfig {
   personalized_show_passes?: boolean;
   personalized_passes_label?: string;
   personalized_show_type_badge?: boolean;
+  personalized_show_countdown?: boolean;
+  personalized_countdown_label?: string;
+  // ── Conditional flag metadata (fully parametrized) ────────────────────────
+  conditional_flag_meta?: Record<string, { title: string; body: string; icon?: string }>;
+  // ── RSVP personalized step labels ────────────────────────────────────────
+  personalized_rsvp_step1_title?: string;
+  personalized_rsvp_step2_attending_title?: string;
+  personalized_rsvp_step2_declined_title?: string;
+  personalized_rsvp_step2_declined_body?: string;
+  personalized_rsvp_step3_title?: string;
+  personalized_rsvp_confirmed_title?: string;
+  personalized_rsvp_confirmed_body_attending?: string;
+  personalized_rsvp_confirmed_body_declined?: string;
 }
 
 // ---- Event Config (dynamic, stored in DB) ----

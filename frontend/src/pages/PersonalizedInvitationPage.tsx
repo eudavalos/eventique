@@ -19,6 +19,7 @@ import {
   Star,
   UtensilsCrossed,
   PartyPopper,
+  Sparkles,
   WifiOff,
   Lock,
   AlertTriangle,
@@ -226,39 +227,35 @@ function StatusBanner({ status, alreadyResponded }: { status: string | null; alr
 }
 
 // ── Conditional Flag Card ─────────────────────────────────────────────────────
+// Flag metadata is fully driven by event_config.conditional_flag_meta — no hardcoding.
 
-const FLAG_META: Record<string, { icon: React.ReactNode; title: string; body: string }> = {
-  after_party: {
-    icon: <PartyPopper className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />,
-    title: 'After Party',
-    body: 'Estás invitado/a a continuar la celebración en la after party. Confirma asistencia en el formulario.',
-  },
-  transporte: {
-    icon: <Car className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />,
-    title: 'Transporte incluido',
-    body: 'Hemos coordinado transporte especial para ti. Los detalles llegarán próximamente.',
-  },
-  hospedaje_vip: {
-    icon: <Star className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />,
-    title: 'Hospedaje VIP',
-    body: 'Tu alojamiento ha sido coordinado. Recibirás información detallada por separado.',
-  },
-  cena_ensayo: {
-    icon: <UtensilsCrossed className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />,
-    title: 'Cena de Ensayo',
-    body: 'Estás invitado/a a la cena de ensayo la noche anterior al evento. Los detalles se confirmarán.',
-  },
+const FLAG_ICON_MAP: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+  after_party:    PartyPopper,
+  transporte:     Car,
+  hospedaje_vip:  Star,
+  cena_ensayo:    UtensilsCrossed,
+  mesa_principal: Users,
+  discurso:       Sparkles,
 };
 
-function ConditionalFlagCards({ flags }: { flags: string[] }) {
-  const known = flags.filter((f) => f in FLAG_META);
-  if (!known.length) return null;
+function ConditionalFlagCards({
+  flags,
+  flagMeta,
+}: {
+  flags: string[];
+  flagMeta: Record<string, { title: string; body: string }>;
+}) {
+  if (!flags.length) return null;
 
   return (
     <AnimatedSection delay={0.3}>
       <div className="space-y-3 mt-4">
-        {known.map((flag) => {
-          const meta = FLAG_META[flag];
+        {flags.map((flag) => {
+          const IconComp = FLAG_ICON_MAP[flag] ?? Users;
+          const meta = flagMeta[flag] ?? {
+            title: flag.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+            body: '',
+          };
           return (
             <div
               key={flag}
@@ -269,15 +266,17 @@ function ConditionalFlagCards({ flags }: { flags: string[] }) {
                 className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{ background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)' }}
               >
-                {meta.icon}
+                <IconComp className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
               </div>
               <div>
                 <p className="font-sub text-sm font-semibold" style={{ color: 'var(--color-text)' }}>
                   {meta.title}
                 </p>
-                <p className="font-body text-xs leading-relaxed mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
-                  {meta.body}
-                </p>
+                {meta.body && (
+                  <p className="font-body text-xs leading-relaxed mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                    {meta.body}
+                  </p>
+                )}
               </div>
             </div>
           );
@@ -475,6 +474,7 @@ export default function PersonalizedInvitationPage() {
   const allowedPasses = invitation?.allowed_passes ?? 1;
   const displayName = invitation?.display_name ?? '';
   const conditionalFlags = invitation?.conditional_flags ?? [];
+  const flagMeta = (config.conditional_flag_meta as WeddingConfig['conditional_flag_meta']) ?? {};
 
   const dates = config.dates;
   const venue = config.venues?.ceremony;
@@ -565,14 +565,14 @@ export default function PersonalizedInvitationPage() {
             <OrnamentRings color="rgba(255,255,255,0.5)" size={26} />
           </motion.div>
 
-          {/* Personalized greeting */}
+          {/* Personalized greeting — label from config */}
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.35 }}
             className="font-body text-sm tracking-[0.2em] uppercase text-white/65 mb-3"
           >
-            Invitación personal para
+            {(config.personalized_hero_badge_label as string | undefined) ?? 'Invitación personal para'}
           </motion.p>
 
           <motion.h1
@@ -672,8 +672,8 @@ export default function PersonalizedInvitationPage() {
           <StatusBanner status={invData?.rsvp_status ?? null} alreadyResponded={invData?.already_responded ?? false} />
         </AnimatedSection>
 
-        {/* Conditional flag cards */}
-        <ConditionalFlagCards flags={conditionalFlags} />
+        {/* Conditional flag cards — metadata from config, no hardcoding */}
+        <ConditionalFlagCards flags={conditionalFlags} flagMeta={flagMeta} />
 
         {/* ── RSVP Form / Confirmation ─────────────────────────────────────── */}
         <AnimatedSection delay={0.2}>

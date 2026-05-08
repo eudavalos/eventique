@@ -318,6 +318,48 @@ export const config: WeddingConfig = {
   personalized_greeting_title: 'Tu invitación personal',
   personalized_greeting_body: 'Con mucho cariño te invitamos a compartir este día especial con nosotros. Nos emociona tenerte presente.',
   personalized_show_passes: true,
-  personalized_passes_label: 'Hemos reservado {passes} lugar(es) para ti en este evento.',
+  personalized_passes_label: 'Hemos reservado {passes} lugar(es) especialmente para ti.',
   personalized_show_type_badge: true,
+  personalized_show_countdown: true,
+  personalized_countdown_label: 'Faltan {days} días para el gran día',
+
+  // ── Metadatos de flags condicionales (100% parametrizable desde admin) ─────
+  conditional_flag_meta: {
+    after_party: {
+      title: 'After Party',
+      body: 'Estás invitado/a a continuar la celebración. Confirma tu asistencia en el formulario de RSVP.',
+    },
+    transporte: {
+      title: 'Transporte incluido',
+      body: 'Hemos coordinado transporte especial para ti. Los detalles llegarán próximamente.',
+    },
+    hospedaje_vip: {
+      title: 'Hospedaje VIP',
+      body: 'Tu alojamiento ha sido coordinado para el evento. Recibirás información detallada por separado.',
+    },
+    cena_ensayo: {
+      title: 'Cena de Ensayo',
+      body: 'Estás invitado/a a la cena de ensayo la noche anterior al evento. Los detalles se confirmarán pronto.',
+    },
+    mesa_principal: {
+      title: 'Mesa Principal',
+      body: 'Tienes un lugar reservado en la mesa principal junto a los organizadores del evento.',
+    },
+    discurso: {
+      title: 'Discurso',
+      body: 'Hemos pensado en ti para compartir unas palabras en el evento. Por favor confírmanos.',
+    },
+  },
+
+  // ── Etiquetas del RSVP personalizado (100% configurables desde admin) ──────
+  personalized_rsvp_step1_title: '¿Podrás acompañarnos?',
+  personalized_rsvp_step2_attending_title: 'Cuéntanos más',
+  personalized_rsvp_step2_declined_title: 'Lo entendemos',
+  personalized_rsvp_step2_declined_body:
+    'Gracias por avisarnos. Aunque no puedas estar físicamente, te tendremos presente en nuestro día.',
+  personalized_rsvp_step3_title: 'Un último detalle',
+  personalized_rsvp_confirmed_title: '¡Gracias por confirmar!',
+  personalized_rsvp_confirmed_body_attending: '¡Nos emociona mucho verte en este día tan especial!',
+  personalized_rsvp_confirmed_body_declined:
+    'Lamentamos que no puedas estar, pero te tendremos muy presente.',
 };

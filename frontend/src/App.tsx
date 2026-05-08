@@ -130,6 +130,17 @@ function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>): Weddin
     personalized_show_passes:         (dyn.personalized_show_passes as boolean | undefined)        ?? base.personalized_show_passes,
     personalized_passes_label:        (dyn.personalized_passes_label as string | undefined)        ?? base.personalized_passes_label,
     personalized_show_type_badge:     (dyn.personalized_show_type_badge as boolean | undefined)    ?? base.personalized_show_type_badge,
+    personalized_show_countdown:      (dyn.personalized_show_countdown as boolean | undefined)     ?? base.personalized_show_countdown,
+    personalized_countdown_label:     (dyn.personalized_countdown_label as string | undefined)     ?? base.personalized_countdown_label,
+    conditional_flag_meta:            (dyn.conditional_flag_meta as WeddingConfig['conditional_flag_meta']) ?? base.conditional_flag_meta,
+    personalized_rsvp_step1_title:            (dyn.personalized_rsvp_step1_title as string | undefined)            ?? base.personalized_rsvp_step1_title,
+    personalized_rsvp_step2_attending_title:  (dyn.personalized_rsvp_step2_attending_title as string | undefined)  ?? base.personalized_rsvp_step2_attending_title,
+    personalized_rsvp_step2_declined_title:   (dyn.personalized_rsvp_step2_declined_title as string | undefined)   ?? base.personalized_rsvp_step2_declined_title,
+    personalized_rsvp_step2_declined_body:    (dyn.personalized_rsvp_step2_declined_body as string | undefined)    ?? base.personalized_rsvp_step2_declined_body,
+    personalized_rsvp_step3_title:            (dyn.personalized_rsvp_step3_title as string | undefined)            ?? base.personalized_rsvp_step3_title,
+    personalized_rsvp_confirmed_title:        (dyn.personalized_rsvp_confirmed_title as string | undefined)        ?? base.personalized_rsvp_confirmed_title,
+    personalized_rsvp_confirmed_body_attending: (dyn.personalized_rsvp_confirmed_body_attending as string | undefined) ?? base.personalized_rsvp_confirmed_body_attending,
+    personalized_rsvp_confirmed_body_declined:  (dyn.personalized_rsvp_confirmed_body_declined as string | undefined)  ?? base.personalized_rsvp_confirmed_body_declined,
   };
 }
 
