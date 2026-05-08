@@ -124,6 +124,14 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 - `{invitation_url}` en la plantilla WhatsApp resuelve al link corto. Variables disponibles: `{short_url}` y `{full_invitation_url}`.
 - `frontend/public/og-eventique.jpg` es el asset JPG 1200x630 usado como imagen de preview.
 
+### Referencias visuales analizadas (2026-05-08)
+
+- `docs/example2` contiene una referencia externa de invitacion digital vertical tipo Canva/Amorea: MP4 576x1024, 15 frames JPG 1280x2276, transcript no util para requerimientos.
+- La referencia define una direccion visual mobile-first: fondo papel/off-white, acentos olive/dark green, calas blancas, tarjetas de papel apiladas, sobres, sombras suaves, serif elegante y script decorativa.
+- Secciones detectadas: access hero personalizado con cupos, sobre interactivo, musica, tarjeta formal/padres, calendario, ceremonia, recepcion, dress code, regalos, countdown y confirmacion RSVP.
+- Decision: tratar `docs/example2` como material de inspiracion/referencia, no como asset productivo, salvo confirmacion de derechos.
+- Recomendacion tecnica: implementar como nueva skin/variante (`paper-access` o `canva-floral`) reutilizando `useConfig()`, invitaciones personalizadas, venues, music, gift registry, countdown y RSVP existentes.
+
 ---
 
 ## Thresholds — Política de parametrización

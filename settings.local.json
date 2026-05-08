@@ -1,7 +1,7 @@
 {
   "session_protocol": {
     "last_session_date": "2026-05-08",
-    "last_session_topic": "whatsapp-preview-shortlinks-and-memory-protocol",
+    "last_session_topic": "example2-reference-analysis",
     "last_commit": "ec68c63",
     "test_count_baseline": 55,
     "test_suite_file": "docs/test_suite.py",
@@ -9,8 +9,8 @@
     "test_suite_categories": ["Conectividad", "Seguridad", "Eventos", "Config", "RSVP", "Invitados", "Seguridad Avanzada", "CSV", "Cleanup"],
     "test_suite_result_last_run": "55/55 — 100% en Pi",
     "pending_issue": null,
-    "last_session_memory_file": "memory/session_2026_05_08_whatsapp_preview_shortlinks.md",
-    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_08_whatsapp_preview_shortlinks.md",
+    "last_session_memory_file": "memory/session_2026_05_08_example2_reference_analysis.md",
+    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_08_example2_reference_analysis.md",
     "git_workflow": {
       "initialized": true,
       "remote": "https://github.com/eudavalos/eventique",
@@ -83,6 +83,22 @@
     "og_image_dimensions": "1200x630",
     "public_base_url_priority": true,
     "note": "PUBLIC_BASE_URL must remain HTTPS in production so previews never emit localhost/http URLs"
+  },
+
+  "reference_examples": {
+    "example2": {
+      "path": "docs/example2",
+      "analyzed_on": "2026-05-08",
+      "type": "external visual reference package",
+      "source_format": "vertical mp4 plus extracted jpg frames",
+      "video_dimensions": "576x1024",
+      "frame_dimensions": "1280x2276",
+      "frame_count": 15,
+      "style_keywords": ["paper", "off-white", "olive", "calla lilies", "envelope", "serif", "script", "mobile-first"],
+      "detected_sections": ["access_hero", "envelope_opening", "music_prompt", "parents_invitation", "calendar", "venues", "dress_code", "gifts", "countdown", "rsvp_confirmation"],
+      "recommended_skin_candidates": ["paper-access", "canva-floral"],
+      "licensing_note": "Use as inspiration/reference only; do not ship source screenshots/video as production assets without explicit rights."
+    }
   },
 
   "docs": {
