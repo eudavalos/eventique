@@ -9,7 +9,7 @@ import GiftRegistry from './GiftRegistry';
 import RSVP from './RSVP';
 import Footer from './Footer';
 import type { Venue, WeddingConfig } from '../types';
-import { requestMusicPlayback } from '../lib/musicPlayerEvents';
+import { requestMusicPlaybackWithOpen } from '../lib/musicPlayerEvents';
 import { FloralCardAccent, FloralDecorLayer } from '../components/RealisticFloralDecor';
 
 function cfgText(config: WeddingConfig, key: keyof WeddingConfig): string {
@@ -164,7 +164,7 @@ function MusicPaperCard({ config }: { config: WeddingConfig }) {
         )}
         <button
           type="button"
-          onClick={requestMusicPlayback}
+          onClick={requestMusicPlaybackWithOpen}
           className="mt-5 flex w-full items-center gap-3 text-left rounded-lg transition-transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-primary/30"
           aria-label={`${cfgText(config, 'paper_music_button_label')}: ${track.title}`}
         >

@@ -4,7 +4,7 @@ import { Calendar, Gift, MapPin, Music, Play } from 'lucide-react';
 import { useConfig } from '../context/ConfigContext';
 import { useGuest } from '../context/GuestContext';
 import { useCountdown } from '../hooks/useCountdown';
-import { requestMusicPlayback } from '../lib/musicPlayerEvents';
+import { requestMusicPlaybackWithOpen } from '../lib/musicPlayerEvents';
 import GiftRegistry from './GiftRegistry';
 import RSVP from './RSVP';
 import Footer from './Footer';
@@ -411,7 +411,7 @@ function AmoreaMusicCard({ config }: { config: WeddingConfig }) {
           )}
           <button
             type="button"
-            onClick={requestMusicPlayback}
+            onClick={requestMusicPlaybackWithOpen}
             className="flex items-center gap-3 text-left w-full group"
             aria-label={`${btnLabel}: ${track.title}`}
           >

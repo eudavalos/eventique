@@ -140,8 +140,8 @@ export default function Footer() {
           </a>
         </motion.div>
 
-        {/* Credits */}
-        {footer.credits && (
+        {/* Credits — explicit value wins; if explicitly empty ('') nothing shows */}
+        {footer.credits !== '' && (
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -150,7 +150,7 @@ export default function Footer() {
             className="font-body text-xs"
             style={{ color: 'rgba(255,255,255,0.25)' }}
           >
-            {footer.credits}
+            {footer.credits ?? `${names} · ${dates.displayDate ?? dates.ceremony.slice(0, 7)}`}
           </motion.p>
         )}
       </div>

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useConfig } from '../context/ConfigContext';
 import type { WeddingConfig } from '../types';
@@ -173,27 +174,34 @@ function VenueBlock({ icon, label, name, address, mapsUrl, index }: {
   );
 }
 
-function MobileVenueScrollCue() {
+function VenueScrollNext({ label, onScroll }: { label: string; onScroll: () => void }) {
   return (
-    <div className="envelope-venue-scroll-cue" aria-hidden="true">
-      <svg width="28" height="46" viewBox="0 0 28 46" fill="none">
-        <path
-          d="M14 4 C14 4 5 18 14 40"
-          stroke="currentColor"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          opacity="0.42"
-        />
-        <path
-          d="M7 34 L14 42 L21 34"
-          stroke="currentColor"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          opacity="0.55"
-        />
-      </svg>
-    </div>
+    <motion.button
+      type="button"
+      onClick={onScroll}
+      aria-label={label}
+      className="flex flex-col items-center gap-2 py-4 px-8 w-full group focus:outline-none"
+      whileTap={{ scale: 0.96 }}
+    >
+      <span
+        className="font-body text-[10px] uppercase tracking-[0.22em] transition-opacity group-hover:opacity-80"
+        style={{ color: 'rgba(255,255,255,0.50)' }}
+      >
+        {label}
+      </span>
+      <motion.svg
+        width="24"
+        height="32"
+        viewBox="0 0 24 32"
+        fill="none"
+        animate={{ y: [0, 6, 0] }}
+        transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+        aria-hidden="true"
+      >
+        <line x1="12" y1="2" x2="12" y2="22" stroke="rgba(255,255,255,0.45)" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M5 16 L12 24 L19 16" stroke="rgba(255,255,255,0.6)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      </motion.svg>
+    </motion.button>
   );
 }
 
@@ -201,32 +209,32 @@ function MobileVenueScrollCue() {
 
 export default function VenuesEnvelope() {
   const config = useConfig() as WeddingConfig & Record<string, unknown>;
+  const receptionRef = useRef<HTMLDivElement>(null);
 
-  const ceremonyLabel = (config.venues_ceremony_label as string | undefined) ?? 'Ceremonia';
+  const ceremonyLabel  = (config.venues_ceremony_label  as string | undefined) ?? 'Ceremonia';
   const receptionLabel = (config.venues_reception_label as string | undefined) ?? 'Recepción';
-  const ceremonyIcon = (config.venues_ceremony_icon as string | undefined) ?? 'church';
-  const receptionIcon = (config.venues_reception_icon as string | undefined) ?? 'champagne';
-  const sameVenue = config.venues.sameVenue;
+  const ceremonyIcon   = (config.venues_ceremony_icon   as string | undefined) ?? 'church';
+  const receptionIcon  = (config.venues_reception_icon  as string | undefined) ?? 'champagne';
+  const sameVenue      = config.venues.sameVenue;
+  const scrollNextLabel = `Ver ${receptionLabel}`;
 
-  const ceremony = config.venues.ceremony;
+  const ceremony  = config.venues.ceremony;
   const reception = config.venues.reception;
+
+  const scrollToReception = () => {
+    receptionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <section
       id="recintos"
       className="envelope-venues-section relative overflow-hidden"
-      style={{
-        background: 'var(--color-primary)',
-        paddingTop: 80,
-        paddingBottom: 100,
-      }}
+      style={{ background: 'var(--color-primary)', paddingTop: 80, paddingBottom: 100 }}
     >
-      {/* Radial glow sutil */}
+      {/* Radial glow */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.07) 0%, transparent 60%)',
-        }}
+        style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.07) 0%, transparent 60%)' }}
       />
 
       <FloralDecorLayer
@@ -247,35 +255,40 @@ export default function VenuesEnvelope() {
           mapsUrl={ceremony.mapsUrl}
           index={0}
         />
-        {!sameVenue && <MobileVenueScrollCue />}
 
-        {/* Separador vertical si hay dos venues */}
+        {/* Tap-to-next: functional animated scroll button */}
         {!sameVenue && (
-          <div className="envelope-venue-separator flex justify-center my-10">
+          <VenueScrollNext label={scrollNextLabel} onScroll={scrollToReception} />
+        )}
+
+        {/* Visual separator line */}
+        {!sameVenue && (
+          <div className="flex justify-center mb-10">
             <div
               style={{
-                width: 1,
-                height: 60,
-                background: 'linear-gradient(to bottom, rgba(255,255,255,0.15), rgba(255,255,255,0.40), rgba(255,255,255,0.15))',
+                width: 1, height: 40,
+                background: 'linear-gradient(to bottom, rgba(255,255,255,0.15), rgba(255,255,255,0.35), rgba(255,255,255,0.15))',
               }}
             />
           </div>
         )}
 
-        {/* Venue 2: Recepción */}
+        {/* Venue 2: Recepción — ref target with scroll-margin-top for fixed nav */}
         {!sameVenue && (
-          <VenueBlock
-            icon={receptionIcon}
-            label={receptionLabel}
-            name={reception.name}
-            address={`${reception.city}, ${reception.country}`}
-            mapsUrl={reception.mapsUrl}
-            index={1}
-          />
+          <div ref={receptionRef} style={{ scrollMarginTop: 88 }}>
+            <VenueBlock
+              icon={receptionIcon}
+              label={receptionLabel}
+              name={reception.name}
+              address={`${reception.city}, ${reception.country}`}
+              mapsUrl={reception.mapsUrl}
+              index={1}
+            />
+          </div>
         )}
       </div>
 
-      {/* Transición curva inferior */}
+      {/* Curved bottom transition */}
       <div className="absolute bottom-0 left-0 right-0 overflow-hidden" style={{ height: 80 }}>
         <svg viewBox="0 0 1440 80" preserveAspectRatio="none" className="w-full h-full">
           <path d="M0,80 C480,0 960,0 1440,80 L1440,80 L0,80 Z" fill="var(--color-primary)" />

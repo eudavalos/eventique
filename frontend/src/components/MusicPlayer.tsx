@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Music, Play, Pause, SkipForward, Volume2, VolumeX, ChevronUp } from 'lucide-react';
 import type { MusicTrack } from '../types';
-import { MUSIC_PLAYER_PLAY_EVENT, MUSIC_PLAYER_TOGGLE_EVENT } from '../lib/musicPlayerEvents';
+import { MUSIC_PLAYER_PLAY_EVENT, MUSIC_PLAYER_TOGGLE_EVENT, MUSIC_PLAYER_OPEN_EVENT } from '../lib/musicPlayerEvents';
 
 interface MusicPlayerProps {
   tracks: MusicTrack[];
@@ -87,17 +87,23 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
     );
   }, []);
 
-  // Play YouTube — handles both ready and not-ready states
-  const ytPlay = useCallback(() => {
+  // Play YouTube — handles both ready and not-ready states.
+  // fromUserGesture=true: card/button tap; expand panel if not ready so user can tap FAB directly.
+  const ytPlay = useCallback((fromUserGesture = false) => {
     ytConfirmedPlay.current = false;
     if (ytReadyRef.current) {
       ytCmd('playVideo');
       if (mutedRef.current) ytCmd('mute');
       setPlaying(true);
-      // Autoplay block detection runs only via the onReady path (initial page load).
-      // User-triggered calls (after gesture) must not restart the 3s reset timer.
+    } else if (fromUserGesture) {
+      // iframe still loading — iOS can't play from async onReady (outside user gesture).
+      // Expand panel and show the direct-play FAB so the user can tap it when ready.
+      setExpanded(true);
+      setAutoplayBlocked(true);
+      // Still queue so desktop/Android play once ready.
+      pendingPlayRef.current = true;
     } else {
-      // Queue — will fire when onReady arrives
+      // Autoplay path — queue as before.
       pendingPlayRef.current = true;
       setPlaying(true);
     }
@@ -238,10 +244,10 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
 
   // ── Controls ──────────────────────────────────────────────────────────────
 
-  const playCurrent = useCallback(() => {
+  const playCurrent = useCallback((fromUserGesture = false) => {
     if (!current) return;
     if (isYouTube(current.url)) {
-      ytPlay();
+      ytPlay(fromUserGesture);
       return;
     }
 
@@ -273,14 +279,17 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
   }, [current, pauseCurrent, playCurrent, playing]);
 
   useEffect(() => {
-    const handlePlay = () => playCurrent();
+    const handlePlay   = () => playCurrent(true); // true = from user gesture
     const handleToggle = () => toggle();
+    const handleOpen   = () => setExpanded(true);
 
-    window.addEventListener(MUSIC_PLAYER_PLAY_EVENT, handlePlay);
+    window.addEventListener(MUSIC_PLAYER_PLAY_EVENT,   handlePlay);
     window.addEventListener(MUSIC_PLAYER_TOGGLE_EVENT, handleToggle);
+    window.addEventListener(MUSIC_PLAYER_OPEN_EVENT,   handleOpen);
     return () => {
-      window.removeEventListener(MUSIC_PLAYER_PLAY_EVENT, handlePlay);
+      window.removeEventListener(MUSIC_PLAYER_PLAY_EVENT,   handlePlay);
       window.removeEventListener(MUSIC_PLAYER_TOGGLE_EVENT, handleToggle);
+      window.removeEventListener(MUSIC_PLAYER_OPEN_EVENT,   handleOpen);
     };
   }, [playCurrent, toggle]);
 

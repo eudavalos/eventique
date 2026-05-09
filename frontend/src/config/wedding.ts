@@ -268,8 +268,8 @@ export const config: WeddingConfig = {
       deadline: '2026-11-01',
       maxGuestsPerResponse: 4,
       allowPlusOne: true,
-      allowDietaryRestrictions: true,
-      allowSongRequest: true,
+      allowDietaryRestrictions: false,
+      allowSongRequest: false,
       allowMessage: true,
       confirmationMessage:
         '¡Gracias! Tu asistencia ha sido confirmada. ¡Nos vemos el 5 de diciembre!',
@@ -279,7 +279,7 @@ export const config: WeddingConfig = {
     footer: {
       enabled: true,
       message: 'Con todo nuestro amor,',
-      credits: 'Concepción & Eumelio · Diciembre 2026',
+      credits: '',
     },
   },
 

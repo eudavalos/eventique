@@ -189,9 +189,9 @@ function PersonalizedRSVPView() {
   const maxPasses = invitation.allowed_passes;
   const allowMemberNames = cfg.allow_guest_member_names === true;
   const allowCountChange = cfg.allow_guest_count_change !== false;
-  const allowDiet = rsvp.allowDietaryRestrictions !== false;
-  const allowSong = rsvp.allowSongRequest !== false;
-  const allowMsg = rsvp.allowMessage !== false;
+  const allowDiet = rsvp.allowDietaryRestrictions === true;
+  const allowSong = rsvp.allowSongRequest === true;
+  const allowMsg  = rsvp.allowMessage !== false;
 
   const title    = (cfg.personalized_rsvp_title as string | undefined)    ?? rsvp.title    ?? 'Confirmar asistencia';
   const subtitle = (cfg.personalized_rsvp_subtitle as string | undefined) ?? rsvp.subtitle;
@@ -244,7 +244,9 @@ function PersonalizedRSVPView() {
     );
   }
 
-  const TOTAL_STEPS = attending === true ? 3 : 2;
+  // Step 3 only exists when there is at least one extra field to show
+  const hasStep3 = allowSong || allowMsg;
+  const TOTAL_STEPS = attending === true && hasStep3 ? 3 : 2;
 
   return (
     <div className="section-padding relative overflow-hidden" style={{ background: 'var(--color-secondary)' }}>
@@ -370,8 +372,15 @@ function PersonalizedRSVPView() {
                     <ChevronLeft className="w-4 h-4" /> Volver
                   </button>
                   {attending ? (
-                    <button type="button" onClick={() => setStep(3)} className="btn-primary flex-1 justify-center">
-                      Continuar <ChevronRight className="w-4 h-4" />
+                    <button
+                      type="button"
+                      onClick={() => hasStep3 ? setStep(3) : handleSubmit()}
+                      disabled={loading}
+                      className="btn-primary flex-1 justify-center disabled:opacity-50"
+                    >
+                      {loading
+                        ? <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                        : hasStep3 ? <><span>Continuar</span> <ChevronRight className="w-4 h-4" /></> : <><Check className="w-4 h-4" /> Confirmar asistencia</>}
                     </button>
                   ) : (
                     <button type="button" onClick={handleSubmit} disabled={loading}
