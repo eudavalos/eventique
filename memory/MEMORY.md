@@ -1,11 +1,12 @@
 # Eventique - Memory Index
 
-**Last Updated**: 2026-05-08 (toggle Paper Access music card + remove prompt + music playback)
+**Last Updated**: 2026-05-09 (Paper Access floral decor + toggle music card)
 
 ---
 
 ## Sessions
 
+- [session_2026_05_09_paper_floral_decor.md](session_2026_05_09_paper_floral_decor.md) - Decoracion parametrizada para `paper-access` con pinoquio verde y rosas blancas; Admin controla enabled/style/density/opacity, deploy Pi, token activo validado y suite 56/56.
 - [session_2026_05_08_toggle_paper_music_card.md](session_2026_05_08_toggle_paper_music_card.md) - Nuevo flag parametrizado `paper_music_card_enabled` para mostrar/ocultar la tarjeta completa de musica en `paper-access`; Admin checkbox, merge/config/tipos/test/catalogo, deploy Pi y suite 56/56.
 - [session_2026_05_08_remove_paper_music_prompt.md](session_2026_05_08_remove_paper_music_prompt.md) - Remocion parametrizada del texto superior de la tarjeta de musica `paper-access`; `paper_music_prompt` vacio ya no renderiza y Admin puede persistir string vacio; deploy Pi y suite 56/56.
 - [session_2026_05_08_music_playback_paper_access.md](session_2026_05_08_music_playback_paper_access.md) - Investigacion de musica en `paper-access`: link YouTube estaba guardado, la tarjeta visible no disparaba el reproductor; se agrego canal interno `eventique:music-player:*`, soporte playlist `list`, deploy Pi y suite 56/56.

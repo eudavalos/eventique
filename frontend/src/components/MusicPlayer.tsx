@@ -94,17 +94,8 @@ export default function MusicPlayer({ tracks, autoplay }: MusicPlayerProps) {
       ytCmd('playVideo');
       if (mutedRef.current) ytCmd('mute');
       setPlaying(true);
-      if (autoplayRef.current) {
-        // Block-detection fallback: if no onStateChange(1) in 3s, report blocked
-        if (fallbackRef.current) clearTimeout(fallbackRef.current);
-        fallbackRef.current = setTimeout(() => {
-          fallbackRef.current = null;
-          if (!ytConfirmedPlay.current) {
-            setPlaying(false);
-            setAutoplayBlocked(true);
-          }
-        }, 3000);
-      }
+      // Autoplay block detection runs only via the onReady path (initial page load).
+      // User-triggered calls (after gesture) must not restart the 3s reset timer.
     } else {
       // Queue — will fire when onReady arrives
       pendingPlayRef.current = true;

@@ -296,6 +296,10 @@ export interface WeddingConfig {
   paper_access_tap_label?: string;
   paper_access_guest_label?: string;
   paper_access_passes_label?: string;
+  paper_floral_decor_enabled?: boolean;
+  paper_floral_decor_style?: string;
+  paper_floral_decor_density?: string;
+  paper_floral_decor_opacity?: number;
   paper_music_card_enabled?: boolean;
   paper_music_prompt?: string;
   paper_music_button_label?: string;

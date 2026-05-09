@@ -365,3 +365,15 @@ En cada sesión significativa, actualizar estos cuatro artefactos:
 - `paper_music_card_enabled` controla si la tarjeta completa de música se muestra en `paper-access`.
 - Este flag es independiente de `music.enabled`: ocultar la tarjeta no elimina la música ni las pistas configuradas.
 - Admin -> Secciones -> Paper Access incluye el checkbox `Mostrar tarjeta de música`.
+
+### Decoración Floral Paper Access (2026-05-09)
+- La decoración floral del skin `paper-access` es parametrizada con:
+  - `paper_floral_decor_enabled`
+  - `paper_floral_decor_style`
+  - `paper_floral_decor_density`
+  - `paper_floral_decor_opacity`
+- Estilo inicial soportado: `green-pinocchio-white-roses`.
+- Densidades soportadas: `subtle`, `balanced`, `lush`.
+- Admin -> Secciones -> Paper Access permite activar, elegir estilo, densidad y opacidad.
+- Producción `boda-conce-eume`: decoración activa con densidad `lush` y opacidad `0.72`.
+- Tokens antiguos `772d591...` y `aaaa6f...` están desactivados; token activo validado `ca7a550f...`.

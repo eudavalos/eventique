@@ -7,7 +7,7 @@ import {
   Image as ImageIcon, LogOut, Key, RefreshCw,
   UserPlus, UserCheck, Send, Link2, Filter, ChevronLeft, ChevronRight,
   Eye, RotateCcw, MessageSquare, GripVertical, ChevronUp as ChevronUpIcon, ChevronDown,
-  HelpCircle,
+  HelpCircle, Tag,
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import toast from 'react-hot-toast';
@@ -703,6 +703,10 @@ export default function AdminPage() {
   const [paperAccessTapLabel, setPaperAccessTapLabel] = useState('');
   const [paperAccessGuestLabel, setPaperAccessGuestLabel] = useState('');
   const [paperAccessPassesLabel, setPaperAccessPassesLabel] = useState('');
+  const [paperFloralDecorEnabled, setPaperFloralDecorEnabled] = useState(true);
+  const [paperFloralDecorStyle, setPaperFloralDecorStyle] = useState('green-pinocchio-white-roses');
+  const [paperFloralDecorDensity, setPaperFloralDecorDensity] = useState('balanced');
+  const [paperFloralDecorOpacity, setPaperFloralDecorOpacity] = useState(0.62);
   const [paperMusicCardEnabled, setPaperMusicCardEnabled] = useState(true);
   const [paperMusicPrompt, setPaperMusicPrompt] = useState('');
   const [paperMusicButtonLabel, setPaperMusicButtonLabel] = useState('');
@@ -917,6 +921,10 @@ export default function AdminPage() {
         setPaperAccessTapLabel((cfg.paper_access_tap_label as string) ?? 'Toca aqui');
         setPaperAccessGuestLabel((cfg.paper_access_guest_label as string) ?? 'Invitacion especial para');
         setPaperAccessPassesLabel((cfg.paper_access_passes_label as string) ?? 'Hemos reservado {passes} cupo(s) para ti.');
+        setPaperFloralDecorEnabled((cfg.paper_floral_decor_enabled as boolean | undefined) ?? true);
+        setPaperFloralDecorStyle((cfg.paper_floral_decor_style as string) ?? 'green-pinocchio-white-roses');
+        setPaperFloralDecorDensity((cfg.paper_floral_decor_density as string) ?? 'balanced');
+        setPaperFloralDecorOpacity((cfg.paper_floral_decor_opacity as number | undefined) ?? 0.62);
         setPaperMusicCardEnabled((cfg.paper_music_card_enabled as boolean | undefined) ?? true);
         setPaperMusicPrompt((cfg.paper_music_prompt as string) ?? 'Dale play para escuchar nuestra cancion');
         setPaperMusicButtonLabel((cfg.paper_music_button_label as string) ?? 'Reproducir musica');
@@ -1374,6 +1382,10 @@ export default function AdminPage() {
         paper_access_tap_label: paperAccessTapLabel || undefined,
         paper_access_guest_label: paperAccessGuestLabel || undefined,
         paper_access_passes_label: paperAccessPassesLabel || undefined,
+        paper_floral_decor_enabled: paperFloralDecorEnabled,
+        paper_floral_decor_style: paperFloralDecorStyle,
+        paper_floral_decor_density: paperFloralDecorDensity,
+        paper_floral_decor_opacity: paperFloralDecorOpacity,
         paper_music_card_enabled: paperMusicCardEnabled,
         paper_music_prompt: paperMusicPrompt,
         paper_music_button_label: paperMusicButtonLabel || undefined,
@@ -4214,34 +4226,20 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="flex items-center gap-2 cursor-pointer mb-2">
-                        <input type="checkbox" checked={dressCodeEnabled} onChange={e => setDressCodeEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
-                        <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Mostrar Código de Vestimenta</span>
-                      </label>
-                      {dressCodeEnabled && (
-                        <div className="space-y-2">
-                          <input value={dressCodeTitle} onChange={e => setDressCodeTitle(e.target.value)} className="input-field" placeholder="Código de Vestimenta" />
-                          <input value={dressCodeValue} onChange={e => setDressCodeValue(e.target.value)} className="input-field" placeholder="Elegante" />
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <label className="flex items-center gap-2 cursor-pointer mb-2">
-                        <input type="checkbox" checked={galleryPolaroidEnabled} onChange={e => setGalleryPolaroidEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
-                        <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Galería Polaroid</span>
-                      </label>
-                      {galleryPolaroidEnabled && (
-                        <div className="space-y-2">
-                          <input value={galleryPolaroidFooter} onChange={e => setGalleryPolaroidFooter(e.target.value)} className="input-field" placeholder="Te Esperamos" />
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={galleryPolaroidBw} onChange={e => setGalleryPolaroidBw(e.target.checked)} className="w-4 h-4 accent-primary" />
-                            <span className="font-body text-xs" style={{ color: 'var(--color-text)' }}>Fotos en blanco y negro</span>
-                          </label>
-                        </div>
-                      )}
-                    </div>
+                  <div>
+                    <label className="flex items-center gap-2 cursor-pointer mb-2">
+                      <input type="checkbox" checked={galleryPolaroidEnabled} onChange={e => setGalleryPolaroidEnabled(e.target.checked)} className="w-4 h-4 accent-primary" />
+                      <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Galería Polaroid</span>
+                    </label>
+                    {galleryPolaroidEnabled && (
+                      <div className="space-y-2">
+                        <input value={galleryPolaroidFooter} onChange={e => setGalleryPolaroidFooter(e.target.value)} className="input-field" placeholder="Te Esperamos" />
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" checked={galleryPolaroidBw} onChange={e => setGalleryPolaroidBw(e.target.checked)} className="w-4 h-4 accent-primary" />
+                          <span className="font-body text-xs" style={{ color: 'var(--color-text)' }}>Fotos en blanco y negro</span>
+                        </label>
+                      </div>
+                    )}
                   </div>
 
                   <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
@@ -4278,6 +4276,67 @@ export default function AdminPage() {
                       <label className="input-label">Texto de cupos ({'{passes}'})</label>
                       <input value={paperAccessPassesLabel} onChange={e => setPaperAccessPassesLabel(e.target.value)} className="input-field" placeholder="Hemos reservado {passes} cupo(s) para ti." />
                     </div>
+                  </div>
+
+                  <div className="rounded-lg p-4" style={{ background: 'var(--color-secondary)', border: '1px solid var(--color-border)' }}>
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="font-body text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+                          Decoracion floral Paper Access
+                        </p>
+                        <p className="font-body text-xs mt-1 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+                          Flores de pinoquio verde y rosas blancas como ornamentacion de fondo.
+                        </p>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={paperFloralDecorEnabled}
+                          onChange={e => setPaperFloralDecorEnabled(e.target.checked)}
+                          className="w-4 h-4 accent-primary"
+                        />
+                        <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Mostrar decoracion</span>
+                      </label>
+                    </div>
+
+                    {paperFloralDecorEnabled && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                        <div>
+                          <label className="input-label">Estilo floral</label>
+                          <select
+                            value={paperFloralDecorStyle}
+                            onChange={e => setPaperFloralDecorStyle(e.target.value)}
+                            className="input-field"
+                          >
+                            <option value="green-pinocchio-white-roses">Pinoquio verde + rosas blancas</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="input-label">Densidad</label>
+                          <select
+                            value={paperFloralDecorDensity}
+                            onChange={e => setPaperFloralDecorDensity(e.target.value)}
+                            className="input-field"
+                          >
+                            <option value="subtle">Sutil</option>
+                            <option value="balanced">Equilibrada</option>
+                            <option value="lush">Abundante</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="input-label">Opacidad ({Math.round(paperFloralDecorOpacity * 100)}%)</label>
+                          <input
+                            type="range"
+                            min="0.25"
+                            max="0.85"
+                            step="0.01"
+                            value={paperFloralDecorOpacity}
+                            onChange={e => setPaperFloralDecorOpacity(Number(e.target.value))}
+                            className="w-full accent-primary"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -4373,6 +4432,140 @@ export default function AdminPage() {
                 </div>
               )}
             </div>
+
+            {/* ── Código de Vestimenta (Envelope + Paper Access) ────────── */}
+            {invitationSkin !== 'classic' && (
+              <div className="card p-6 sm:p-8">
+                {/* Header */}
+                <div className="flex items-start justify-between gap-4 mb-6">
+                  <div className="flex items-start gap-4 min-w-0">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'var(--color-secondary)' }}
+                    >
+                      <Tag className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <h2 className="font-sub text-lg font-medium" style={{ color: 'var(--color-text)' }}>
+                          Código de Vestimenta
+                        </h2>
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full font-body font-medium"
+                          style={{ background: 'var(--color-primary)', color: '#fff' }}
+                        >
+                          {invitationSkin === 'envelope' ? 'Envelope' : 'Paper Access'}
+                        </span>
+                      </div>
+                      <p className="text-xs leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+                        Tarjeta con el dress code del evento. Disponible en los skins <strong>Envelope</strong> y <strong>Paper Access</strong>.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Toggle switch */}
+                  <label className="relative inline-flex items-center cursor-pointer gap-2 flex-shrink-0 mt-1">
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={dressCodeEnabled}
+                      onChange={e => setDressCodeEnabled(e.target.checked)}
+                    />
+                    <span
+                      className="relative w-11 h-6 rounded-full transition-all duration-200"
+                      style={{ background: dressCodeEnabled ? 'var(--color-primary)' : 'var(--color-border)' }}
+                    >
+                      <span
+                        className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                        style={{ transform: dressCodeEnabled ? 'translateX(22px)' : 'translateX(4px)' }}
+                      />
+                    </span>
+                    <span
+                      className="text-xs font-medium"
+                      style={{ color: dressCodeEnabled ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
+                    >
+                      {dressCodeEnabled ? 'Visible' : 'Oculto'}
+                    </span>
+                  </label>
+                </div>
+
+                {dressCodeEnabled ? (
+                  <div className="space-y-6">
+                    {/* Campos */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div>
+                        <label className="input-label">Título</label>
+                        <input
+                          value={dressCodeTitle}
+                          onChange={e => setDressCodeTitle(e.target.value)}
+                          className="input-field"
+                          placeholder="Código de Vestimenta"
+                        />
+                        <p className="text-xs mt-1.5" style={{ color: 'var(--color-text-muted)' }}>
+                          Texto en cursiva sobre el tipo de vestimenta.
+                        </p>
+                      </div>
+                      <div>
+                        <label className="input-label">Etiqueta de vestimenta</label>
+                        <input
+                          value={dressCodeValue}
+                          onChange={e => setDressCodeValue(e.target.value)}
+                          className="input-field"
+                          placeholder="Elegante"
+                        />
+                        <p className="text-xs mt-1.5" style={{ color: 'var(--color-text-muted)' }}>
+                          Se muestra en MAYÚSCULAS. Ej: Formal, Elegante, Casual, Cóctel.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Vista previa live */}
+                    <div
+                      className="rounded-xl p-5"
+                      style={{ background: 'var(--color-secondary)', border: '1px solid var(--color-border)' }}
+                    >
+                      <p
+                        className="text-xs font-medium uppercase tracking-[0.16em] mb-4"
+                        style={{ color: 'var(--color-text-muted)' }}
+                      >
+                        Vista previa de la tarjeta
+                      </p>
+                      <div
+                        className="rounded-lg p-6 text-center max-w-xs mx-auto"
+                        style={{
+                          background: 'var(--color-surface)',
+                          border: '1px solid var(--color-border)',
+                          boxShadow: '0 6px 24px rgba(0,0,0,0.07)',
+                        }}
+                      >
+                        <p
+                          className="font-sub italic mb-2"
+                          style={{ color: 'var(--color-primary)', fontSize: '1.5rem', lineHeight: 1.2 }}
+                        >
+                          {dressCodeTitle || 'Código de Vestimenta'}
+                        </p>
+                        <p
+                          className="font-body text-xs tracking-[0.22em]"
+                          style={{ color: 'var(--color-text-muted)' }}
+                        >
+                          {(dressCodeValue || 'ELEGANTE').toUpperCase()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className="rounded-xl p-4 flex items-center gap-3"
+                    style={{ background: 'var(--color-secondary)', border: '1px solid var(--color-border)' }}
+                  >
+                    <Eye className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-text-muted)' }} />
+                    <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                      La tarjeta de código de vestimenta está oculta en la invitación. Actívala con el toggle para editarla.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Save */}
             <div className="flex justify-end">
