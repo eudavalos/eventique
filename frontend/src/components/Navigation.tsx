@@ -11,9 +11,10 @@ interface NavLink {
 interface NavigationProps {
   links: NavLink[];
   coupleNames: string;
+  monogram?: string;
 }
 
-export default function Navigation({ links, coupleNames }: NavigationProps) {
+export default function Navigation({ links, coupleNames, monogram }: NavigationProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -52,10 +53,7 @@ export default function Navigation({ links, coupleNames }: NavigationProps) {
             className="font-heading text-xl tracking-widest transition-opacity hover:opacity-70"
             style={{ color: scrolled ? 'var(--color-primary)' : 'white' }}
           >
-            {coupleNames
-              .split(' & ')
-              .map((n) => n[0])
-              .join(' & ')}
+            {monogram ?? coupleNames.split(' & ').map((n) => n[0]).join(' & ')}
           </button>
 
           {/* Desktop nav */}

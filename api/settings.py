@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     max_image_size_mb: int = Field(default=10, description="Max image upload size in MB")
     max_audio_size_mb: int = Field(default=50, description="Max audio upload size in MB")
     allowed_image_types: str = Field(default="image/jpeg,image/png,image/webp,image/gif", description="Comma-separated MIME types for images")
-    allowed_audio_types: str = Field(default="audio/mpeg,audio/wav,audio/ogg,audio/webm", description="Comma-separated MIME types for audio")
+    allowed_audio_types: str = Field(default="audio/mpeg,audio/wav,audio/ogg,audio/webm,audio/mp4,audio/aac,audio/x-m4a", description="Comma-separated MIME types for audio")
     allowed_image_extensions: str = Field(default="jpg,jpeg,png,webp,gif", description="Comma-separated extensions for images")
     allowed_audio_extensions: str = Field(default="mp3,wav,ogg,webm,m4a", description="Comma-separated extensions for audio")
 

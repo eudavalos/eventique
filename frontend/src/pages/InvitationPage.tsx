@@ -50,6 +50,7 @@ function ClassicSkin() {
   const guest = useGuest();
   const { sections, music, couple } = config;
   const names = couple.displayNames ?? `${couple.person1.firstName} & ${couple.person2.firstName}`;
+  const monogram = `${couple.person1.firstName[0]} · ${couple.person2.firstName[0]}`;
 
   const cfg = config as typeof config & Record<string, unknown>;
   const greetingPos = (cfg.personalized_greeting_position as string | undefined) ?? 'after_hero';
@@ -57,7 +58,7 @@ function ClassicSkin() {
 
   return (
     <div className="relative overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
-      <Navigation links={NAV_LINKS} coupleNames={names} />
+      <Navigation links={NAV_LINKS} coupleNames={names} monogram={monogram} />
 
       {greetingEnabled && greetingPos === 'top' && <PersonalizedGreeting />}
 
@@ -136,6 +137,7 @@ function EnvelopeSkin() {
   const config = useConfig() as WeddingConfig & Record<string, unknown>;
   const { sections, music, couple } = config;
   const names = couple.displayNames ?? `${couple.person1.firstName} & ${couple.person2.firstName}`;
+  const monogram = `${couple.person1.firstName[0]} · ${couple.person2.firstName[0]}`;
   const collageRef = useRef<HTMLDivElement>(null);
 
   const handleOpen = () => {
@@ -146,7 +148,7 @@ function EnvelopeSkin() {
 
   return (
     <div className="relative overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
-      <Navigation links={NAV_LINKS_ENVELOPE} coupleNames={names} />
+      <Navigation links={NAV_LINKS_ENVELOPE} coupleNames={names} monogram={monogram} />
 
       {/* Sobre animado — pantalla 1 */}
       <EnvelopeHero onOpen={handleOpen} />
@@ -187,10 +189,11 @@ function PaperSkin() {
   const config = useConfig() as WeddingConfig;
   const { music, couple } = config;
   const names = couple.displayNames ?? `${couple.person1.firstName} & ${couple.person2.firstName}`;
+  const monogram = `${couple.person1.firstName[0]} · ${couple.person2.firstName[0]}`;
 
   return (
     <div className="relative overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
-      <Navigation links={NAV_LINKS_PAPER} coupleNames={names} />
+      <Navigation links={NAV_LINKS_PAPER} coupleNames={names} monogram={monogram} />
       <PaperAccessSkin />
       {music?.enabled && <MusicPlayer tracks={music.tracks} autoplay={music.autoplay} />}
     </div>

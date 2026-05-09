@@ -479,6 +479,7 @@ def _share_preview_html(
   </head>
   <body>
     <p><a href="{target_esc}">Abrir invitación</a></p>
+    <script>window.location.replace("{target_esc}")</script>
   </body>
 </html>"""
 
@@ -539,9 +540,6 @@ async def short_invitation_link(
     base_url = _request_public_base_url(request)
     target_url = f"{base_url}/e/{inv.event_slug}/i/{inv.token_lookup}"
     short_url = f"{base_url}/s/{_short_code_for_token(inv.token_lookup)}"
-
-    if not _is_social_preview_request(request):
-        return RedirectResponse(target_url, status_code=302)
 
     cfg_row = db.query(models.EventConfig).filter(models.EventConfig.event_slug == inv.event_slug).first()
     cfg = json.loads(cfg_row.config_json) if cfg_row else {}
@@ -881,6 +879,21 @@ async def delete_media(
     db.commit()
 
 
+_MIME_OVERRIDES: dict[str, str] = {
+    ".m4a": "audio/mp4",
+    ".aac": "audio/aac",
+    ".mp3": "audio/mpeg",
+    ".ogg": "audio/ogg",
+    ".wav": "audio/wav",
+    ".webm": "audio/webm",
+    ".mp4": "video/mp4",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+    ".gif": "image/gif",
+}
+
 @app.get("/uploads/{event_slug}/{filename}")
 async def serve_upload(event_slug: str, filename: str):
     safe_slug = event_slug.replace("..", "").replace("/", "").replace("\\", "")
@@ -888,4 +901,6 @@ async def serve_upload(event_slug: str, filename: str):
     file_path = UPLOAD_DIR / safe_slug / safe_file
     if not file_path.is_file():
         raise HTTPException(404, detail="Archivo no encontrado")
-    return FileResponse(file_path)
+    ext = file_path.suffix.lower()
+    media_type = _MIME_OVERRIDES.get(ext)
+    return FileResponse(file_path, media_type=media_type)
