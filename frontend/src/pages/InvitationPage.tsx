@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useConfig } from '../context/ConfigContext';
+import { requestMusicPlaybackWithOpen } from '../lib/musicPlayerEvents';
 import { useGuest } from '../context/GuestContext';
 import Navigation from '../components/Navigation';
 import MusicPlayer from '../components/MusicPlayer';
@@ -142,6 +143,9 @@ function EnvelopeSkin() {
   const collageRef = useRef<HTMLDivElement>(null);
 
   const handleOpen = () => {
+    if (music?.enabled) {
+      requestMusicPlaybackWithOpen();
+    }
     setTimeout(() => {
       collageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
