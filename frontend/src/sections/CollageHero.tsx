@@ -401,19 +401,29 @@ export default function CollageHero() {
           </motion.div>
         </div>
 
-        {/* Flecha curva decorativa hacia abajo */}
-        <motion.div
+        {/* Flecha hacia siguiente sección — tappable */}
+        <motion.button
+          type="button"
+          onClick={() => document.getElementById('recintos')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          aria-label="Ver recintos"
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.6, duration: 0.8 }}
-          className="flex justify-center mt-10"
+          whileTap={{ scale: 0.92 }}
+          className="flex justify-center mt-10 w-full focus:outline-none"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '12px 0' }}
         >
-          <svg width="32" height="48" viewBox="0 0 32 48" fill="none" style={{ color: 'var(--color-text-muted)' }}>
+          <motion.svg
+            width="32" height="48" viewBox="0 0 32 48" fill="none"
+            style={{ color: 'var(--color-text-muted)' }}
+            animate={{ y: [0, 6, 0] }}
+            transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+          >
             <path d="M16 4 C16 4 4 20 16 44" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.5"/>
             <path d="M8 38 L16 46 L24 38" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.5"/>
-          </svg>
-        </motion.div>
+          </motion.svg>
+        </motion.button>
       </div>
 
       {/* Transición curva inferior hacia olive */}
