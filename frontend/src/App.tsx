@@ -9,6 +9,7 @@ import { ConfigContext } from './context/ConfigContext';
 import { EventSlugContext } from './context/EventSlugContext';
 import { GuestContext } from './context/GuestContext';
 import { rsvpApi } from './lib/api';
+import { getApiErrorMessage } from './lib/apiError';
 import type { WeddingConfig, EventConfig, PersonalizedInvitationData } from './types';
 import { mergeConfig } from './lib/mergeConfig';
 import InvitationPage from './pages/InvitationPage';
@@ -175,10 +176,11 @@ function PersonalizedInvitationRoute() {
         rsvpApi.trackInvitationOpen(slug, token, 'direct').catch(() => {});
       })
       .catch((err) => {
-        const status = (err as { response?: { status?: number; data?: { detail?: string } } })?.response?.status;
-        const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? '';
-        if (status === 404 || detail.toLowerCase().includes('not found')) setGuestError('not_found');
-        else if (detail === 'blocked') setGuestError('blocked');
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        const detail = getApiErrorMessage(err, '');
+        const detailLower = detail.toLowerCase();
+        if (status === 404 || detailLower.includes('not found')) setGuestError('not_found');
+        else if (detailLower.includes('bloqueada') || detailLower.includes('blocked')) setGuestError('blocked');
         else setGuestError('error');
       })
       .finally(() => setGuestLoaded(true));

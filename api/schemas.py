@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import Any, Literal, Optional
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 EventType = Literal[
     'boda', 'cumpleanos', 'bautismo', 'quinceanera',
@@ -219,12 +219,19 @@ class GuestMemberResponse(BaseModel):
 class PersonalizedRSVPCreate(BaseModel):
     """RSVP payload submitted via a personalized invitation token."""
     attending: bool
-    guest_count: int = Field(default=1, ge=1, le=50)
+    guest_count: int = Field(default=1, ge=0, le=50)
     members: Optional[list[GuestMemberCreate]] = Field(default=[], description="Detalle de cada asistente")
     dietary_restrictions: Optional[str] = Field(None, max_length=500)
     song_request: Optional[str] = Field(None, max_length=300)
     message: Optional[str] = None
     source: str = Field(default="personalized", description="Canal de origen del RSVP")
+
+    @model_validator(mode="after")
+    def validate_attending_guest_count(self):
+        """Allow guest_count=0 only when the invitation is declined."""
+        if self.attending and self.guest_count < 1:
+            raise ValueError("El numero de asistentes debe ser al menos 1 para confirmar asistencia.")
+        return self
 
     model_config = {"from_attributes": True}
 

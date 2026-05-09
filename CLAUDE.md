@@ -88,7 +88,7 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 
 ---
 
-## Estado del proyecto (2026-05-08)
+## Estado del proyecto (2026-05-09)
 
 | Fase | Estado | Descripción |
 |------|--------|-------------|
@@ -106,7 +106,7 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 | Fase 12 — Invitaciones Personalizadas | ✅ COMPLETO | GuestInvitation model, 18 endpoints, Admin Invitados tab, /e/:slug/i/:token, CSV import/export, QR, WhatsApp, tracking privado |
 | Fase 13 — UX Invitación Personalizada | ✅ COMPLETO | PersonalizedGreeting enterprise redesign, YouTube fix, parametrización total, sección Obsequio bancaria |
 | Fase 14 — Skin Envelope | ✅ COMPLETO | EnvelopeHero, CollageHero, VenuesEnvelope, DressCode, GalleryPolaroid, paleta olive |
-| Fase 15 — Test Suite Enterprise | ✅ COMPLETO | 56 tests en 9 categorías, 100% en Pi, docs/test_suite.py |
+| Fase 15 — Test Suite Enterprise | ✅ COMPLETO | 57 tests en 9 categorías, 100% en Pi, docs/test_suite.py |
 | Fase 16 — Documentación + Ayuda Admin | ✅ COMPLETO | GUIA_USUARIO_EVENTIQUE.md ~800 líneas + Tab "Ayuda" integrada en AdminPage |
 | Fase 17 — WhatsApp Preview + Short Links | ✅ COMPLETO | `/s/{short_code}` con Open Graph para WhatsApp, redirección a invitación real, link corto en WhatsApp/QR/copiar link |
 | Fase 18 — Paper Access Skin | ✅ COMPLETO | Nueva skin `paper-access`, paleta `paper-olive`, config full desde Admin, RSVP/música/invitados/venues/regalos integrados |
@@ -116,7 +116,7 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 **Recintos**: Iglesia de San Pedro Claver + Club de Pesca, Carapeguá, Paraguay  
 **Música**: YouTube track `zqlkbbJ003w` (track 1) + 2 MP3 placeholder  
 **Rama activa**: `main` — todas las features mergeadas y deployed a Pi  
-**Último commit**: `0f619e8` — fix: apply personalized invitation config payload
+**Último cambio operativo**: fix personalized RSVP decline handling, deploy Pi OK, suite 57/57
 
 ### Decisiones persistentes nuevas (2026-05-08)
 - WhatsApp debe compartir links cortos internos `https://eventique.tecnopowerpy.top/s/{short_code}` para invitaciones personalizadas.
@@ -156,6 +156,15 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 - La configuracion visual de una invitacion personalizada es por evento (`event_config.event_slug`), no por invitado.
 - `PersonalizedInvitationRoute` debe aplicar tambien el `event_config` que viene dentro de `GET /events/{slug}/invitations/{token}`; esto evita que un link personalizado renderice con defaults si falla el request separado a `/event-config`.
 - En `boda-conce-eume` existen dos registros operativos similares para Ilde Dávalos (`id=1` y `id=4`) con tokens y estados distintos; no archivar ninguno sin validar cual link se esta compartiendo.
+
+### Decisiones persistentes RSVP Personalizado (2026-05-09)
+
+- En RSVP personalizado, `guest_count=0` es valido solo para rechazo (`attending=false`).
+- Confirmar asistencia (`attending=true`) requiere `guest_count >= 1`; el backend lo valida en `PersonalizedRSVPCreate`.
+- El frontend nunca debe pasar objetos/arrays de error API directo a componentes React o `toast.error`.
+- Usar `frontend/src/lib/apiError.ts` (`getApiErrorMessage`) para normalizar errores FastAPI/Pydantic antes de renderizar.
+- Caso de regresion obligatorio: `TC-035B` en `docs/test_suite.py` valida rechazo personalizado con `guest_count=0`.
+- Validacion Pi: deploy API+frontend OK, prueba directa sobre `boda-conce-eume` con invitados temporales OK, suite `57/57`.
 
 ---
 

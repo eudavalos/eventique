@@ -11,6 +11,7 @@ import { useEventSlug } from '../context/EventSlugContext';
 import AnimatedSection from '../components/AnimatedSection';
 import { OrnamentDivider, OrnamentFloral } from '../components/Ornament';
 import { rsvpApi } from '../lib/api';
+import { getApiErrorMessage } from '../lib/apiError';
 import type { RSVPFormData, PersonalizedRSVPPayload } from '../types';
 
 const baseSchema = z.object({
@@ -228,8 +229,7 @@ function PersonalizedRSVPView() {
       setSubmitted(true);
       refresh();
     } catch (e: unknown) {
-      const msg = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? 'Error al enviar. Intenta de nuevo.';
-      toast.error(msg);
+      toast.error(getApiErrorMessage(e, 'Error al enviar. Intenta de nuevo.'));
     } finally {
       setLoading(false);
     }
@@ -475,8 +475,8 @@ function GenericRSVP() {
     try {
       await rsvpApi.submit(eventSlug, data as RSVPFormData);
       setSubmitted(true);
-    } catch {
-      toast.error('Hubo un error. Por favor intenta de nuevo.');
+    } catch (e: unknown) {
+      toast.error(getApiErrorMessage(e, 'Hubo un error. Por favor intenta de nuevo.'));
     } finally {
       setLoading(false);
     }

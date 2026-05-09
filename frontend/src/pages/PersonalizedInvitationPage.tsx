@@ -36,6 +36,7 @@ import {
   Share2,
 } from 'lucide-react';
 import { rsvpApi } from '../lib/api';
+import { getApiErrorMessage } from '../lib/apiError';
 import { applyTheme, applyFonts } from '../lib/theme';
 import { setFavicon } from '../lib/favicon';
 import { config as staticConfig } from '../config/wedding';
@@ -1059,8 +1060,8 @@ export default function PersonalizedInvitationPage() {
       setSubmittedAttending(values.attending);
       setSubmitted(true);
       toast.success(values.attending ? '¡Confirmado! Hasta pronto.' : 'Respuesta registrada.');
-    } catch {
-      toast.error('No se pudo enviar tu respuesta. Por favor intenta de nuevo.');
+    } catch (e: unknown) {
+      toast.error(getApiErrorMessage(e, 'No se pudo enviar tu respuesta. Por favor intenta de nuevo.'));
     } finally {
       setIsSubmitting(false);
     }

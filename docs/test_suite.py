@@ -881,6 +881,54 @@ class EventiqueTestSuite:
             return {"status": guest["status"], "confirmed_passes": guest["confirmed_passes"]}
         return self._run("TC-035", "Invitados — RSVP personalizado con miembros nominales", "Invitados", _)
 
+    def tc035b_personalized_rsvp_decline_zero_guests(self):
+        """TC-035B: Rechazar invitacion personalizada acepta guest_count=0."""
+        def _():
+            payload = {
+                "display_name": "TC-035B Declina",
+                "allowed_passes": 2,
+                "guest_type": "general",
+                "email": f"tc035b-{uuid.uuid4().hex[:6]}@example.com",
+            }
+            created = self.session.post(
+                self._url(f"/events/{self._test_slug}/guests"),
+                json=payload,
+                headers=self._auth(self._test_token)
+            )
+            self._assert_status(created, 201)
+            guest = created.json()
+            guest_id = guest["id"]
+            guest_token = guest["token_lookup"]
+
+            try:
+                r = self.session.post(
+                    self._url(f"/events/{self._test_slug}/invitations/{guest_token}/rsvp"),
+                    json={"attending": False, "guest_count": 0, "members": [], "source": "personalized"}
+                )
+                self._assert_status(r, 200, 201)
+                data = r.json()
+                assert data.get("ok") is True, f"ok: {data.get('ok')}"
+                assert data.get("status") == "declined", f"status: {data.get('status')}"
+
+                refreshed = self.session.get(
+                    self._url(f"/events/{self._test_slug}/guests/{guest_id}"),
+                    headers=self._auth(self._test_token)
+                )
+                self._assert_status(refreshed, 200)
+                detail = refreshed.json()
+                assert detail["status"] == "declined", f"status: {detail['status']}"
+                assert detail["confirmed_passes"] == 0, \
+                    f"confirmed_passes: {detail['confirmed_passes']}"
+                assert detail["declined_passes"] == 2, \
+                    f"declined_passes: {detail['declined_passes']}"
+                return {"status": detail["status"], "declined_passes": detail["declined_passes"]}
+            finally:
+                self.session.delete(
+                    self._url(f"/events/{self._test_slug}/guests/{guest_id}"),
+                    headers=self._auth(self._test_token)
+                )
+        return self._run("TC-035B", "Invitados - RSVP personalizado rechaza con guest_count=0", "Invitados", _)
+
     def tc036_guest_status_patch(self):
         def _():
             self._skip_if(not self._guest_id, "TC-031 no creó invitado — skip")
@@ -1386,6 +1434,7 @@ class EventiqueTestSuite:
                 self.tc033_get_invitation_public,
                 self.tc034_track_invitation_open,
                 self.tc035_personalized_rsvp_with_members,
+                self.tc035b_personalized_rsvp_decline_zero_guests,
                 self.tc036_guest_status_patch,
                 self.tc037_regenerate_token,
                 self.tc038_guest_detail_all_fields,
