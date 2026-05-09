@@ -147,5 +147,10 @@ export function mergeConfig(base: WeddingConfig, dynamic: Partial<EventConfig>):
     paper_countdown_hours_label:  (dyn.paper_countdown_hours_label as string | undefined)  ?? base.paper_countdown_hours_label,
     paper_countdown_minutes_label:(dyn.paper_countdown_minutes_label as string | undefined)?? base.paper_countdown_minutes_label,
     paper_rsvp_title:             (dyn.paper_rsvp_title as string | undefined)             ?? base.paper_rsvp_title,
+    amorea_opening_label:         (dyn.amorea_opening_label as string | undefined)          ?? base.amorea_opening_label,
+    amorea_guest_greeting:        (dyn.amorea_guest_greeting as string | undefined)         ?? base.amorea_guest_greeting,
+    amorea_formal_text:           (dyn.amorea_formal_text as string | undefined)            ?? base.amorea_formal_text,
+    amorea_parents_enabled:       (dyn.amorea_parents_enabled as boolean | undefined)       ?? base.amorea_parents_enabled ?? true,
+    amorea_love_quote:            (dyn.amorea_love_quote as string | undefined)             ?? base.amorea_love_quote,
   };
 }

@@ -23,6 +23,7 @@ import VenuesEnvelope from '../sections/VenuesEnvelope';
 import DressCode from '../sections/DressCode';
 import GalleryPolaroid from '../sections/GalleryPolaroid';
 import PaperAccessSkin from '../sections/PaperAccessSkin';
+import AmoreaSkin from '../sections/AmoreaSkin';
 import type { WeddingConfig } from '../types';
 
 // ── Nav links ─────────────────────────────────────────────────────────────────
@@ -212,6 +213,10 @@ export default function InvitationPage() {
 
   if (skin === 'paper-access') {
     return <PaperSkin />;
+  }
+
+  if (skin === 'amorea') {
+    return <AmoreaSkin />;
   }
 
   return <ClassicSkin />;

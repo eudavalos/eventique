@@ -4,7 +4,7 @@
 
 export type Language = 'es' | 'en';
 export type PaletteKey = 'rose-gold' | 'garden' | 'nature' | 'navy-gold' | 'sage' | 'midnight' | 'platinum' | 'sapphire' | 'emerald' | 'coral' | 'lavender' | 'teal' | 'burgundy' | 'gold-premium' | 'ocean' | 'mint' | 'peach' | 'denim' | 'mustard' | 'cream' | 'olive' | 'paper-olive' | 'custom';
-export type InvitationSkin = 'classic' | 'envelope' | 'paper-access';
+export type InvitationSkin = 'classic' | 'envelope' | 'paper-access' | 'amorea';
 export type EventType = 'boda' | 'cumpleanos' | 'bautismo' | 'quinceanera' | 'graduacion' | 'corporativo' | 'primera-comunion' | 'aniversario' | 'baby-shower';
 export type PartySide = 'bride' | 'groom' | 'both';
 export type ScheduleLocation = 'ceremony' | 'reception' | 'other';
@@ -321,6 +321,12 @@ export interface WeddingConfig {
   paper_countdown_hours_label?: string;
   paper_countdown_minutes_label?: string;
   paper_rsvp_title?: string;
+  // ── Amorea skin ────────────────────────────────────────────────────────────
+  amorea_opening_label?: string;
+  amorea_guest_greeting?: string;
+  amorea_formal_text?: string;
+  amorea_parents_enabled?: boolean;
+  amorea_love_quote?: string;
 }
 
 // ---- Event Config (dynamic, stored in DB) ----

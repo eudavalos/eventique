@@ -433,4 +433,11 @@ export const config: WeddingConfig = {
   paper_countdown_hours_label: 'Horas',
   paper_countdown_minutes_label: 'Minutos',
   paper_rsvp_title: 'Confirmar asistencia',
+
+  // ── Amorea skin: textos configurables ─────────────────────────────────────
+  amorea_opening_label: 'Toca para abrir',
+  amorea_guest_greeting: 'Con todo el cariño, te invitamos',
+  amorea_formal_text: 'Juntos a sus familias, tienen el honor de invitarlos a compartir el día más especial de sus vidas.',
+  amorea_parents_enabled: true,
+  amorea_love_quote: 'El amor no se ve con los ojos, sino con el alma.',
 };

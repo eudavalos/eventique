@@ -729,6 +729,13 @@ export default function AdminPage() {
   const [paperCountdownMinutesLabel, setPaperCountdownMinutesLabel] = useState('');
   const [paperRsvpTitle, setPaperRsvpTitle] = useState('');
 
+  // Amorea skin
+  const [amoreaOpeningLabel, setAmoreaOpeningLabel] = useState('');
+  const [amoreaGuestGreeting, setAmoreaGuestGreeting] = useState('');
+  const [amoreaFormalText, setAmoreaFormalText] = useState('');
+  const [amoreaParentsEnabled, setAmoreaParentsEnabled] = useState(true);
+  const [amoreaLoveQuote, setAmoreaLoveQuote] = useState('');
+
   // Music extras
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicAutoplay, setMusicAutoplay] = useState(false);
@@ -952,6 +959,13 @@ export default function AdminPage() {
         setPaperCountdownHoursLabel((cfg.paper_countdown_hours_label as string) ?? 'Horas');
         setPaperCountdownMinutesLabel((cfg.paper_countdown_minutes_label as string) ?? 'Minutos');
         setPaperRsvpTitle((cfg.paper_rsvp_title as string) ?? 'Confirmar asistencia');
+
+        // Amorea skin
+        setAmoreaOpeningLabel((cfg.amorea_opening_label as string) ?? 'Toca para abrir');
+        setAmoreaGuestGreeting((cfg.amorea_guest_greeting as string) ?? 'Con todo el cariño, te invitamos');
+        setAmoreaFormalText((cfg.amorea_formal_text as string) ?? '');
+        setAmoreaParentsEnabled((cfg.amorea_parents_enabled as boolean) ?? true);
+        setAmoreaLoveQuote((cfg.amorea_love_quote as string) ?? '');
 
         // Secondary data (events + media) — don't fail auth on errors
         Promise.allSettled([
@@ -1419,6 +1433,11 @@ export default function AdminPage() {
         paper_countdown_hours_label: paperCountdownHoursLabel || undefined,
         paper_countdown_minutes_label: paperCountdownMinutesLabel || undefined,
         paper_rsvp_title: paperRsvpTitle || undefined,
+        amorea_opening_label: amoreaOpeningLabel || undefined,
+        amorea_guest_greeting: amoreaGuestGreeting || undefined,
+        amorea_formal_text: amoreaFormalText || undefined,
+        amorea_parents_enabled: amoreaParentsEnabled,
+        amorea_love_quote: amoreaLoveQuote || undefined,
       };
       await rsvpApi.updateEventConfig(eventSlug, token, updated as never);
       toast.success('Secciones guardadas correctamente');
@@ -4172,6 +4191,7 @@ export default function AdminPage() {
                   { value: 'classic', label: 'Clásico', desc: 'Hero, Countdown, Historia, Itinerario, Galería y más.' },
                   { value: 'envelope', label: 'Envelope (GoParty)', desc: 'Sobre animado, collage de cards, venues olive, galería polaroid.' },
                   { value: 'paper-access', label: 'Paper Access', desc: 'Formato papel/editorial, acceso personalizado, cards apiladas y RSVP integrado.' },
+                  { value: 'amorea', label: 'Amorea', desc: 'Monograma drop-cap, sobre animado con sello de cera, badge de calendario, venues ilustradas.' },
                 ] as const).map(opt => (
                   <button
                     key={opt.value}
@@ -4517,6 +4537,53 @@ export default function AdminPage() {
 
                   <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
                     Tip: Para Paper Access se recomienda la paleta <strong>Paper Olive</strong>. Los datos de padres se leen desde Configuración → Personas.
+                  </p>
+                </div>
+              )}
+
+              {invitationSkin === 'amorea' && (
+                <div className="space-y-5 pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
+                  <p className="text-xs font-medium uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>Configuración Amorea</p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="input-label">Label del sobre ("Toca para abrir")</label>
+                      <input value={amoreaOpeningLabel} onChange={e => setAmoreaOpeningLabel(e.target.value)} className="input-field" placeholder="Toca para abrir" />
+                    </div>
+                    <div>
+                      <label className="input-label">Saludo al invitado personalizado</label>
+                      <input value={amoreaGuestGreeting} onChange={e => setAmoreaGuestGreeting(e.target.value)} className="input-field" placeholder="Con todo el cariño, te invitamos" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="input-label">Texto formal de invitación</label>
+                    <textarea
+                      value={amoreaFormalText}
+                      onChange={e => setAmoreaFormalText(e.target.value)}
+                      rows={3}
+                      className="input-field"
+                      placeholder="Juntos a sus familias, tienen el honor de invitarlos..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="input-label">Frase romántica (dress code section)</label>
+                    <input value={amoreaLoveQuote} onChange={e => setAmoreaLoveQuote(e.target.value)} className="input-field" placeholder="El amor no se ve con los ojos, sino con el alma." />
+                  </div>
+
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={amoreaParentsEnabled}
+                      onChange={e => setAmoreaParentsEnabled(e.target.checked)}
+                      className="w-4 h-4 accent-primary"
+                    />
+                    <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Mostrar sección de padres</span>
+                  </label>
+
+                  <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                    Tip: Los nombres de padres se configuran en Configuración → Personas. El skin Amorea es compatible con cualquier paleta de colores.
                   </p>
                 </div>
               )}
