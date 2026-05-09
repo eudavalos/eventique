@@ -1909,7 +1909,7 @@ export default function AdminPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-secondary)' }}>
-                    {['Nombre', 'Email', 'Asiste', 'Invitados', 'Dieta', 'Canción', 'Fecha', ''].map((h) => (
+                    {['Nombre', 'Email', 'Asiste', 'Invitados', 'Dieta', 'Canción', 'Mensaje', 'Fecha', ''].map((h) => (
                       <th key={h} className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted font-medium">{h}</th>
                     ))}
                   </tr>
@@ -1927,6 +1927,11 @@ export default function AdminPage() {
                       <td className="px-4 py-3 text-center">{r.guest_count}</td>
                       <td className="px-4 py-3 text-muted">{r.dietary_restrictions ?? '—'}</td>
                       <td className="px-4 py-3 text-muted">{r.song_request ?? '—'}</td>
+                      <td className="px-4 py-3 text-muted max-w-[180px]">
+                        {r.message
+                          ? <span title={r.message} className="block truncate">{r.message}</span>
+                          : '—'}
+                      </td>
                       <td className="px-4 py-3 text-muted text-xs">{new Date(r.created_at).toLocaleDateString('es')}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
