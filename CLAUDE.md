@@ -377,3 +377,19 @@ En cada sesión significativa, actualizar estos cuatro artefactos:
 - Admin -> Secciones -> Paper Access permite activar, elegir estilo, densidad y opacidad.
 - Producción `boda-conce-eume`: decoración activa con densidad `lush` y opacidad `0.72`.
 - Tokens antiguos `772d591...` y `aaaa6f...` están desactivados; token activo validado `ca7a550f...`.
+
+### Decoración Floral Realista Envelope + Paper Access (2026-05-09)
+- La decoración floral realista se centraliza en `frontend/src/components/RealisticFloralDecor.tsx`.
+- Componentes disponibles:
+  - `RealisticFloralSpray`
+  - `FloralDecorLayer`
+  - `FloralCardAccent`
+- Estilo soportado: `green-pinocchio-white-roses`.
+- Envelope tiene configuración propia:
+  - `envelope_floral_decor_enabled`
+  - `envelope_floral_decor_style`
+  - `envelope_floral_decor_density`
+  - `envelope_floral_decor_opacity`
+  - `envelope_floral_card_decor_enabled`
+- Paper Access agrega `paper_floral_card_decor_enabled`.
+- En producción `boda-conce-eume`, Envelope y Paper Access quedan en densidad `lush`, opacidad `0.78`, y decoración por-card activa.

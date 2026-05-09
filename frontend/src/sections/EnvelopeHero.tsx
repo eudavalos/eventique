@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useConfig } from '../context/ConfigContext';
 import type { WeddingConfig } from '../types';
+import { FloralCardAccent, FloralDecorLayer } from '../components/RealisticFloralDecor';
 
 // ── SVG: sello de cera dorado ─────────────────────────────────────────────────
 
@@ -46,8 +47,18 @@ function WaxSeal({ size = 80 }: { size?: number }) {
 // ── SVG: sobre de carta ───────────────────────────────────────────────────────
 
 function EnvelopeSVG({ opened, color }: { opened: boolean; color: string }) {
+  const config = useConfig() as WeddingConfig;
+  const cardDecorEnabled = config.envelope_floral_decor_enabled !== false && config.envelope_floral_card_decor_enabled !== false;
+
   return (
     <div className="relative w-full" style={{ maxWidth: 320 }}>
+      <FloralCardAccent
+        enabled={cardDecorEnabled}
+        styleKey={config.envelope_floral_decor_style}
+        opacity={config.envelope_floral_decor_opacity}
+        corner="top-right"
+        className="z-10"
+      />
       <svg viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full drop-shadow-2xl">
         {/* Cuerpo del sobre */}
         <rect x="4" y="60" width="312" height="156" rx="8" fill={color} />
@@ -110,6 +121,14 @@ export default function EnvelopeHero({ onOpen }: EnvelopeHeroProps) {
             radial-gradient(ellipse 80% 60% at 100% 100%, rgba(201,168,76,0.04) 0%, transparent 50%)
           `,
         }}
+      />
+
+      <FloralDecorLayer
+        enabled={config.envelope_floral_decor_enabled as boolean | undefined}
+        styleKey={config.envelope_floral_decor_style as string | undefined}
+        density={config.envelope_floral_decor_density as string | undefined}
+        opacity={config.envelope_floral_decor_opacity as number | undefined}
+        zone="hero"
       />
 
       {/* Texto intro */}

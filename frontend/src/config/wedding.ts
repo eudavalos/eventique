@@ -398,6 +398,11 @@ export const config: WeddingConfig = {
   dress_code_value: 'Formal',
 
   // ── Envelope skin: galería polaroid ───────────────────────
+  envelope_floral_decor_enabled: true,
+  envelope_floral_decor_style: 'green-pinocchio-white-roses',
+  envelope_floral_decor_density: 'balanced',
+  envelope_floral_decor_opacity: 0.68,
+  envelope_floral_card_decor_enabled: true,
   gallery_polaroid_enabled: true,
   gallery_polaroid_footer_text: 'Te Esperamos',
   gallery_polaroid_bw: true,
@@ -412,6 +417,7 @@ export const config: WeddingConfig = {
   paper_floral_decor_style: 'green-pinocchio-white-roses',
   paper_floral_decor_density: 'balanced',
   paper_floral_decor_opacity: 0.62,
+  paper_floral_card_decor_enabled: true,
   paper_music_card_enabled: true,
   paper_music_prompt: 'Dale play para escuchar nuestra cancion',
   paper_music_button_label: 'Reproducir musica',

@@ -2,10 +2,11 @@ import { motion } from 'framer-motion';
 import { useConfig } from '../context/ConfigContext';
 import { useCountdown } from '../hooks/useCountdown';
 import type { WeddingConfig } from '../types';
+import { FloralCardAccent, FloralDecorLayer, RealisticFloralSpray } from '../components/RealisticFloralDecor';
 
 // ── Ornament floral SVG inline ────────────────────────────────────────────────
 
-function FloralSpray({ className = '' }: { className?: string }) {
+export function FloralSpray({ className = '' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 200 180" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* Ramas */}
@@ -48,6 +49,9 @@ function FloralSpray({ className = '' }: { className?: string }) {
 function MonogramCard({ initial1, initial2, subtitle, names }: {
   initial1: string; initial2: string; subtitle: string; names: string;
 }) {
+  const config = useConfig() as WeddingConfig;
+  const cardDecorEnabled = config.envelope_floral_decor_enabled !== false && config.envelope_floral_card_decor_enabled !== false;
+
   return (
     <div
       className="relative flex flex-col items-center justify-center p-6 rounded-2xl shadow-2xl overflow-hidden"
@@ -58,6 +62,12 @@ function MonogramCard({ initial1, initial2, subtitle, names }: {
         border: '1px solid rgba(0,0,0,0.06)',
       }}
     >
+      <FloralCardAccent
+        enabled={cardDecorEnabled}
+        styleKey={config.envelope_floral_decor_style}
+        opacity={config.envelope_floral_decor_opacity}
+        corner="top-right"
+      />
       {/* Ornamento diagonal SVG */}
       <svg className="absolute inset-0 w-full h-full opacity-[0.05]" viewBox="0 0 140 180">
         <line x1="0" y1="180" x2="140" y2="0" stroke="#4F6835" strokeWidth="40" />
@@ -108,6 +118,8 @@ function MonogramCard({ initial1, initial2, subtitle, names }: {
 // ── Date card ─────────────────────────────────────────────────────────────────
 
 function DateCard({ displayDate, time }: { displayDate: string; time?: string }) {
+  const config = useConfig() as WeddingConfig;
+  const cardDecorEnabled = config.envelope_floral_decor_enabled !== false && config.envelope_floral_card_decor_enabled !== false;
   const parts = displayDate.split(',');
   const dayLine = parts[0]?.trim() ?? displayDate;
   const dateLine = parts.slice(1).join(',').trim();
@@ -122,8 +134,12 @@ function DateCard({ displayDate, time }: { displayDate: string; time?: string })
         border: '1px solid rgba(0,0,0,0.05)',
       }}
     >
-      {/* Floral corner */}
-      <FloralSpray className="absolute -bottom-4 -left-4 w-28 h-28 opacity-60 pointer-events-none" />
+      <FloralCardAccent
+        enabled={cardDecorEnabled}
+        styleKey={config.envelope_floral_decor_style}
+        opacity={config.envelope_floral_decor_opacity}
+        corner="bottom-left"
+      />
 
       <p className="font-sub italic relative z-10 mb-1" style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
         {dayLine}
@@ -155,6 +171,9 @@ function DateCard({ displayDate, time }: { displayDate: string; time?: string })
 // ── Envelope floral card (sobre abierto) ──────────────────────────────────────
 
 function EnvelopeFloralCard({ color }: { color: string }) {
+  const config = useConfig() as WeddingConfig;
+  const cardDecorEnabled = config.envelope_floral_decor_enabled !== false && config.envelope_floral_card_decor_enabled !== false;
+
   return (
     <div
       className="relative flex items-end justify-center overflow-hidden rounded-2xl shadow-2xl"
@@ -167,8 +186,15 @@ function EnvelopeFloralCard({ color }: { color: string }) {
     >
       {/* Floral saliendo del sobre */}
       <div className="absolute -top-8 left-0 right-0 w-full opacity-90" style={{ height: 160 }}>
-        <FloralSpray className="w-full h-full" />
+        <RealisticFloralSpray className="w-full h-full" opacity={config.envelope_floral_decor_opacity ?? 0.68} />
       </div>
+      <FloralCardAccent
+        enabled={cardDecorEnabled}
+        styleKey={config.envelope_floral_decor_style}
+        opacity={config.envelope_floral_decor_opacity}
+        corner="bottom-right"
+        className="w-24"
+      />
 
       {/* Sello dorado pequeño */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
@@ -274,6 +300,13 @@ export default function CollageHero() {
       }}
     >
       {/* Transición curva superior */}
+      <FloralDecorLayer
+        enabled={config.envelope_floral_decor_enabled as boolean | undefined}
+        styleKey={config.envelope_floral_decor_style as string | undefined}
+        density={config.envelope_floral_decor_density as string | undefined}
+        opacity={config.envelope_floral_decor_opacity as number | undefined}
+        zone="content"
+      />
       <div className="absolute top-0 left-0 right-0 overflow-hidden" style={{ height: 60 }}>
         <svg viewBox="0 0 1440 60" preserveAspectRatio="none" className="w-full h-full">
           <path d="M0,0 C480,60 960,60 1440,0 L1440,60 L0,60 Z" fill="var(--color-bg)" />

@@ -1,11 +1,12 @@
 # Eventique - Memory Index
 
-**Last Updated**: 2026-05-09 (Paper Access floral decor + toggle music card)
+**Last Updated**: 2026-05-09 (realistic floral decor Envelope/Paper + Paper Access floral decor)
 
 ---
 
 ## Sessions
 
+- [session_2026_05_09_realistic_floral_decor_envelope_paper.md](session_2026_05_09_realistic_floral_decor_envelope_paper.md) - Decoracion floral realista reutilizable para `Envelope (GO Party)` y `Paper Access`, con pinoquio verde + rosas blancas, controles Admin por skin, decoracion por-card, deploy Pi y suite 56/56.
 - [session_2026_05_09_paper_floral_decor.md](session_2026_05_09_paper_floral_decor.md) - Decoracion parametrizada para `paper-access` con pinoquio verde y rosas blancas; Admin controla enabled/style/density/opacity, deploy Pi, token activo validado y suite 56/56.
 - [session_2026_05_08_toggle_paper_music_card.md](session_2026_05_08_toggle_paper_music_card.md) - Nuevo flag parametrizado `paper_music_card_enabled` para mostrar/ocultar la tarjeta completa de musica en `paper-access`; Admin checkbox, merge/config/tipos/test/catalogo, deploy Pi y suite 56/56.
 - [session_2026_05_08_remove_paper_music_prompt.md](session_2026_05_08_remove_paper_music_prompt.md) - Remocion parametrizada del texto superior de la tarjeta de musica `paper-access`; `paper_music_prompt` vacio ya no renderiza y Admin puede persistir string vacio; deploy Pi y suite 56/56.

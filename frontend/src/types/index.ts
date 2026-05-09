@@ -287,6 +287,11 @@ export interface WeddingConfig {
   dress_code_title?: string;
   dress_code_value?: string;
   // ── Envelope skin: GalleryPolaroid section ─────────────────────────────────
+  envelope_floral_decor_enabled?: boolean;
+  envelope_floral_decor_style?: string;
+  envelope_floral_decor_density?: string;
+  envelope_floral_decor_opacity?: number;
+  envelope_floral_card_decor_enabled?: boolean;
   gallery_polaroid_enabled?: boolean;
   gallery_polaroid_footer_text?: string;
   gallery_polaroid_bw?: boolean;
@@ -300,6 +305,7 @@ export interface WeddingConfig {
   paper_floral_decor_style?: string;
   paper_floral_decor_density?: string;
   paper_floral_decor_opacity?: number;
+  paper_floral_card_decor_enabled?: boolean;
   paper_music_card_enabled?: boolean;
   paper_music_prompt?: string;
   paper_music_button_label?: string;

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useConfig } from '../context/ConfigContext';
 import type { WeddingConfig } from '../types';
+import { FloralCardAccent, FloralDecorLayer } from '../components/RealisticFloralDecor';
 
 // ── SVG Icons ─────────────────────────────────────────────────────────────────
 
@@ -80,6 +81,8 @@ function VenueBlock({ icon, label, name, address, mapsUrl, index }: {
   mapsUrl?: string;
   index: number;
 }) {
+  const config = useConfig() as WeddingConfig;
+  const cardDecorEnabled = config.envelope_floral_decor_enabled !== false && config.envelope_floral_card_decor_enabled !== false;
   const IconComp = ICON_MAP[icon] ?? ChurchIcon;
 
   return (
@@ -92,6 +95,16 @@ function VenueBlock({ icon, label, name, address, mapsUrl, index }: {
     >
       {/* Icono */}
       <div
+        className="relative"
+      >
+        <FloralCardAccent
+          enabled={cardDecorEnabled}
+          styleKey={config.envelope_floral_decor_style}
+          opacity={config.envelope_floral_decor_opacity}
+          corner={index === 0 ? 'top-right' : 'top-left'}
+          className="w-24"
+        />
+        <div
         className="flex items-center justify-center w-20 h-20 rounded-full"
         style={{
           background: 'rgba(255,255,255,0.12)',
@@ -101,6 +114,7 @@ function VenueBlock({ icon, label, name, address, mapsUrl, index }: {
         <span style={{ color: 'rgba(255,255,255,0.90)' }}>
           <IconComp size={40} />
         </span>
+        </div>
       </div>
 
       {/* Label evento */}
@@ -189,6 +203,14 @@ export default function VenuesEnvelope() {
         style={{
           background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.07) 0%, transparent 60%)',
         }}
+      />
+
+      <FloralDecorLayer
+        enabled={config.envelope_floral_decor_enabled as boolean | undefined}
+        styleKey={config.envelope_floral_decor_style as string | undefined}
+        density={config.envelope_floral_decor_density as string | undefined}
+        opacity={config.envelope_floral_decor_opacity as number | undefined}
+        zone="section"
       />
 
       <div className="max-w-sm mx-auto px-6 relative z-10">

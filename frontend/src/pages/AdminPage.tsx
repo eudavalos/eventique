@@ -686,6 +686,11 @@ export default function AdminPage() {
   const [invitationSkin, setInvitationSkin] = useState<InvitationSkin>('classic');
   const [envelopeOpeningText, setEnvelopeOpeningText] = useState('');
   const [envelopeTapLabel, setEnvelopeTapLabel] = useState('');
+  const [envelopeFloralDecorEnabled, setEnvelopeFloralDecorEnabled] = useState(true);
+  const [envelopeFloralDecorStyle, setEnvelopeFloralDecorStyle] = useState('green-pinocchio-white-roses');
+  const [envelopeFloralDecorDensity, setEnvelopeFloralDecorDensity] = useState('balanced');
+  const [envelopeFloralDecorOpacity, setEnvelopeFloralDecorOpacity] = useState(0.68);
+  const [envelopeFloralCardDecorEnabled, setEnvelopeFloralCardDecorEnabled] = useState(true);
   const [collageCountdownLabel, setCollageCountdownLabel] = useState('');
   const [collageSubtitle, setCollageSubtitle] = useState('');
   const [venuesCeremonyLabel, setVenuesCeremonyLabel] = useState('');
@@ -707,6 +712,7 @@ export default function AdminPage() {
   const [paperFloralDecorStyle, setPaperFloralDecorStyle] = useState('green-pinocchio-white-roses');
   const [paperFloralDecorDensity, setPaperFloralDecorDensity] = useState('balanced');
   const [paperFloralDecorOpacity, setPaperFloralDecorOpacity] = useState(0.62);
+  const [paperFloralCardDecorEnabled, setPaperFloralCardDecorEnabled] = useState(true);
   const [paperMusicCardEnabled, setPaperMusicCardEnabled] = useState(true);
   const [paperMusicPrompt, setPaperMusicPrompt] = useState('');
   const [paperMusicButtonLabel, setPaperMusicButtonLabel] = useState('');
@@ -905,6 +911,11 @@ export default function AdminPage() {
         setEnvelopeOpeningText((cfg.envelope_opening_text as string) ?? 'Empieza una nueva etapa en nuestras vidas');
         setEnvelopeTapLabel((cfg.envelope_tap_label as string) ?? 'Tocá aquí');
         setCollageCountdownLabel((cfg.collage_countdown_label as string) ?? 'Sólo Faltan');
+        setEnvelopeFloralDecorEnabled((cfg.envelope_floral_decor_enabled as boolean | undefined) ?? true);
+        setEnvelopeFloralDecorStyle((cfg.envelope_floral_decor_style as string) ?? 'green-pinocchio-white-roses');
+        setEnvelopeFloralDecorDensity((cfg.envelope_floral_decor_density as string) ?? 'balanced');
+        setEnvelopeFloralDecorOpacity((cfg.envelope_floral_decor_opacity as number | undefined) ?? 0.68);
+        setEnvelopeFloralCardDecorEnabled((cfg.envelope_floral_card_decor_enabled as boolean | undefined) ?? true);
         setCollageSubtitle((cfg.collage_subtitle as string) ?? 'Nuestra Boda');
         setVenuesCeremonyLabel((cfg.venues_ceremony_label as string) ?? 'Misa');
         setVenuesReceptionLabel((cfg.venues_reception_label as string) ?? 'Brindis');
@@ -925,6 +936,7 @@ export default function AdminPage() {
         setPaperFloralDecorStyle((cfg.paper_floral_decor_style as string) ?? 'green-pinocchio-white-roses');
         setPaperFloralDecorDensity((cfg.paper_floral_decor_density as string) ?? 'balanced');
         setPaperFloralDecorOpacity((cfg.paper_floral_decor_opacity as number | undefined) ?? 0.62);
+        setPaperFloralCardDecorEnabled((cfg.paper_floral_card_decor_enabled as boolean | undefined) ?? true);
         setPaperMusicCardEnabled((cfg.paper_music_card_enabled as boolean | undefined) ?? true);
         setPaperMusicPrompt((cfg.paper_music_prompt as string) ?? 'Dale play para escuchar nuestra cancion');
         setPaperMusicButtonLabel((cfg.paper_music_button_label as string) ?? 'Reproducir musica');
@@ -1365,6 +1377,11 @@ export default function AdminPage() {
         invitation_skin: invitationSkin,
         envelope_opening_text: envelopeOpeningText || undefined,
         envelope_tap_label: envelopeTapLabel || undefined,
+        envelope_floral_decor_enabled: envelopeFloralDecorEnabled,
+        envelope_floral_decor_style: envelopeFloralDecorStyle,
+        envelope_floral_decor_density: envelopeFloralDecorDensity,
+        envelope_floral_decor_opacity: envelopeFloralDecorOpacity,
+        envelope_floral_card_decor_enabled: envelopeFloralCardDecorEnabled,
         collage_countdown_label: collageCountdownLabel || undefined,
         collage_subtitle: collageSubtitle || undefined,
         venues_ceremony_label: venuesCeremonyLabel || undefined,
@@ -1386,6 +1403,7 @@ export default function AdminPage() {
         paper_floral_decor_style: paperFloralDecorStyle,
         paper_floral_decor_density: paperFloralDecorDensity,
         paper_floral_decor_opacity: paperFloralDecorOpacity,
+        paper_floral_card_decor_enabled: paperFloralCardDecorEnabled,
         paper_music_card_enabled: paperMusicCardEnabled,
         paper_music_prompt: paperMusicPrompt,
         paper_music_button_label: paperMusicButtonLabel || undefined,
@@ -4195,6 +4213,68 @@ export default function AdminPage() {
                     </div>
                   </div>
 
+                  <div className="rounded-lg p-4" style={{ background: 'var(--color-secondary)', border: '1px solid var(--color-border)' }}>
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="font-body text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+                          Decoracion floral Envelope
+                        </p>
+                        <p className="font-body text-xs mt-1 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+                          Flores de pinoquio verde y rosas blancas realistas en fondo y cards.
+                        </p>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={envelopeFloralDecorEnabled}
+                          onChange={e => setEnvelopeFloralDecorEnabled(e.target.checked)}
+                          className="w-4 h-4 accent-primary"
+                        />
+                        <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Mostrar decoracion</span>
+                      </label>
+                    </div>
+
+                    {envelopeFloralDecorEnabled && (
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-4">
+                        <div>
+                          <label className="input-label">Estilo floral</label>
+                          <select value={envelopeFloralDecorStyle} onChange={e => setEnvelopeFloralDecorStyle(e.target.value)} className="input-field">
+                            <option value="green-pinocchio-white-roses">Pinoquio verde + rosas blancas</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="input-label">Densidad</label>
+                          <select value={envelopeFloralDecorDensity} onChange={e => setEnvelopeFloralDecorDensity(e.target.value)} className="input-field">
+                            <option value="subtle">Sutil</option>
+                            <option value="balanced">Equilibrada</option>
+                            <option value="lush">Abundante</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="input-label">Opacidad ({Math.round(envelopeFloralDecorOpacity * 100)}%)</label>
+                          <input
+                            type="range"
+                            min="0.25"
+                            max="0.9"
+                            step="0.01"
+                            value={envelopeFloralDecorOpacity}
+                            onChange={e => setEnvelopeFloralDecorOpacity(Number(e.target.value))}
+                            className="w-full accent-primary"
+                          />
+                        </div>
+                        <label className="flex items-center gap-2 cursor-pointer pt-6">
+                          <input
+                            type="checkbox"
+                            checked={envelopeFloralCardDecorEnabled}
+                            onChange={e => setEnvelopeFloralCardDecorEnabled(e.target.checked)}
+                            className="w-4 h-4 accent-primary"
+                          />
+                          <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Decorar cards</span>
+                        </label>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="input-label">Etiqueta Venue 1 (Ceremonia)</label>
@@ -4300,7 +4380,7 @@ export default function AdminPage() {
                     </div>
 
                     {paperFloralDecorEnabled && (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-4">
                         <div>
                           <label className="input-label">Estilo floral</label>
                           <select
@@ -4335,6 +4415,15 @@ export default function AdminPage() {
                             className="w-full accent-primary"
                           />
                         </div>
+                        <label className="flex items-center gap-2 cursor-pointer pt-6">
+                          <input
+                            type="checkbox"
+                            checked={paperFloralCardDecorEnabled}
+                            onChange={e => setPaperFloralCardDecorEnabled(e.target.checked)}
+                            className="w-4 h-4 accent-primary"
+                          />
+                          <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Decorar cards</span>
+                        </label>
                       </div>
                     )}
                   </div>
