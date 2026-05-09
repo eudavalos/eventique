@@ -1139,7 +1139,15 @@ async def get_guest_whatsapp(
     event_name = event.name if event else event_slug
 
     # Read configurable fields from event config
-    event_date = cfg.get("event_date", cfg.get("date", ""))
+    # dates lives nested under cfg["dates"]["displayDate"] / cfg["dates"]["ceremony"]
+    _dates = cfg.get("dates") or {}
+    event_date = (
+        cfg.get("event_date")
+        or cfg.get("date")
+        or (_dates.get("displayDate") if isinstance(_dates, dict) else None)
+        or ((_dates.get("ceremony") or "")[:10] if isinstance(_dates, dict) else "")
+        or ""
+    )
     rsvp_deadline = cfg.get("rsvp_deadline", None)
     template_str = cfg.get("whatsapp_template", _DEFAULT_WHATSAPP_TEMPLATE)
 
