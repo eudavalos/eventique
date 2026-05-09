@@ -41,7 +41,7 @@ _IP_HASH_SALT = "eventique-open-"
 # Default WhatsApp template (Spanish)
 _DEFAULT_WHATSAPP_TEMPLATE = (
     "Hola {display_name} 🎉\n\n"
-    "Te invitamos a *{event_name}*.\n"
+    "Te invitamos a la *{event_name}*.\n"
     "📅 Fecha: {event_date}\n"
     "🎟️ Cupos reservados para ti: {allowed_passes}\n\n"
     "Confirma tu asistencia aquí:\n{invitation_url}\n\n"

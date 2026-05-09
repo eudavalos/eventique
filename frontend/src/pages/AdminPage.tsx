@@ -2300,7 +2300,7 @@ export default function AdminPage() {
                     {...register('whatsapp_template')}
                     rows={4}
                     className="input-field resize-none font-mono text-xs"
-                    placeholder={"¡Hola {display_name}! 🎉\n\nTe invitamos a {event_name}.\n📅 {event_date} · {allowed_passes} lugar(es) reservados.\n\n👉 Tu invitación: {invitation_url}\n\n¡Te esperamos!"}
+                    placeholder={"¡Hola {display_name}! 🎉\n\nTe invitamos a la {event_name}.\n📅 {event_date} · {allowed_passes} lugar(es) reservados.\n\n👉 Tu invitación: {invitation_url}\n\n¡Te esperamos!"}
                   />
                   <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
                     Variables disponibles: {'{display_name}'}, {'{event_name}'}, {'{event_date}'}, {'{allowed_passes}'}, {'{invitation_url}'}, {'{short_url}'}, {'{full_invitation_url}'}, {'{rsvp_deadline}'}
