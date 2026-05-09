@@ -1,11 +1,12 @@
 # Eventique - Memory Index
 
-**Last Updated**: 2026-05-09 (personalized RSVP decline fix)
+**Last Updated**: 2026-05-09 (mobile venue scroll)
 
 ---
 
 ## Sessions
 
+- [session_2026_05_09_mobile_venue_scroll.md](session_2026_05_09_mobile_venue_scroll.md) - Ajuste mobile para `VenuesEnvelope`: cada recinto como panel/hoja con altura util, scroll-margin, snap de proximidad, indicador entre lugares, deploy Pi y validacion Playwright mobile.
 - [session_2026_05_09_personalized_rsvp_decline_fix.md](session_2026_05_09_personalized_rsvp_decline_fix.md) - Correccion del error React #31 al rechazar RSVP personalizado: backend acepta `guest_count=0` solo si `attending=false`, frontend normaliza errores API estructurados, deploy Pi, prueba real y suite 57/57.
 - [session_2026_05_09_realistic_floral_decor_envelope_paper.md](session_2026_05_09_realistic_floral_decor_envelope_paper.md) - Decoracion floral realista reutilizable para `Envelope (GO Party)` y `Paper Access`, con pinoquio verde + rosas blancas, controles Admin por skin, decoracion por-card, deploy Pi y suite 56/56.
 - [session_2026_05_09_paper_floral_decor.md](session_2026_05_09_paper_floral_decor.md) - Decoracion parametrizada para `paper-access` con pinoquio verde y rosas blancas; Admin controla enabled/style/density/opacity, deploy Pi, token activo validado y suite 56/56.

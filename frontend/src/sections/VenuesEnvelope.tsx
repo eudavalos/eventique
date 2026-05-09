@@ -91,7 +91,7 @@ function VenueBlock({ icon, label, name, address, mapsUrl, index }: {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.7, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
-      className="flex flex-col items-center text-center gap-3"
+      className="envelope-venue-panel flex flex-col items-center text-center gap-3"
     >
       {/* Icono */}
       <div
@@ -173,6 +173,30 @@ function VenueBlock({ icon, label, name, address, mapsUrl, index }: {
   );
 }
 
+function MobileVenueScrollCue() {
+  return (
+    <div className="envelope-venue-scroll-cue" aria-hidden="true">
+      <svg width="28" height="46" viewBox="0 0 28 46" fill="none">
+        <path
+          d="M14 4 C14 4 5 18 14 40"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          opacity="0.42"
+        />
+        <path
+          d="M7 34 L14 42 L21 34"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.55"
+        />
+      </svg>
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function VenuesEnvelope() {
@@ -190,7 +214,7 @@ export default function VenuesEnvelope() {
   return (
     <section
       id="recintos"
-      className="relative overflow-hidden"
+      className="envelope-venues-section relative overflow-hidden"
       style={{
         background: 'var(--color-primary)',
         paddingTop: 80,
@@ -213,7 +237,7 @@ export default function VenuesEnvelope() {
         zone="section"
       />
 
-      <div className="max-w-sm mx-auto px-6 relative z-10">
+      <div className="envelope-venues-list max-w-sm mx-auto px-6 relative z-10">
         {/* Venue 1: Ceremonia */}
         <VenueBlock
           icon={ceremonyIcon}
@@ -223,10 +247,11 @@ export default function VenuesEnvelope() {
           mapsUrl={ceremony.mapsUrl}
           index={0}
         />
+        {!sameVenue && <MobileVenueScrollCue />}
 
         {/* Separador vertical si hay dos venues */}
         {!sameVenue && (
-          <div className="flex justify-center my-10">
+          <div className="envelope-venue-separator flex justify-center my-10">
             <div
               style={{
                 width: 1,

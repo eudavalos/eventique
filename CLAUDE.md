@@ -166,6 +166,13 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 - Caso de regresion obligatorio: `TC-035B` en `docs/test_suite.py` valida rechazo personalizado con `guest_count=0`.
 - Validacion Pi: deploy API+frontend OK, prueba directa sobre `boda-conce-eume` con invitados temporales OK, suite `57/57`.
 
+### Decisiones persistentes UX Mobile Envelope (2026-05-09)
+
+- En `VenuesEnvelope`, cada recinto debe comportarse como panel/hoja movil con altura util y `scroll-margin-top` para no quedar debajo de la navegacion fija.
+- Los CTAs `Ver Ubicacion` deben quedar visibles con margen inferior seguro en mobile.
+- El scroll entre ceremonia y recepcion usa snap de proximidad y un indicador visual sin texto adicional.
+- Validacion: Playwright mobile 390x844 sobre produccion confirmo ambos botones de ubicacion visibles al navegar cada panel.
+
 ---
 
 ## Thresholds — Política de parametrización

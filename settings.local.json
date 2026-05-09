@@ -1,16 +1,16 @@
 ﻿{
   "session_protocol": {
     "last_session_date": "2026-05-09",
-    "last_session_topic": "personalized-rsvp-decline-fix",
-    "last_commit": "fix-personalized-rsvp-decline-handling",
+    "last_session_topic": "mobile-venue-scroll",
+    "last_commit": "fix-mobile-venue-scroll",
     "test_count_baseline": 57,
     "test_suite_file": "docs/test_suite.py",
     "test_suite_command": "python3 ~/Boda/docs/test_suite.py --base-url http://localhost:5176/api --token <ADMIN_TOKEN>",
     "test_suite_categories": ["Conectividad", "Seguridad", "Eventos", "Config", "RSVP", "Invitados", "Seguridad Avanzada", "CSV", "Cleanup"],
     "test_suite_result_last_run": "57/57 — 100% en Pi",
     "pending_issue": null,
-    "last_session_memory_file": "memory/session_2026_05_09_personalized_rsvp_decline_fix.md",
-    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_09_personalized_rsvp_decline_fix.md",
+    "last_session_memory_file": "memory/session_2026_05_09_mobile_venue_scroll.md",
+    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_09_mobile_venue_scroll.md",
     "git_workflow": {
       "initialized": true,
       "remote": "https://github.com/eudavalos/eventique",
@@ -184,6 +184,24 @@
     ],
     "test_case": "TC-035B personalized RSVP decline with guest_count=0",
     "pi_validation": "API/frontend healthy; docs/test_suite.py 57/57; direct boda-conce-eume temporary guest confirm/reject OK"
+  },
+
+  "mobile_venue_scroll": {
+    "updated_on": "2026-05-09",
+    "event_slug": "boda-conce-eume",
+    "skin": "envelope",
+    "component": "frontend/src/sections/VenuesEnvelope.tsx",
+    "css": "frontend/src/index.css",
+    "rule": "on mobile each venue renders as a viewport-aware panel with safe bottom spacing and scroll-margin-top",
+    "selectors": [
+      "envelope-venues-section",
+      "envelope-venues-list",
+      "envelope-venue-panel",
+      "envelope-venue-scroll-cue",
+      "envelope-venue-separator"
+    ],
+    "mobile_validation": "Playwright 390x844 production check: both Ver Ubicacion CTAs visible when each venue panel is scrolled into view",
+    "pi_validation": "frontend rebuilt and healthy"
   },
 
   "theme": {

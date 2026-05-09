@@ -157,3 +157,49 @@
 
 /* ── Lightbox overrides ───────────────────────────────────── */
 .yarl__root { --yarl__color_backdrop: rgba(0, 0, 0, 0.92); }
+
+/* Envelope mobile venue flow */
+@media (max-width: 640px) {
+  .envelope-venues-section {
+    scroll-margin-top: 72px;
+    padding-top: 28px !important;
+    padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .envelope-venues-list {
+    max-width: 360px;
+    scroll-snap-type: y proximity;
+  }
+
+  .envelope-venue-panel {
+    min-height: calc(100svh - 104px);
+    justify-content: center;
+    padding-top: 54px;
+    padding-bottom: 58px;
+    scroll-snap-align: start;
+    scroll-margin-top: 72px;
+  }
+
+  .envelope-venue-panel a {
+    margin-bottom: 18px;
+  }
+
+  .envelope-venue-scroll-cue {
+    display: flex;
+    justify-content: center;
+    margin: -34px 0 4px;
+    color: rgba(255, 255, 255, 0.72);
+    pointer-events: none;
+  }
+
+  .envelope-venue-separator {
+    margin-top: -18px !important;
+    margin-bottom: -18px !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .envelope-venue-scroll-cue {
+    display: none;
+  }
+}
