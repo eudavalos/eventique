@@ -173,6 +173,14 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 - El scroll entre ceremonia y recepcion usa snap de proximidad y un indicador visual sin texto adicional.
 - Validacion: Playwright mobile 390x844 sobre produccion confirmo ambos botones de ubicacion visibles al navegar cada panel.
 
+### Decisiones persistentes Maps Links (2026-05-10)
+
+- No renderizar links dinamicos de Google Maps/Firebase (`maps.app.goo.gl`, `goo.gl`, `app.goo.gl`, `page.link`) directamente en ninguna plantilla.
+- Todas las plantillas deben usar `frontend/src/lib/maps.ts` y `getVenueMapsUrl(venue)` para los CTAs de ubicacion.
+- Si el link guardado es dinamico, generar fallback estable `https://www.google.com/maps/search/?api=1&query=...` con datos del recinto.
+- Produccion `boda-conce-eume` usa URLs finales `google.com/maps/place/...` para ceremonia y recepcion.
+- Validacion Pi: frontend healthy, suite `57/57`, Playwright mobile confirma anchors sin `maps.app.goo.gl` ni `goo.gl/app/maps`.
+
 ---
 
 ## Thresholds — Política de parametrización

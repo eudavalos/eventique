@@ -9,6 +9,7 @@ import GiftRegistry from './GiftRegistry';
 import RSVP from './RSVP';
 import Footer from './Footer';
 import type { Venue, WeddingConfig } from '../types';
+import { getVenueMapsUrl } from '../lib/maps';
 import { requestMusicPlaybackWithOpen } from '../lib/musicPlayerEvents';
 import { FloralCardAccent, FloralDecorLayer } from '../components/RealisticFloralDecor';
 
@@ -230,6 +231,8 @@ function CalendarPaperCard({ config }: { config: WeddingConfig }) {
 }
 
 function VenuePaperCard({ venue, label, buttonLabel }: { venue: Venue; label: string; buttonLabel: string }) {
+  const mapsHref = getVenueMapsUrl(venue);
+
   return (
     <DetailCard className="p-6">
       <div className="flex items-start gap-4">
@@ -243,8 +246,8 @@ function VenuePaperCard({ venue, label, buttonLabel }: { venue: Venue; label: st
             {[venue.address, venue.city, venue.country].filter(Boolean).join(', ')}
           </p>
           {venue.time && <p className="font-body text-xs uppercase tracking-[0.18em] mt-3" style={{ color: 'var(--color-primary)' }}>{venue.time}</p>}
-          {venue.mapsUrl && (
-            <a href={venue.mapsUrl} target="_blank" rel="noopener noreferrer" className="btn-outline mt-5">
+          {mapsHref && (
+            <a href={mapsHref} target="_blank" rel="noopener noreferrer" className="btn-outline mt-5">
               <MapPin className="w-4 h-4" />
               {buttonLabel}
             </a>

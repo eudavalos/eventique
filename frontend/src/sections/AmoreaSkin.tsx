@@ -5,6 +5,7 @@ import { useConfig } from '../context/ConfigContext';
 import { useGuest } from '../context/GuestContext';
 import { useCountdown } from '../hooks/useCountdown';
 import { requestMusicPlaybackWithOpen } from '../lib/musicPlayerEvents';
+import { getVenueMapsUrl } from '../lib/maps';
 import GiftRegistry from './GiftRegistry';
 import RSVP from './RSVP';
 import Footer from './Footer';
@@ -315,6 +316,8 @@ function GuestAccessBanner({ config }: { config: WeddingConfig }) {
 // ── Venue cards ───────────────────────────────────────────────────────────────
 
 function CeremonyCard({ venue, label, btnLabel }: { venue: Venue; label: string; btnLabel: string }) {
+  const mapsHref = getVenueMapsUrl(venue);
+
   return (
     <AmoreaCard className="p-6">
       <ChurchSVG />
@@ -335,8 +338,8 @@ function CeremonyCard({ venue, label, btnLabel }: { venue: Venue; label: string;
         <p className="font-body text-sm mt-2 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
           {[venue.address, venue.city].filter(Boolean).join(', ')}
         </p>
-        {venue.mapsUrl && (
-          <a href={venue.mapsUrl} target="_blank" rel="noopener noreferrer" className="btn-outline mt-5 justify-center">
+        {mapsHref && (
+          <a href={mapsHref} target="_blank" rel="noopener noreferrer" className="btn-outline mt-5 justify-center">
             <MapPin className="w-4 h-4" />
             {btnLabel}
           </a>
@@ -347,6 +350,8 @@ function CeremonyCard({ venue, label, btnLabel }: { venue: Venue; label: string;
 }
 
 function ReceptionCard({ venue, label, btnLabel }: { venue: Venue; label: string; btnLabel: string }) {
+  const mapsHref = getVenueMapsUrl(venue);
+
   return (
     <AmoreaCard className="p-6" greenBg>
       <ArchSVG />
@@ -367,9 +372,9 @@ function ReceptionCard({ venue, label, btnLabel }: { venue: Venue; label: string
         <p className="font-body text-sm mt-2 leading-relaxed" style={{ color: 'rgba(255,255,255,0.7)' }}>
           {[venue.address, venue.city].filter(Boolean).join(', ')}
         </p>
-        {venue.mapsUrl && (
+        {mapsHref && (
           <a
-            href={venue.mapsUrl}
+            href={mapsHref}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-full text-xs uppercase tracking-[0.16em] font-body font-medium transition-all hover:bg-white/30"

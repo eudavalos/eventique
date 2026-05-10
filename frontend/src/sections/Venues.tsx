@@ -3,9 +3,12 @@ import { MapPin, Clock, Shirt, Info, ExternalLink } from 'lucide-react';
 import { useConfig } from '../context/ConfigContext';
 import AnimatedSection from '../components/AnimatedSection';
 import { OrnamentDivider, OrnamentLeaf } from '../components/Ornament';
+import { getVenueMapsUrl } from '../lib/maps';
 import type { Venue } from '../types';
 
 function VenueCard({ venue, label, delay = 0 }: { venue: Venue; label: string; delay?: number }) {
+  const mapsHref = getVenueMapsUrl(venue);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -71,9 +74,9 @@ function VenueCard({ venue, label, delay = 0 }: { venue: Venue; label: string; d
           )}
         </div>
 
-        {venue.mapsUrl && (
+        {mapsHref && (
           <a
-            href={venue.mapsUrl}
+            href={mapsHref}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-outline mt-6 self-start text-xs"

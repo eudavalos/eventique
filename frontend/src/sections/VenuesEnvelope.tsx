@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useConfig } from '../context/ConfigContext';
 import type { WeddingConfig } from '../types';
 import { FloralCardAccent, FloralDecorLayer } from '../components/RealisticFloralDecor';
+import { getVenueMapsUrl } from '../lib/maps';
 
 // ── SVG Icons ─────────────────────────────────────────────────────────────────
 
@@ -74,17 +75,20 @@ const ICON_MAP: Record<string, (props: { size?: number }) => JSX.Element> = {
 
 // ── Venue block ───────────────────────────────────────────────────────────────
 
-function VenueBlock({ icon, label, name, address, mapsUrl, index }: {
+function VenueBlock({ icon, label, name, address, city, country, mapsUrl, index }: {
   icon: string;
   label: string;
   name: string;
   address: string;
+  city: string;
+  country: string;
   mapsUrl?: string;
   index: number;
 }) {
   const config = useConfig() as WeddingConfig;
   const cardDecorEnabled = config.envelope_floral_decor_enabled !== false && config.envelope_floral_card_decor_enabled !== false;
   const IconComp = ICON_MAP[icon] ?? ChurchIcon;
+  const mapsHref = getVenueMapsUrl({ name, address, city, country, mapsUrl: mapsUrl ?? '' });
 
   return (
     <motion.div
@@ -141,9 +145,9 @@ function VenueBlock({ icon, label, name, address, mapsUrl, index }: {
       </p>
 
       {/* Botón ubicación */}
-      {mapsUrl && (
+      {mapsHref && (
         <motion.a
-          href={mapsUrl}
+          href={mapsHref}
           target="_blank"
           rel="noopener noreferrer"
           whileHover={{ scale: 1.04 }}
@@ -252,6 +256,8 @@ export default function VenuesEnvelope() {
           label={ceremonyLabel}
           name={ceremony.name}
           address={`${ceremony.city}, ${ceremony.country}`}
+          city={ceremony.city}
+          country={ceremony.country}
           mapsUrl={ceremony.mapsUrl}
           index={0}
         />
@@ -281,6 +287,8 @@ export default function VenuesEnvelope() {
               label={receptionLabel}
               name={reception.name}
               address={`${reception.city}, ${reception.country}`}
+              city={reception.city}
+              country={reception.country}
               mapsUrl={reception.mapsUrl}
               index={1}
             />

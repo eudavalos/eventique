@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { rsvpApi } from '../lib/api';
 import { getApiErrorMessage } from '../lib/apiError';
+import { getVenueMapsUrl } from '../lib/maps';
 import { applyTheme, applyFonts } from '../lib/theme';
 import { setFavicon } from '../lib/favicon';
 import { config as staticConfig } from '../config/wedding';
@@ -323,7 +324,7 @@ function ConfirmationBanner({
   rsvpSection?: WeddingConfig['sections']['rsvp'];
 }) {
   const calUrl = buildGoogleCalendarUrl(config);
-  const mapsUrl = config.venues?.ceremony?.mapsUrl;
+  const mapsUrl = config.venues?.ceremony ? getVenueMapsUrl(config.venues.ceremony) : null;
   const displayNames = config.couple?.displayNames ?? config.couple?.person1?.firstName ?? 'el evento';
 
   return (
@@ -1030,6 +1031,7 @@ export default function PersonalizedInvitationPage() {
 
   const dates = config.dates;
   const venue = config.venues?.ceremony;
+  const venueMapsUrl = venue ? getVenueMapsUrl(venue) : null;
   const displayNames = config.couple?.displayNames ?? config.couple?.person1?.firstName ?? '';
   const displayDate = dates?.displayDate ?? dates?.ceremony?.slice(0, 10) ?? '';
   const city = venue?.city ?? '';
@@ -1315,8 +1317,8 @@ export default function PersonalizedInvitationPage() {
               </div>
 
               <div className="flex flex-wrap gap-2 pt-1">
-                {venue?.mapsUrl && (
-                  <a href={venue.mapsUrl} target="_blank" rel="noopener noreferrer" className="btn-outline text-xs gap-1.5">
+                {venueMapsUrl && (
+                  <a href={venueMapsUrl} target="_blank" rel="noopener noreferrer" className="btn-outline text-xs gap-1.5">
                     <ExternalLink className="w-3.5 h-3.5" />
                     Google Maps
                   </a>

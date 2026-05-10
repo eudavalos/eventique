@@ -1,16 +1,16 @@
 ﻿{
   "session_protocol": {
-    "last_session_date": "2026-05-09",
-    "last_session_topic": "mobile-venue-scroll",
-    "last_commit": "fix-mobile-venue-scroll",
+    "last_session_date": "2026-05-10",
+    "last_session_topic": "stable-maps-links-all-skins",
+    "last_commit": "fix-stable-maps-links-all-skins",
     "test_count_baseline": 57,
     "test_suite_file": "docs/test_suite.py",
     "test_suite_command": "python3 ~/Boda/docs/test_suite.py --base-url http://localhost:5176/api --token <ADMIN_TOKEN>",
     "test_suite_categories": ["Conectividad", "Seguridad", "Eventos", "Config", "RSVP", "Invitados", "Seguridad Avanzada", "CSV", "Cleanup"],
     "test_suite_result_last_run": "57/57 — 100% en Pi",
     "pending_issue": null,
-    "last_session_memory_file": "memory/session_2026_05_09_mobile_venue_scroll.md",
-    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_09_mobile_venue_scroll.md",
+    "last_session_memory_file": "memory/session_2026_05_10_stable_maps_links_all_skins.md",
+    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_10_stable_maps_links_all_skins.md",
     "git_workflow": {
       "initialized": true,
       "remote": "https://github.com/eudavalos/eventique",
@@ -202,6 +202,21 @@
     ],
     "mobile_validation": "Playwright 390x844 production check: both Ver Ubicacion CTAs visible when each venue panel is scrolled into view",
     "pi_validation": "frontend rebuilt and healthy"
+  },
+
+  "stable_maps_links": {
+    "updated_on": "2026-05-10",
+    "event_slug": "boda-conce-eume",
+    "helper": "frontend/src/lib/maps.ts",
+    "function": "getVenueMapsUrl",
+    "dynamic_hosts_blocked_at_render": ["maps.app.goo.gl", "goo.gl", "app.goo.gl", "page.link"],
+    "fallback_format": "https://www.google.com/maps/search/?api=1&query={venue name,address,city,country}",
+    "templates_updated": ["classic Venues", "Envelope", "Paper Access", "Amorea", "RSVP confirmation links", "standalone personalized invitation"],
+    "production_urls": {
+      "ceremony": "https://www.google.com/maps/place/Iglesia+de+Jesucristo/@-25.7564252,-57.3130217,18.75z/data=!4m6!3m5!1s0x945c6bd5faf8fb15:0x44171fc6940260e!8m2!3d-25.7570628!4d-57.3124683!16s%2Fg%2F11svr09rrj",
+      "reception": "https://www.google.com/maps/place/Caba%C3%B1as+Kyha+Raity/@-25.7425283,-57.2826391,17z/data=!4m6!3m5!1s0x945c150016f1204f:0xf5bf82146435f11a!8m2!3d-25.7425284!4d-57.2777682!16s%2Fg%2F11w30dxj_2"
+    },
+    "pi_validation": "frontend healthy; docs/test_suite.py 57/57; Playwright mobile anchors contain google.com/maps/place and no dynamic links"
   },
 
   "theme": {

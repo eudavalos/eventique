@@ -12,6 +12,7 @@ import AnimatedSection from '../components/AnimatedSection';
 import { OrnamentDivider, OrnamentFloral } from '../components/Ornament';
 import { rsvpApi } from '../lib/api';
 import { getApiErrorMessage } from '../lib/apiError';
+import { getVenueMapsUrl } from '../lib/maps';
 import type { RSVPFormData, PersonalizedRSVPPayload } from '../types';
 
 const baseSchema = z.object({
@@ -71,7 +72,7 @@ function PersonalizedAlreadyResponded({ confirmed_passes, status }: { confirmed_
   const confirmedBodyNo  = (cfg.personalized_rsvp_confirmed_body_declined as string | undefined)  ?? 'Lamentamos que no puedas estar, pero te tendremos muy presente.';
 
   const calendarUrl = buildGoogleCalendarUrl(config);
-  const mapsUrl = config.venues.ceremony.mapsUrl;
+  const mapsUrl = getVenueMapsUrl(config.venues.ceremony);
 
   const handleShare = () => {
     if (navigator.share) {
