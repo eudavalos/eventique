@@ -2,7 +2,8 @@ import { motion } from 'framer-motion';
 import { useConfig } from '../context/ConfigContext';
 import { useCountdown } from '../hooks/useCountdown';
 import type { WeddingConfig } from '../types';
-import { FloralCardAccent, FloralDecorLayer, RealisticFloralSpray } from '../components/RealisticFloralDecor';
+import { FloralCardAccent, FloralDecorLayer, RealisticFloralSpray, WatercolorEucalyptusBranch, normalizeFloralStyle } from '../components/RealisticFloralDecor';
+import { getFloralDecorConfig } from '../lib/floralConfig';
 
 // ── Ornament floral SVG inline ────────────────────────────────────────────────
 
@@ -50,7 +51,7 @@ function MonogramCard({ initial1, initial2, subtitle, names }: {
   initial1: string; initial2: string; subtitle: string; names: string;
 }) {
   const config = useConfig() as WeddingConfig;
-  const cardDecorEnabled = config.envelope_floral_decor_enabled !== false && config.envelope_floral_card_decor_enabled !== false;
+  const floral = getFloralDecorConfig(config, 'envelope_floral');
 
   return (
     <div
@@ -63,9 +64,9 @@ function MonogramCard({ initial1, initial2, subtitle, names }: {
       }}
     >
       <FloralCardAccent
-        enabled={cardDecorEnabled}
-        styleKey={config.envelope_floral_decor_style}
-        opacity={config.envelope_floral_decor_opacity}
+        enabled={floral.enabled && floral.cardDecorEnabled}
+        styleKey={floral.style}
+        opacity={floral.opacity}
         corner="top-right"
       />
       {/* Ornamento diagonal SVG */}
@@ -119,7 +120,7 @@ function MonogramCard({ initial1, initial2, subtitle, names }: {
 
 function DateCard({ displayDate, time }: { displayDate: string; time?: string }) {
   const config = useConfig() as WeddingConfig;
-  const cardDecorEnabled = config.envelope_floral_decor_enabled !== false && config.envelope_floral_card_decor_enabled !== false;
+  const floral = getFloralDecorConfig(config, 'envelope_floral');
   const parts = displayDate.split(',');
   const dayLine = parts[0]?.trim() ?? displayDate;
   const dateLine = parts.slice(1).join(',').trim();
@@ -135,9 +136,9 @@ function DateCard({ displayDate, time }: { displayDate: string; time?: string })
       }}
     >
       <FloralCardAccent
-        enabled={cardDecorEnabled}
-        styleKey={config.envelope_floral_decor_style}
-        opacity={config.envelope_floral_decor_opacity}
+        enabled={floral.enabled && floral.cardDecorEnabled}
+        styleKey={floral.style}
+        opacity={floral.opacity}
         corner="bottom-left"
       />
 
@@ -172,7 +173,7 @@ function DateCard({ displayDate, time }: { displayDate: string; time?: string })
 
 function EnvelopeFloralCard({ color }: { color: string }) {
   const config = useConfig() as WeddingConfig;
-  const cardDecorEnabled = config.envelope_floral_decor_enabled !== false && config.envelope_floral_card_decor_enabled !== false;
+  const floral = getFloralDecorConfig(config, 'envelope_floral');
 
   return (
     <div
@@ -186,12 +187,16 @@ function EnvelopeFloralCard({ color }: { color: string }) {
     >
       {/* Floral saliendo del sobre */}
       <div className="absolute -top-8 left-0 right-0 w-full opacity-90" style={{ height: 160 }}>
-        <RealisticFloralSpray className="w-full h-full" opacity={config.envelope_floral_decor_opacity ?? 0.68} />
+        {normalizeFloralStyle(floral.style) === 'watercolor-eucalyptus' ? (
+          <WatercolorEucalyptusBranch className="w-full h-full" opacity={floral.opacity} />
+        ) : (
+          <RealisticFloralSpray className="w-full h-full" opacity={floral.opacity} />
+        )}
       </div>
       <FloralCardAccent
-        enabled={cardDecorEnabled}
-        styleKey={config.envelope_floral_decor_style}
-        opacity={config.envelope_floral_decor_opacity}
+        enabled={floral.enabled && floral.cardDecorEnabled}
+        styleKey={floral.style}
+        opacity={floral.opacity}
         corner="bottom-right"
         className="w-24"
       />
@@ -269,6 +274,7 @@ function CountdownBadge({ days, hours, minutes, seconds, label, color }: {
 
 export default function CollageHero() {
   const config = useConfig() as WeddingConfig & Record<string, unknown>;
+  const floral = getFloralDecorConfig(config, 'envelope_floral');
   const countdown = useCountdown(config.dates.ceremony);
 
   const names        = config.couple.displayNames ?? `${config.couple.person1.firstName} & ${config.couple.person2.firstName}`;
@@ -301,10 +307,10 @@ export default function CollageHero() {
     >
       {/* Transición curva superior */}
       <FloralDecorLayer
-        enabled={config.envelope_floral_decor_enabled as boolean | undefined}
-        styleKey={config.envelope_floral_decor_style as string | undefined}
-        density={config.envelope_floral_decor_density as string | undefined}
-        opacity={config.envelope_floral_decor_opacity as number | undefined}
+        enabled={floral.enabled}
+        styleKey={floral.style}
+        density={floral.density}
+        opacity={floral.opacity}
         zone="content"
       />
       <div className="absolute top-0 left-0 right-0 overflow-hidden" style={{ height: 60 }}>

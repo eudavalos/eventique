@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useConfig } from '../context/ConfigContext';
 import type { WeddingConfig } from '../types';
 import { FloralCardAccent, FloralDecorLayer } from '../components/RealisticFloralDecor';
+import { getFloralDecorConfig } from '../lib/floralConfig';
 
 // ── SVG: sello de cera dorado ─────────────────────────────────────────────────
 
@@ -48,14 +49,14 @@ function WaxSeal({ size = 80 }: { size?: number }) {
 
 function EnvelopeSVG({ opened, color }: { opened: boolean; color: string }) {
   const config = useConfig() as WeddingConfig;
-  const cardDecorEnabled = config.envelope_floral_decor_enabled !== false && config.envelope_floral_card_decor_enabled !== false;
+  const floral = getFloralDecorConfig(config, 'envelope_floral');
 
   return (
     <div className="relative w-full" style={{ maxWidth: 320 }}>
       <FloralCardAccent
-        enabled={cardDecorEnabled}
-        styleKey={config.envelope_floral_decor_style}
-        opacity={config.envelope_floral_decor_opacity}
+        enabled={floral.enabled && floral.cardDecorEnabled}
+        styleKey={floral.style}
+        opacity={floral.opacity}
         corner="top-right"
         className="z-10"
       />
@@ -90,6 +91,7 @@ interface EnvelopeHeroProps {
 
 export default function EnvelopeHero({ onOpen }: EnvelopeHeroProps) {
   const config = useConfig() as WeddingConfig & Record<string, unknown>;
+  const floral = getFloralDecorConfig(config, 'envelope_floral');
   const [opened, setOpened] = useState(false);
 
   const openingText  = (config.envelope_opening_text as string | undefined) ?? 'Empieza una nueva etapa en nuestras vidas';
@@ -124,10 +126,10 @@ export default function EnvelopeHero({ onOpen }: EnvelopeHeroProps) {
       />
 
       <FloralDecorLayer
-        enabled={config.envelope_floral_decor_enabled as boolean | undefined}
-        styleKey={config.envelope_floral_decor_style as string | undefined}
-        density={config.envelope_floral_decor_density as string | undefined}
-        opacity={config.envelope_floral_decor_opacity as number | undefined}
+        enabled={floral.enabled}
+        styleKey={floral.style}
+        density={floral.density}
+        opacity={floral.opacity}
         zone="hero"
       />
 
@@ -136,7 +138,7 @@ export default function EnvelopeHero({ onOpen }: EnvelopeHeroProps) {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-        className="text-center px-8 mb-10 z-10"
+        className="relative z-10 text-center px-8 mb-10"
       >
         <p
           className="font-body uppercase tracking-[0.28em] text-xs mb-4"
@@ -163,7 +165,7 @@ export default function EnvelopeHero({ onOpen }: EnvelopeHeroProps) {
         initial={{ opacity: 0, scale: 0.92, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.5 }}
-        className="z-10 cursor-pointer relative px-8"
+        className="relative z-10 cursor-pointer px-8"
         style={{ maxWidth: 340, width: '100%' }}
         onClick={handleTap}
       >
@@ -210,7 +212,7 @@ export default function EnvelopeHero({ onOpen }: EnvelopeHeroProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.9 }}
-        className="z-10 mt-10 font-heading italic"
+        className="relative z-10 mt-10 font-heading italic"
         style={{
           fontSize: 'clamp(2rem, 8vw, 3rem)',
           color: 'var(--color-text)',

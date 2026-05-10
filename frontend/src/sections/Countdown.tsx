@@ -3,6 +3,8 @@ import { useCountdown } from '../hooks/useCountdown';
 import { useConfig } from '../context/ConfigContext';
 import AnimatedSection from '../components/AnimatedSection';
 import { OrnamentDivider, OrnamentFloral } from '../components/Ornament';
+import { FloralDecorLayer } from '../components/RealisticFloralDecor';
+import { getFloralDecorConfig } from '../lib/floralConfig';
 import { pad } from '../lib/utils';
 
 const units = [
@@ -18,6 +20,7 @@ export default function Countdown() {
   const countdown = useCountdown(dates.ceremony);
   const label = sections.countdown.label ?? 'Faltan para el gran día';
   const lang = config.theme.language;
+  const floral = getFloralDecorConfig(config);
 
   return (
     <div className="section-padding relative overflow-hidden" style={{ background: 'var(--color-secondary)' }}>
@@ -25,6 +28,13 @@ export default function Countdown() {
       <OrnamentFloral
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30"
         size={300}
+      />
+      <FloralDecorLayer
+        enabled={floral.enabled}
+        styleKey={floral.style}
+        density={floral.density}
+        opacity={floral.opacity}
+        zone="section"
       />
 
       <div className="relative z-10 max-w-4xl mx-auto text-center">

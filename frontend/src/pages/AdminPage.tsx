@@ -18,6 +18,7 @@ import { config as staticConfig } from '../config/wedding';
 import { applyTheme } from '../lib/theme';
 import { setFavicon } from '../lib/favicon';
 import { getRecommendedPalettes } from '../lib/palettesByEventType';
+import { FLORAL_STYLE_OPTIONS } from '../components/RealisticFloralDecor';
 import type { PaletteKey, InvitationSkin, EventType, EventInfo, MediaFile, StoryEvent, ScheduleItem, FAQItem, GalleryPhoto, MusicTrack, WeddingPartyMember, Hotel, PartySide, GuestInvitation, GuestInvitationCreate, GuestStats, CSVImportPreview, InvitationAuditEntry, InvitationStatus, GuestType } from '../types';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -684,6 +685,11 @@ export default function AdminPage() {
 
   // ── Invitation skin ───────────────────────────────────────────────────────
   const [invitationSkin, setInvitationSkin] = useState<InvitationSkin>('classic');
+  const [botanicalArtEnabled, setBotanicalArtEnabled] = useState(true);
+  const [botanicalArtStyle, setBotanicalArtStyle] = useState('watercolor-eucalyptus');
+  const [botanicalArtDensity, setBotanicalArtDensity] = useState('balanced');
+  const [botanicalArtOpacity, setBotanicalArtOpacity] = useState(0.62);
+  const [botanicalArtCardDecorEnabled, setBotanicalArtCardDecorEnabled] = useState(true);
   const [envelopeOpeningText, setEnvelopeOpeningText] = useState('');
   const [envelopeTapLabel, setEnvelopeTapLabel] = useState('');
   const [envelopeFloralDecorEnabled, setEnvelopeFloralDecorEnabled] = useState(true);
@@ -915,11 +921,16 @@ export default function AdminPage() {
 
         // Invitation skin
         setInvitationSkin(((cfg.invitation_skin as string) ?? 'classic') as InvitationSkin);
+        setBotanicalArtEnabled((cfg.botanical_art_enabled as boolean | undefined) ?? true);
+        setBotanicalArtStyle((cfg.botanical_art_style as string) ?? 'watercolor-eucalyptus');
+        setBotanicalArtDensity((cfg.botanical_art_density as string) ?? 'balanced');
+        setBotanicalArtOpacity((cfg.botanical_art_opacity as number | undefined) ?? 0.62);
+        setBotanicalArtCardDecorEnabled((cfg.botanical_art_card_decor_enabled as boolean | undefined) ?? true);
         setEnvelopeOpeningText((cfg.envelope_opening_text as string) ?? 'Empieza una nueva etapa en nuestras vidas');
         setEnvelopeTapLabel((cfg.envelope_tap_label as string) ?? 'Tocá aquí');
         setCollageCountdownLabel((cfg.collage_countdown_label as string) ?? 'Sólo Faltan');
         setEnvelopeFloralDecorEnabled((cfg.envelope_floral_decor_enabled as boolean | undefined) ?? true);
-        setEnvelopeFloralDecorStyle((cfg.envelope_floral_decor_style as string) ?? 'green-pinocchio-white-roses');
+        setEnvelopeFloralDecorStyle((cfg.envelope_floral_decor_style as string) ?? (cfg.botanical_art_style as string) ?? 'watercolor-eucalyptus');
         setEnvelopeFloralDecorDensity((cfg.envelope_floral_decor_density as string) ?? 'balanced');
         setEnvelopeFloralDecorOpacity((cfg.envelope_floral_decor_opacity as number | undefined) ?? 0.68);
         setEnvelopeFloralCardDecorEnabled((cfg.envelope_floral_card_decor_enabled as boolean | undefined) ?? true);
@@ -940,7 +951,7 @@ export default function AdminPage() {
         setPaperAccessGuestLabel((cfg.paper_access_guest_label as string) ?? 'Invitacion especial para');
         setPaperAccessPassesLabel((cfg.paper_access_passes_label as string) ?? 'Hemos reservado {passes} cupo(s) para ti.');
         setPaperFloralDecorEnabled((cfg.paper_floral_decor_enabled as boolean | undefined) ?? true);
-        setPaperFloralDecorStyle((cfg.paper_floral_decor_style as string) ?? 'green-pinocchio-white-roses');
+        setPaperFloralDecorStyle((cfg.paper_floral_decor_style as string) ?? (cfg.botanical_art_style as string) ?? 'watercolor-eucalyptus');
         setPaperFloralDecorDensity((cfg.paper_floral_decor_density as string) ?? 'balanced');
         setPaperFloralDecorOpacity((cfg.paper_floral_decor_opacity as number | undefined) ?? 0.62);
         setPaperFloralCardDecorEnabled((cfg.paper_floral_card_decor_enabled as boolean | undefined) ?? true);
@@ -1389,6 +1400,11 @@ export default function AdminPage() {
         music:  { ...(current.music  as object ?? {}), enabled: musicEnabled, autoplay: musicAutoplay, tracks: musicTracks },
         social: { hashtag: socialHashtag || undefined, instagram: socialInstagram || undefined },
         invitation_skin: invitationSkin,
+        botanical_art_enabled: botanicalArtEnabled,
+        botanical_art_style: botanicalArtStyle,
+        botanical_art_density: botanicalArtDensity,
+        botanical_art_opacity: botanicalArtOpacity,
+        botanical_art_card_decor_enabled: botanicalArtCardDecorEnabled,
         envelope_opening_text: envelopeOpeningText || undefined,
         envelope_tap_label: envelopeTapLabel || undefined,
         envelope_floral_decor_enabled: envelopeFloralDecorEnabled,
@@ -4214,6 +4230,70 @@ export default function AdminPage() {
                 ))}
               </div>
 
+              <div className="rounded-lg p-4 mb-6" style={{ background: 'var(--color-secondary)', border: '1px solid var(--color-border)' }}>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-body text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+                      Imagenes botanicas globales
+                    </p>
+                    <p className="font-body text-xs mt-1 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+                      Ramas tipo acuarela, flores y ornamentos para todas las plantillas. Cada skin puede heredar estos valores o especializarlos abajo.
+                    </p>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={botanicalArtEnabled}
+                      onChange={e => setBotanicalArtEnabled(e.target.checked)}
+                      className="w-4 h-4 accent-primary"
+                    />
+                    <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Mostrar imagenes</span>
+                  </label>
+                </div>
+
+                {botanicalArtEnabled && (
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-4">
+                    <div>
+                      <label className="input-label">Estilo visual</label>
+                      <select value={botanicalArtStyle} onChange={e => setBotanicalArtStyle(e.target.value)} className="input-field">
+                        {FLORAL_STYLE_OPTIONS.map(option => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="input-label">Densidad</label>
+                      <select value={botanicalArtDensity} onChange={e => setBotanicalArtDensity(e.target.value)} className="input-field">
+                        <option value="subtle">Sutil</option>
+                        <option value="balanced">Equilibrada</option>
+                        <option value="lush">Abundante</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="input-label">Opacidad ({Math.round(botanicalArtOpacity * 100)}%)</label>
+                      <input
+                        type="range"
+                        min="0.25"
+                        max="0.9"
+                        step="0.01"
+                        value={botanicalArtOpacity}
+                        onChange={e => setBotanicalArtOpacity(Number(e.target.value))}
+                        className="w-full accent-primary"
+                      />
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer pt-6">
+                      <input
+                        type="checkbox"
+                        checked={botanicalArtCardDecorEnabled}
+                        onChange={e => setBotanicalArtCardDecorEnabled(e.target.checked)}
+                        className="w-4 h-4 accent-primary"
+                      />
+                      <span className="font-body text-sm" style={{ color: 'var(--color-text)' }}>Decorar cards</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+
               {/* Campos del skin Envelope */}
               {invitationSkin === 'envelope' && (
                 <div className="space-y-4 pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
@@ -4264,7 +4344,9 @@ export default function AdminPage() {
                         <div>
                           <label className="input-label">Estilo floral</label>
                           <select value={envelopeFloralDecorStyle} onChange={e => setEnvelopeFloralDecorStyle(e.target.value)} className="input-field">
-                            <option value="green-pinocchio-white-roses">Pinoquio verde + rosas blancas</option>
+                            {FLORAL_STYLE_OPTIONS.map(option => (
+                              <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
                           </select>
                         </div>
                         <div>
@@ -4413,7 +4495,9 @@ export default function AdminPage() {
                             onChange={e => setPaperFloralDecorStyle(e.target.value)}
                             className="input-field"
                           >
-                            <option value="green-pinocchio-white-roses">Pinoquio verde + rosas blancas</option>
+                            {FLORAL_STYLE_OPTIONS.map(option => (
+                              <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
                           </select>
                         </div>
                         <div>

@@ -3,10 +3,14 @@ import { MapPin, Clock, Shirt, Info, ExternalLink } from 'lucide-react';
 import { useConfig } from '../context/ConfigContext';
 import AnimatedSection from '../components/AnimatedSection';
 import { OrnamentDivider, OrnamentLeaf } from '../components/Ornament';
+import { FloralCardAccent, FloralDecorLayer } from '../components/RealisticFloralDecor';
 import { getVenueMapsUrl } from '../lib/maps';
+import { getFloralDecorConfig } from '../lib/floralConfig';
 import type { Venue } from '../types';
 
 function VenueCard({ venue, label, delay = 0 }: { venue: Venue; label: string; delay?: number }) {
+  const config = useConfig();
+  const floral = getFloralDecorConfig(config);
   const mapsHref = getVenueMapsUrl(venue);
 
   return (
@@ -15,8 +19,14 @@ function VenueCard({ venue, label, delay = 0 }: { venue: Venue; label: string; d
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
-      className="card group flex flex-col"
+      className="card group flex flex-col relative overflow-hidden"
     >
+      <FloralCardAccent
+        enabled={floral.enabled && floral.cardDecorEnabled}
+        styleKey={floral.style}
+        opacity={floral.opacity}
+        corner="top-right"
+      />
       {/* Photo */}
       <div className="aspect-[4/3] overflow-hidden">
         {venue.photo ? (
@@ -95,10 +105,18 @@ export default function Venues() {
   const { venues } = config;
   const sameVenue = venues.sameVenue;
   const title = config.venuesTitle ?? 'Los Recintos';
+  const floral = getFloralDecorConfig(config);
 
   return (
-    <div className="section-padding" style={{ background: 'var(--color-secondary)' }}>
-      <div className="max-w-5xl mx-auto">
+    <div className="section-padding relative overflow-hidden" style={{ background: 'var(--color-secondary)' }}>
+      <FloralDecorLayer
+        enabled={floral.enabled}
+        styleKey={floral.style}
+        density={floral.density}
+        opacity={floral.opacity}
+        zone="section"
+      />
+      <div className="max-w-5xl mx-auto relative z-10">
         <AnimatedSection className="text-center mb-14">
           <h2 className="section-title">{title}</h2>
           <OrnamentDivider />

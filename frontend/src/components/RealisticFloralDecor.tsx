@@ -1,10 +1,16 @@
+import { useId } from 'react';
 import type { ReactNode } from 'react';
 
 type FloralDensity = 'subtle' | 'balanced' | 'lush';
 type FloralZone = 'hero' | 'content' | 'section';
 type CardCorner = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+type FloralStyle = 'green-pinocchio-white-roses' | 'watercolor-eucalyptus';
 
-const SUPPORTED_STYLE = 'green-pinocchio-white-roses';
+const DEFAULT_STYLE: FloralStyle = 'watercolor-eucalyptus';
+export const FLORAL_STYLE_OPTIONS: Array<{ value: FloralStyle; label: string }> = [
+  { value: 'watercolor-eucalyptus', label: 'Acuarela eucalipto' },
+  { value: 'green-pinocchio-white-roses', label: 'Pinoquio verde + rosas blancas' },
+];
 
 const LAYER_PLACEMENTS: Record<FloralDensity, Record<FloralZone, string[]>> = {
   subtle: {
@@ -40,8 +46,8 @@ export function normalizeFloralOpacity(value: number | undefined): number {
   return Math.min(0.9, Math.max(0.25, value));
 }
 
-function isSupportedStyle(value: string | undefined): boolean {
-  return (value ?? SUPPORTED_STYLE) === SUPPORTED_STYLE;
+export function normalizeFloralStyle(value: string | undefined): FloralStyle {
+  return FLORAL_STYLE_OPTIONS.some((option) => option.value === value) ? (value as FloralStyle) : DEFAULT_STYLE;
 }
 
 function RoseBloom({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) {
@@ -188,6 +194,115 @@ export function RealisticFloralSpray({
   );
 }
 
+export function WatercolorEucalyptusBranch({
+  className = '',
+  opacity = 0.68,
+  mirrored = false,
+}: {
+  className?: string;
+  opacity?: number;
+  mirrored?: boolean;
+}) {
+  const id = useId().replace(/:/g, '');
+
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 520 190"
+      fill="none"
+      aria-hidden="true"
+      style={{
+        opacity,
+        transform: mirrored ? 'scaleX(-1)' : undefined,
+      }}
+    >
+      <defs>
+        <linearGradient id={`${id}-stem`} x1="48" y1="130" x2="472" y2="70">
+          <stop offset="0%" stopColor="#BBD8CA" stopOpacity="0.18" />
+          <stop offset="28%" stopColor="#759F93" stopOpacity="0.74" />
+          <stop offset="66%" stopColor="#4E7D72" stopOpacity="0.72" />
+          <stop offset="100%" stopColor="#7FA99B" stopOpacity="0.2" />
+        </linearGradient>
+        <radialGradient id={`${id}-leafA`} cx="38%" cy="28%" r="76%">
+          <stop offset="0%" stopColor="#E4F0E8" stopOpacity="0.86" />
+          <stop offset="48%" stopColor="#9DC0B4" stopOpacity="0.72" />
+          <stop offset="100%" stopColor="#4D8073" stopOpacity="0.46" />
+        </radialGradient>
+        <radialGradient id={`${id}-leafB`} cx="36%" cy="28%" r="82%">
+          <stop offset="0%" stopColor="#F4F6E8" stopOpacity="0.72" />
+          <stop offset="52%" stopColor="#C4D9C7" stopOpacity="0.58" />
+          <stop offset="100%" stopColor="#7CA18B" stopOpacity="0.38" />
+        </radialGradient>
+      </defs>
+
+      <g>
+        <path
+          d="M44 134 C116 102 181 84 258 92 C337 101 405 63 481 42"
+          stroke={`url(#${id}-stem)`}
+          strokeWidth="4.2"
+          strokeLinecap="round"
+        />
+        <path d="M126 103 C104 72 94 47 93 26" stroke={`url(#${id}-stem)`} strokeWidth="2.1" strokeLinecap="round" opacity="0.58" />
+        <path d="M162 94 C143 62 139 41 144 20" stroke={`url(#${id}-stem)`} strokeWidth="2.1" strokeLinecap="round" opacity="0.58" />
+        <path d="M212 90 C196 60 195 38 203 18" stroke={`url(#${id}-stem)`} strokeWidth="2.1" strokeLinecap="round" opacity="0.58" />
+        <path d="M278 88 C292 57 300 37 316 18" stroke={`url(#${id}-stem)`} strokeWidth="2.1" strokeLinecap="round" opacity="0.58" />
+        <path d="M335 77 C358 50 375 35 398 26" stroke={`url(#${id}-stem)`} strokeWidth="2.1" strokeLinecap="round" opacity="0.58" />
+        <path d="M390 63 C420 48 445 38 476 30" stroke={`url(#${id}-stem)`} strokeWidth="2.1" strokeLinecap="round" opacity="0.52" />
+
+        {[
+          [96, 38, -38, 42, 17, 'A'],
+          [134, 55, -29, 52, 20, 'A'],
+          [176, 36, -24, 50, 19, 'B'],
+          [220, 42, -12, 55, 20, 'A'],
+          [303, 36, 30, 48, 18, 'B'],
+          [354, 40, 36, 54, 20, 'A'],
+          [420, 36, 26, 55, 20, 'A'],
+          [456, 64, 10, 45, 17, 'B'],
+          [158, 124, 20, 48, 18, 'B'],
+          [251, 126, 12, 54, 20, 'A'],
+          [336, 112, -16, 46, 17, 'B'],
+        ].map(([cx, cy, rotate, rx, ry, variant]) => (
+          <ellipse
+            key={`${cx}-${cy}`}
+            cx={cx as number}
+            cy={cy as number}
+            rx={rx as number}
+            ry={ry as number}
+            fill={`url(#${id}-leaf${variant})`}
+            transform={`rotate(${rotate} ${cx} ${cy})`}
+          />
+        ))}
+
+        <path
+          d="M44 134 C111 114 188 105 260 116 C337 126 410 90 489 70"
+          stroke="#D7ECE2"
+          strokeWidth="18"
+          strokeLinecap="round"
+          opacity="0.16"
+        />
+      </g>
+    </svg>
+  );
+}
+
+function FloralArtwork({
+  styleKey,
+  className = '',
+  opacity = 0.68,
+  index = 0,
+}: {
+  styleKey?: string;
+  className?: string;
+  opacity?: number;
+  index?: number;
+}) {
+  const style = normalizeFloralStyle(styleKey);
+  if (style === 'watercolor-eucalyptus') {
+    return <WatercolorEucalyptusBranch className={className} opacity={opacity} mirrored={index % 2 === 1} />;
+  }
+  return <RealisticFloralSpray className={className} opacity={opacity} />;
+}
+
 export function FloralDecorLayer({
   enabled,
   styleKey,
@@ -201,14 +316,19 @@ export function FloralDecorLayer({
   opacity?: number;
   zone?: FloralZone;
 }) {
-  if (enabled === false || !isSupportedStyle(styleKey)) return null;
+  if (enabled === false) return null;
   const resolvedDensity = normalizeFloralDensity(density);
   const resolvedOpacity = normalizeFloralOpacity(opacity);
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+    <div
+      className="absolute inset-0 pointer-events-none overflow-hidden"
+      aria-hidden="true"
+      data-floral-layer={zone}
+      data-floral-style={normalizeFloralStyle(styleKey)}
+    >
       {LAYER_PLACEMENTS[resolvedDensity][zone].map((className, index) => (
-        <RealisticFloralSpray key={`${zone}-${index}`} className={className} opacity={resolvedOpacity} />
+        <FloralArtwork key={`${zone}-${index}`} styleKey={styleKey} className={className} opacity={resolvedOpacity} index={index} />
       ))}
     </div>
   );
@@ -227,9 +347,10 @@ export function FloralCardAccent({
   corner?: CardCorner;
   className?: string;
 }) {
-  if (enabled === false || !isSupportedStyle(styleKey)) return null;
+  if (enabled === false) return null;
   return (
-    <RealisticFloralSpray
+    <FloralArtwork
+      styleKey={styleKey}
       className={`absolute w-28 pointer-events-none ${CARD_CORNER_CLASS[corner]} ${className}`}
       opacity={Math.min(0.9, normalizeFloralOpacity(opacity) + 0.05)}
     />

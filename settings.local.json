@@ -1,16 +1,16 @@
 ﻿{
   "session_protocol": {
     "last_session_date": "2026-05-10",
-    "last_session_topic": "stable-maps-links-all-skins",
-    "last_commit": "fix-stable-maps-links-all-skins",
+    "last_session_topic": "botanical-art-skins",
+    "last_commit": "feat-botanical-art-skins",
     "test_count_baseline": 57,
     "test_suite_file": "docs/test_suite.py",
     "test_suite_command": "python3 ~/Boda/docs/test_suite.py --base-url http://localhost:5176/api --token <ADMIN_TOKEN>",
     "test_suite_categories": ["Conectividad", "Seguridad", "Eventos", "Config", "RSVP", "Invitados", "Seguridad Avanzada", "CSV", "Cleanup"],
     "test_suite_result_last_run": "57/57 — 100% en Pi",
     "pending_issue": null,
-    "last_session_memory_file": "memory/session_2026_05_10_stable_maps_links_all_skins.md",
-    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_10_stable_maps_links_all_skins.md",
+    "last_session_memory_file": "memory/session_2026_05_10_botanical_art_skins.md",
+    "last_external_memory_file": "C:/Users/EuDavalos/.claude/projects/D--Proyectos-Eventos-Boda/memory/session_2026_05_10_botanical_art_skins.md",
     "git_workflow": {
       "initialized": true,
       "remote": "https://github.com/eudavalos/eventique",
@@ -217,6 +217,32 @@
       "reception": "https://www.google.com/maps/place/Caba%C3%B1as+Kyha+Raity/@-25.7425283,-57.2826391,17z/data=!4m6!3m5!1s0x945c150016f1204f:0xf5bf82146435f11a!8m2!3d-25.7425284!4d-57.2777682!16s%2Fg%2F11w30dxj_2"
     },
     "pi_validation": "frontend healthy; docs/test_suite.py 57/57; Playwright mobile anchors contain google.com/maps/place and no dynamic links"
+  },
+
+  "botanical_art_skins": {
+    "updated_on": "2026-05-10",
+    "event_slug": "boda-conce-eume",
+    "global_config_keys": [
+      "botanical_art_enabled",
+      "botanical_art_style",
+      "botanical_art_density",
+      "botanical_art_opacity",
+      "botanical_art_card_decor_enabled"
+    ],
+    "styles_supported": ["watercolor-eucalyptus", "green-pinocchio-white-roses"],
+    "default_style": "watercolor-eucalyptus",
+    "helper": "frontend/src/lib/floralConfig.ts",
+    "renderer": "frontend/src/components/RealisticFloralDecor.tsx",
+    "admin_location": "Admin -> Secciones -> Skin de Invitacion -> Imagenes botanicas globales",
+    "skins_updated": ["classic", "envelope", "paper-access", "amorea"],
+    "production_config": {
+      "botanical_art_style": "watercolor-eucalyptus",
+      "botanical_art_density": "lush",
+      "botanical_art_opacity": 0.72,
+      "envelope_floral_decor_style": "watercolor-eucalyptus",
+      "paper_floral_decor_style": "watercolor-eucalyptus"
+    },
+    "pi_validation": "frontend healthy; docs/test_suite.py 57/57; CDP screenshot active personalized link shows watercolor eucalyptus without blocking text/CTA; DOM reports 3 layers"
   },
 
   "theme": {

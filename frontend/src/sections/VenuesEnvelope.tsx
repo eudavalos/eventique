@@ -4,6 +4,7 @@ import { useConfig } from '../context/ConfigContext';
 import type { WeddingConfig } from '../types';
 import { FloralCardAccent, FloralDecorLayer } from '../components/RealisticFloralDecor';
 import { getVenueMapsUrl } from '../lib/maps';
+import { getFloralDecorConfig } from '../lib/floralConfig';
 
 // ── SVG Icons ─────────────────────────────────────────────────────────────────
 
@@ -86,7 +87,7 @@ function VenueBlock({ icon, label, name, address, city, country, mapsUrl, index 
   index: number;
 }) {
   const config = useConfig() as WeddingConfig;
-  const cardDecorEnabled = config.envelope_floral_decor_enabled !== false && config.envelope_floral_card_decor_enabled !== false;
+  const floral = getFloralDecorConfig(config, 'envelope_floral');
   const IconComp = ICON_MAP[icon] ?? ChurchIcon;
   const mapsHref = getVenueMapsUrl({ name, address, city, country, mapsUrl: mapsUrl ?? '' });
 
@@ -103,9 +104,9 @@ function VenueBlock({ icon, label, name, address, city, country, mapsUrl, index 
         className="relative"
       >
         <FloralCardAccent
-          enabled={cardDecorEnabled}
-          styleKey={config.envelope_floral_decor_style}
-          opacity={config.envelope_floral_decor_opacity}
+          enabled={floral.enabled && floral.cardDecorEnabled}
+          styleKey={floral.style}
+          opacity={floral.opacity}
           corner={index === 0 ? 'top-right' : 'top-left'}
           className="w-24"
         />
@@ -213,6 +214,7 @@ function VenueScrollNext({ label, onScroll }: { label: string; onScroll: () => v
 
 export default function VenuesEnvelope() {
   const config = useConfig() as WeddingConfig & Record<string, unknown>;
+  const floral = getFloralDecorConfig(config, 'envelope_floral');
   const receptionRef = useRef<HTMLDivElement>(null);
 
   const ceremonyLabel  = (config.venues_ceremony_label  as string | undefined) ?? 'Ceremonia';
@@ -242,10 +244,10 @@ export default function VenuesEnvelope() {
       />
 
       <FloralDecorLayer
-        enabled={config.envelope_floral_decor_enabled as boolean | undefined}
-        styleKey={config.envelope_floral_decor_style as string | undefined}
-        density={config.envelope_floral_decor_density as string | undefined}
-        opacity={config.envelope_floral_decor_opacity as number | undefined}
+        enabled={floral.enabled}
+        styleKey={floral.style}
+        density={floral.density}
+        opacity={floral.opacity}
         zone="section"
       />
 

@@ -6,6 +6,8 @@ import { useGuest } from '../context/GuestContext';
 import { useCountdown } from '../hooks/useCountdown';
 import { requestMusicPlaybackWithOpen } from '../lib/musicPlayerEvents';
 import { getVenueMapsUrl } from '../lib/maps';
+import { getFloralDecorConfig } from '../lib/floralConfig';
+import { FloralCardAccent, FloralDecorLayer } from '../components/RealisticFloralDecor';
 import GiftRegistry from './GiftRegistry';
 import RSVP from './RSVP';
 import Footer from './Footer';
@@ -258,20 +260,29 @@ function ScallopedCalendarBadge({ config }: { config: WeddingConfig }) {
 // ── Card wrapper ──────────────────────────────────────────────────────────────
 
 function AmoreaCard({ children, className = '', greenBg = false }: { children: React.ReactNode; className?: string; greenBg?: boolean }) {
+  const config = useConfig() as WeddingConfig;
+  const floral = getFloralDecorConfig(config);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-      className={`rounded-2xl overflow-hidden ${className}`}
+      className={`relative rounded-2xl overflow-hidden ${className}`}
       style={{
         background: greenBg ? 'var(--color-primary)' : 'var(--color-surface)',
         border: greenBg ? 'none' : '1px solid var(--color-border)',
         boxShadow: '0 12px 40px rgba(0,0,0,0.08)',
       }}
     >
-      {children}
+      <FloralCardAccent
+        enabled={!greenBg && floral.enabled && floral.cardDecorEnabled}
+        styleKey={floral.style}
+        opacity={floral.opacity}
+        corner="top-right"
+      />
+      <div className="relative z-10">{children}</div>
     </motion.div>
   );
 }
@@ -584,6 +595,7 @@ function AmoreaRSVPSection({ config }: { config: WeddingConfig }) {
 
 export default function AmoreaSkin() {
   const config = useConfig() as WeddingConfig;
+  const floral = getFloralDecorConfig(config);
   const contentRef = useRef<HTMLDivElement>(null);
   const { couple, venues } = config;
 
@@ -614,6 +626,13 @@ export default function AmoreaSkin() {
             backgroundImage: `linear-gradient(rgba(62,123,87,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(62,123,87,0.04) 1px, transparent 1px)`,
             backgroundSize: '28px 28px',
           }}
+        />
+        <FloralDecorLayer
+          enabled={floral.enabled}
+          styleKey={floral.style}
+          density={floral.density}
+          opacity={floral.opacity}
+          zone="hero"
         />
 
         <div className="relative z-10 max-w-sm mx-auto w-full text-center">
@@ -691,6 +710,13 @@ export default function AmoreaSkin() {
 
       {/* ── Content section ── */}
       <div ref={contentRef} className="relative px-5 pb-20" style={{ background: 'var(--color-bg)' }}>
+        <FloralDecorLayer
+          enabled={floral.enabled}
+          styleKey={floral.style}
+          density={floral.density}
+          opacity={floral.opacity}
+          zone="content"
+        />
         {/* Calla lilies at top of content */}
         <div className="-mx-5 mb-2 opacity-60">
           <CallaLiliesTop opacity={0.55} />

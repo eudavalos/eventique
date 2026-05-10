@@ -181,6 +181,20 @@ ssh eudavalos@raspberrypi "curl -s http://localhost:8700/health"
 - Produccion `boda-conce-eume` usa URLs finales `google.com/maps/place/...` para ceremonia y recepcion.
 - Validacion Pi: frontend healthy, suite `57/57`, Playwright mobile confirma anchors sin `maps.app.goo.gl` ni `goo.gl/app/maps`.
 
+### Decisiones persistentes Botanical Art Skins (2026-05-10)
+
+- Las imagenes botanicas de invitacion se implementan como SVG nativo parametrizable, no como imagen copiada de referencias externas.
+- Configuracion global persistente:
+  - `botanical_art_enabled`
+  - `botanical_art_style`
+  - `botanical_art_density`
+  - `botanical_art_opacity`
+  - `botanical_art_card_decor_enabled`
+- Estilos soportados: `watercolor-eucalyptus` y `green-pinocchio-white-roses`.
+- Los skins Envelope y Paper Access pueden especializar con sus claves existentes, pero deben heredar desde la configuracion global cuando no haya override.
+- Aplicacion actual: Classic, Envelope, Paper Access y Amorea.
+- Validacion Pi: build frontend OK, contenedores healthy, suite `57/57`, screenshot/CDP confirma 3 capas `watercolor-eucalyptus` visibles sin tapar texto/CTA.
+
 ---
 
 ## Thresholds — Política de parametrización

@@ -10,6 +10,7 @@ import RSVP from './RSVP';
 import Footer from './Footer';
 import type { Venue, WeddingConfig } from '../types';
 import { getVenueMapsUrl } from '../lib/maps';
+import { getFloralDecorConfig } from '../lib/floralConfig';
 import { requestMusicPlaybackWithOpen } from '../lib/musicPlayerEvents';
 import { FloralCardAccent, FloralDecorLayer } from '../components/RealisticFloralDecor';
 
@@ -94,7 +95,7 @@ function PaperEnvelope({ label, onOpen }: { label: string; onOpen: () => void })
 
 function DetailCard({ children, className = '' }: { children: ReactNode; className?: string }) {
   const config = useConfig() as WeddingConfig;
-  const cardDecorEnabled = config.paper_floral_decor_enabled !== false && config.paper_floral_card_decor_enabled !== false;
+  const floral = getFloralDecorConfig(config, 'paper_floral');
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -109,9 +110,9 @@ function DetailCard({ children, className = '' }: { children: ReactNode; classNa
       }}
     >
       <FloralCardAccent
-        enabled={cardDecorEnabled}
-        styleKey={config.paper_floral_decor_style}
-        opacity={config.paper_floral_decor_opacity}
+        enabled={floral.enabled && floral.cardDecorEnabled}
+        styleKey={floral.style}
+        opacity={floral.opacity}
         corner="top-right"
       />
       {children}
@@ -306,6 +307,7 @@ function CountdownPaperCard({ config }: { config: WeddingConfig }) {
 
 export default function PaperAccessSkin() {
   const config = useConfig() as WeddingConfig;
+  const floral = getFloralDecorConfig(config, 'paper_floral');
   const contentRef = useRef<HTMLDivElement>(null);
   const names = config.couple.displayNames ?? `${config.couple.person1.firstName} & ${config.couple.person2.firstName}`;
   const locationButtonLabel = cfgText(config, 'paper_location_button_label');
@@ -319,10 +321,10 @@ export default function PaperAccessSkin() {
       <section className="relative min-h-screen flex items-center overflow-hidden px-5 py-16">
         <PaperTexture />
         <FloralDecorLayer
-          enabled={config.paper_floral_decor_enabled}
-          styleKey={config.paper_floral_decor_style}
-          density={config.paper_floral_decor_density}
-          opacity={config.paper_floral_decor_opacity}
+          enabled={floral.enabled}
+          styleKey={floral.style}
+          density={floral.density}
+          opacity={floral.opacity}
           zone="hero"
         />
 
@@ -358,10 +360,10 @@ export default function PaperAccessSkin() {
       <div ref={contentRef} className="relative px-5 pb-16">
         <PaperTexture />
         <FloralDecorLayer
-          enabled={config.paper_floral_decor_enabled}
-          styleKey={config.paper_floral_decor_style}
-          density={config.paper_floral_decor_density}
-          opacity={config.paper_floral_decor_opacity}
+          enabled={floral.enabled}
+          styleKey={floral.style}
+          density={floral.density}
+          opacity={floral.opacity}
           zone="content"
         />
         <div className="relative z-10 max-w-md mx-auto space-y-6">

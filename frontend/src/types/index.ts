@@ -270,6 +270,11 @@ export interface WeddingConfig {
   personalized_rsvp_confirmed_body_declined?: string;
   // ── Invitation skin ────────────────────────────────────────────────────────
   invitation_skin?: InvitationSkin;
+  botanical_art_enabled?: boolean;
+  botanical_art_style?: string;
+  botanical_art_density?: string;
+  botanical_art_opacity?: number;
+  botanical_art_card_decor_enabled?: boolean;
   // ── Envelope skin: EnvelopeHero section ───────────────────────────────────
   envelope_opening_text?: string;
   envelope_tap_label?: string;

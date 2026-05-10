@@ -3,6 +3,8 @@ import { ChevronDown, Sparkles } from 'lucide-react';
 import { useConfig } from '../context/ConfigContext';
 import { useGuest } from '../context/GuestContext';
 import { OrnamentRings } from '../components/Ornament';
+import { FloralDecorLayer } from '../components/RealisticFloralDecor';
+import { getFloralDecorConfig } from '../lib/floralConfig';
 
 export default function Hero() {
   const config = useConfig();
@@ -11,6 +13,7 @@ export default function Hero() {
   const { hero } = sections;
   const names = couple.displayNames ?? `${couple.person1.firstName} & ${couple.person2.firstName}`;
   const overlayOpacity = hero.overlayOpacity ?? 0.45;
+  const floral = getFloralDecorConfig(config);
 
   const { scrollY } = useScroll();
   const bgY = useTransform(scrollY, [0, 600], [0, 120]);
@@ -48,6 +51,14 @@ export default function Hero() {
         style={{
           background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.3) 100%)',
         }}
+      />
+
+      <FloralDecorLayer
+        enabled={floral.enabled}
+        styleKey={floral.style}
+        density={floral.density}
+        opacity={Math.min(0.72, floral.opacity)}
+        zone="hero"
       />
 
       {/* Content */}

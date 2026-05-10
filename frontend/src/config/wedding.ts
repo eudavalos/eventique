@@ -376,6 +376,11 @@ export const config: WeddingConfig = {
   //  'paper-access' = skin papel/editorial mobile-first con acceso personalizado
   // ──────────────────────────────────────────────────────────
   invitation_skin: 'classic' as const,
+  botanical_art_enabled: true,
+  botanical_art_style: 'watercolor-eucalyptus',
+  botanical_art_density: 'balanced',
+  botanical_art_opacity: 0.62,
+  botanical_art_card_decor_enabled: true,
 
   // ── Envelope skin: sobre animado ──────────────────────────
   envelope_opening_text: 'Empieza una nueva etapa en nuestras vidas',
@@ -399,7 +404,7 @@ export const config: WeddingConfig = {
 
   // ── Envelope skin: galería polaroid ───────────────────────
   envelope_floral_decor_enabled: true,
-  envelope_floral_decor_style: 'green-pinocchio-white-roses',
+  envelope_floral_decor_style: 'watercolor-eucalyptus',
   envelope_floral_decor_density: 'balanced',
   envelope_floral_decor_opacity: 0.68,
   envelope_floral_card_decor_enabled: true,
@@ -414,7 +419,7 @@ export const config: WeddingConfig = {
   paper_access_guest_label: 'Invitacion especial para',
   paper_access_passes_label: 'Hemos reservado {passes} cupo(s) para ti.',
   paper_floral_decor_enabled: true,
-  paper_floral_decor_style: 'green-pinocchio-white-roses',
+  paper_floral_decor_style: 'watercolor-eucalyptus',
   paper_floral_decor_density: 'balanced',
   paper_floral_decor_opacity: 0.62,
   paper_floral_card_decor_enabled: true,

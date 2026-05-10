@@ -1,11 +1,12 @@
 # Eventique - Memory Index
 
-**Last Updated**: 2026-05-10 (stable maps links all skins)
+**Last Updated**: 2026-05-10 (botanical art skins)
 
 ---
 
 ## Sessions
 
+- [session_2026_05_10_botanical_art_skins.md](session_2026_05_10_botanical_art_skins.md) - Capa comun de imagenes botanicas tipo acuarela/eucalipto para Classic, Envelope, Paper Access y Amorea; controles globales en Admin; deploy Pi, suite 57/57 y validacion visual headless/CDP.
 - [session_2026_05_10_stable_maps_links_all_skins.md](session_2026_05_10_stable_maps_links_all_skins.md) - Capa comun `getVenueMapsUrl` para evitar Firebase Dynamic Links en todas las plantillas; produccion actualizada a URLs finales Google Maps; deploy Pi, suite 57/57 y validacion Playwright mobile.
 - [session_2026_05_09_mobile_venue_scroll.md](session_2026_05_09_mobile_venue_scroll.md) - Ajuste mobile para `VenuesEnvelope`: cada recinto como panel/hoja con altura util, scroll-margin, snap de proximidad, indicador entre lugares, deploy Pi y validacion Playwright mobile.
 - [session_2026_05_09_personalized_rsvp_decline_fix.md](session_2026_05_09_personalized_rsvp_decline_fix.md) - Correccion del error React #31 al rechazar RSVP personalizado: backend acepta `guest_count=0` solo si `attending=false`, frontend normaliza errores API estructurados, deploy Pi, prueba real y suite 57/57.
